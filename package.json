@@ -1,0 +1,29 @@
+{
+  "name": "betacall",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "asterisk-manager": "^0.1.16",
+    "asterisk.io": "^0.1.1",
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8clever/betacall.git"
+  },
+  "keywords": [
+    "asterisk",
+    "manager"
+  ],
+  "author": "Ivan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/8clever/betacall/issues"
+  },
+  "homepage": "https://github.com/8clever/betacall#readme"
+}
