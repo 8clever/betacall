@@ -1,0 +1,38 @@
+.cursor-pointer {
+    cursor: pointer
+}
+
+.scroll-parent {
+    height: 100%
+}
+
+.hover-secondary {
+    >:hover {
+        background: #e4e4e4a3;
+        transition: 0.3s;
+    }
+}
+
+.scroll {
+    min-height: 0px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+pre {
+    color: $pink;
+    background: $gray-100;
+    border: 1px solid $gray-200;
+    border-radius: 4px;
+    padding-bottom: 15px;
+}
+
+.react-file-reader {
+    display: inline;
+    
+}
+
+.react-file-reader-button {
+    display: inline;
+}

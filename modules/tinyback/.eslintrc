@@ -1,0 +1,25 @@
+{
+  "env": {
+      "node": true,
+      "es6": true,
+      "browser": true,
+      "mocha": true,
+      "amd": true
+  },
+  "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+  },
+  "globals": {
+      "requirejs": true
+  },
+  "extends": ["eslint:recommended"],
+  "rules":{
+    "no-console": [0],
+    "comma-dangle":[2,"never"],
+    "quotes": [0, "double"],
+    "no-unused-vars": [1, {"vars": "all", "args": "none"}],
+    "no-mixed-spaces-and-tabs": [2],
+    "no-undef": [2]
+  }
+}

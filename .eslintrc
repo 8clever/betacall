@@ -1,0 +1,42 @@
+{
+  "env": {
+      "node": true,
+      "browser": true,
+      "mocha": true,
+      "amd": true,
+      "es6": true,
+      "shared-node-browser": true
+  },
+  "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+  },
+  "ecmaFeatures": {
+        "modules": true,
+        "spread" : true,
+        "restParams" : true,
+        "jsx": true
+    },
+  "globals": {
+      "requirejs": true
+  },
+  "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended"
+    ],
+  "rules":{
+    "no-console": [0],
+    "comma-dangle":[2,"never"],
+    "quotes": [0, "double"],
+    "no-unused-vars": [1, {"vars": "all", "args": "none"}],
+    "no-mixed-spaces-and-tabs": [2],
+    "no-undef": [2],
+    "react/display-name": [0, { "ignoreTranspilerName": true }],
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off",
+    "react/no-find-dom-node": "off"
+  },
+  "plugins": [
+    "react"
+  ]
+}

@@ -1,8 +1,68 @@
 module.exports = {
+	env: "development",
+	app: {
+		wrapErrors: 1
+    },
     ami: {
-        port: 0,
-        host: "",
+        port: 5038,
+        host: "localhost",
         username: "",
         password: ""
-    }
-}
+    },
+	mongo: {
+		main: {
+			db: "betacall",
+			host: "localhost",
+			port: 27017,
+			scfg: {auto_reconnect: true, poolSize: 100},
+			ccfg: {native_parser: true, w: 1}
+		}
+	},
+	server: {
+		https: 0,
+		domain: "localhost:3000",
+		port: 3000,
+		ssl_port: false
+	},
+	monitoring: {
+		tinelic: {
+			enable: false,
+			protocol: "https",
+			host: "errbit.pushok.com",
+			id: "",
+			mode:"prod"
+		},
+		ga: {
+			enable: false,
+			id: ""
+		}
+	},
+	salt: "",
+	masterpass: "",
+	upload: {
+		fileTypes: [
+			"jpeg",
+			"png"
+		]
+	},
+	restapi:{},
+	email: {
+		enable: true,
+		sandbox: true,
+		period: "0 */5 * * * *",
+		apiKey: "",
+		fromEmail: "robot@betacall.ru",
+		fromName: "betacall",
+		smtp:{
+			host : "smtp.mandrillapp.com",
+			auth: {
+				user : "",
+				pass : ""
+			},
+			tls: {
+				rejectUnauthorized: false
+			}
+		},
+		toEmails: []
+	}
+};

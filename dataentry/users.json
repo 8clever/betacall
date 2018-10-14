@@ -1,0 +1,14 @@
+[
+	{
+		"name": "Admin",
+		"email": "admin",
+		"login": "admin1",
+		"password": "admin1",
+		"role": "admin"
+	},
+	{
+		"name": "Robot",
+		"role": "admin",
+		"_b_scheduler": 1
+	}
+]
