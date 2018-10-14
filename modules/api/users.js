@@ -73,6 +73,7 @@ module.exports.init = async function (...args) {
 				},
 				login: {
 					type: "string",
+					format: "integer",
 					required: true,
 					minLength: 2,
 					messages: {
@@ -440,10 +441,7 @@ api.loginGoogle = async function(notRequired, { profile, tz }) {
 // permissions
 api.permUserView = async function (t, p) {
 	let u = await this.getCurrentUser(t, {});
-	return (
-		u.role === __.ROLES.ROOT ||
-		u.role === __.ROLES.USER
-	);
+	return u.role === __.ROLES.ADMIN;
 }
 
 /**
@@ -452,23 +450,11 @@ api.permUserView = async function (t, p) {
 api.permUserEdit = async function (t, p) {
 	let user = await this.getCurrentUser(t, {});
 
-	// root can edit anywhere
-	if (user.role === ROLES.ROOT) return true;
+	// admin can edit anywhere
+	if (user.role === ROLES.ADMIN) return true;
 	
 	// user can edit himself
 	if (p._iduser && user._id.toString() === p._iduser.toString()) return true;
 
-	// user can edit other if is admin of channel
-	let projects = await ctx.api.project.getProjects(t, {
-		query: {
-			users: {
-				$elemMatch: {
-					_iduser: user._id,
-					role: "admin"
-				}
-			}
-		}
-	});
-
-	return !!projects.count;
+	return false;
 };

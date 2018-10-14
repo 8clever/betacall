@@ -43,7 +43,7 @@ class UserPage extends Component {
     }
 
     render() {
-        let { user, companies } = this.props;
+        let { user } = this.props;
         const i18n = new I18n(user);
 
         return (
@@ -63,7 +63,6 @@ export default async (ctx) => {
     }
 
     return ctx.res._render(UserPage, { 
-        user: u,
-        companies
+        user: u
     });
 }

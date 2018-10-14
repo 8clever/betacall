@@ -362,48 +362,20 @@ export default async (ctx) => {
         password: 0,
         tokens: 0
     };
+
     let limit = 10;
     let skip = parseInt(page) * limit;
 
-    if (user.role !== __.ROLES.ROOT) {
-        let _idusers = await api("project.getProjectsDistinct", token.get(ctx), { 
-            field: "users._iduser",
-            query: {
-                users: {
-                    $elemMatch: {
-                        role: __.PROJECT_USER_ROLES.ADMIN,
-                        _iduser: user._id
-                    }
-                }
-            } 
-        });
-
-        if (_idusers.length) {
-            query.$and = query.$and || [];
-            query.$and.push({
-                $or: [
-                    { _id: { $in: _idusers }},
-                    { role: __.ROLES.ROADMAP }
-                ]
-            });
-        } else {
-            query._id = user._id;
-        }
-    }
-
     if (text) {
-        query.$and = query.$and || [];
-        query.$and.push({
-            $or: [
-                { login: { $regex: text, $options: "gmi" }},
-                { name: { $regex: text, $options: "gmi" }},
-                { email: { $regex: text, $options: "gmi" }},
-                { role: { $regex: text, $options: "gmi" }}
-            ]
-        });
+        query.$or = [
+            { name: { $regex: text, $options: "gmi" }},
+            { role: { $regex: text, $options: "gmi" }},
+            { email: { $regex: text, $options: "gmi" }}
+        ]
     }
 
     let users = await api("users.getUsers", token.get(ctx), { query, fields, limit, skip });
+
     return ctx.res._render(Users, {
         users,
         user,
