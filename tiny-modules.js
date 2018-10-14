@@ -17,5 +17,7 @@ module.exports = [
 	
 	{name:"scheduler",require: path.join(__dirname, "/modules/api/scheduler.js")},
 
-	{name: "admin", require: path.join(__dirname, "./modules/admin")}
+	{name: "admin", require: path.join(__dirname, "./modules/admin")},
+	{name: "asterisk", require: path.join(__dirname, "./modules/asterisk")},
+	{name: "mysql", require: path.join(__dirname, "./modules/mysql")}
 ];

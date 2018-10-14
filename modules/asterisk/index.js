@@ -1,76 +1,68 @@
-const _ = require("lodash");
 const aio = require("asterisk.io");
+const __ = require("../api/__namespace");
 
-let config = _.merge(require("./config"), require("./local-config"));
-let ami = aio.ami(
-    config.ami.host,
-    config.ami.port,
-    config.ami.username,
-    config.ami.password
-);
+let api = {};
+let ami = null;
+let ctx = null;
 
-ami.on('error', function(err){
-    throw err;
-});
- 
-ami.on('ready', function(){
-    console.log(`Cennected to ${config.ami.host}`);
-    // connected && authenticated
-
-    let phoneNum = "89537471001";
-    let exten = "100";
-    let context = "call-out";
-
-    ami.action(
-        'Originate',
-        { 
-            Channel: `SIP/${phoneNum}@voip1`, 
-            Context: context, 
-            Exten: exten, 
-            Priority: '1',
-            Async: true,
-            callerID: phoneNum,
-            ActionID: "Originate Call"
-        },
-        function(data){
-            if(data.Response == 'Error'){
-                console.log('Originate', data);
-                return;
-            }
-            console.log('Originate', data.Message);
-        }
-    );
-
-    // ami.action(
-    //     "Command",
-    //     {
-    //         Command: `channel originate SIP/103 extension 89066482837@call-out`
-    //     },
-    //     function(data){
-    //         if(data.Response == 'Error'){
-    //             console.log('Command', data);
-    //             return;
-    //         }
-    //         console.log('Command', data);
-    //     }
-    // )
+module.exports.init = async function (...args) {
+    [ ctx ] = args;
+    let config = ctx.cfg;
     
-    // ami.action(
-    //     "Command",
-    //     {
-    //         Command: `sip/103 dial 89066482837@call-out1`
-    //     },
-    //     function(data){
-    //         if(data.Response == 'Error'){
-    //             console.log('Command', data);
-    //             return;
-    //         }
-    //         console.log('Command', data);
-    //     }
-    // )
+    ami = aio.ami(
+        config.ami.host,
+        config.ami.port,
+        config.ami.username,
+        config.ami.password
+    );
+    
+    await new Promise((resolve, reject) => {
+        ami.on('error', function(err){
+            reject(err);
+        });
 
-    ami.on('eventAny', function(data){
-        console.log(data)
+        ami.on('ready', function(){
+            resolve();
+        });
     });
-});
+
+    return { api };
+}
+
+/**
+ * @param p.phone
+ */
+api.call = async function(t, { phone }) {
+    let u = await ctx.api.users.getCurrentUserPublic(t, {});
+
+    if (!phone) throw new Error("Invalid phone number");
+    if (u.role !== __.ROLES.OPERATOR) throw new Error("Invalid user role");
+    
+    let exten = u.login;
+    let context = ctx.cfg.ami.context;
+    
+    return new Promise((resolve, reject) => {
+        ami.action(
+            'Originate',
+            { 
+                Channel: `SIP/${phone}@voip1`, 
+                Context: context, 
+                Exten: exten, 
+                Priority: '1',
+                Async: true,
+                callerID: phone,
+                ActionID: "service_call"
+            },
+            function(data){
+                if(data.Response === 'Error'){
+                    return reject(data);
+                }
+
+                resolve();
+            }
+        );
+    });
+}
+
+
 

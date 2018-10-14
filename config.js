@@ -7,7 +7,8 @@ module.exports = {
         port: 5038,
         host: "localhost",
         username: "",
-        password: ""
+		password: "",
+		context: ""
     },
 	mongo: {
 		main: {
