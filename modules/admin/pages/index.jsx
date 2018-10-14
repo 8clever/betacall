@@ -12,7 +12,6 @@ import {
 import {
     Jumbotron
 } from "reactstrap";
-import _ from "lodash";
 
 class AdminPage extends React.Component {
     render() {
