@@ -165,13 +165,8 @@ class SignInLayout extends React.Component {
                 <div className="mx-auto">
                     <Card>
                         <Card body>
-                            <div className="my-5 text-center">
-                                <h2>
-                                    { i18n.t("Welcome to Admin Panel.") }
-                                </h2>
-                                <h4>
-                                    { i18n.t("Please authorize you.") }
-                                </h4>
+                            <div className="text-center my-5">
+                                <img width="300" src="/call4all.jpg"></img>
                             </div>
 
                             <ClientInfo />

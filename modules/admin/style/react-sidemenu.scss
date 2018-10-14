@@ -1,11 +1,12 @@
-$sm-main-color: $cyan;
-$sm-background: darken($sm-main-color, 30%);
-$sm-color: $gray-100;
+$sm-main-color: lighten($gray-600, 4%);
+$sm-background: $gray-100;
+$sm-color: $sm-main-color;
 $sm-eltext: darken($sm-main-color, 15%);
 $sm-active-border: $sm-main-color;
 
 .Side-menu-parent {
-  background-color: $sm-background
+  background-color: $sm-background;
+  border-right: 2px solid $sm-main-color; 
 }
 
 .Side-menu {
@@ -112,7 +113,7 @@ $sm-active-border: $sm-main-color;
   color: $sm-color;
 }
 .Side-menu-default .item:hover > .item-title {
-  color: $sm-color;
+  color: $sm-background;
 }
 .Side-menu-default .item:hover > .item-title a {
   color: $sm-color;
@@ -120,6 +121,10 @@ $sm-active-border: $sm-main-color;
 .Side-menu-default .item.item-level-1:hover > .item-title {
   background-color: $sm-eltext;
 }
+.Side-menu-default .item.item-level-1 {
+  border-left: 4px solid $sm-background;
+}
+
 .Side-menu-default .item.item-level-1:hover,
 .Side-menu-default .item.item-level-1.active {
   border-left: 4px solid $sm-active-border;

@@ -1,7 +1,7 @@
 const i18n = { t: txt => txt };
 
 module.exports.PREFIX_ADMIN = "/admin";
-module.exports.COMPANY_NAME = "Beta4call"
+module.exports.COMPANY_NAME = "call4all"
 
 module.exports.LANGS = {
     PT: "pt",

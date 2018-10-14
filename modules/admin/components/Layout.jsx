@@ -66,7 +66,7 @@ class Layout extends Reflux.Component {
     }
 
     checkLeftMenu() {
-        return this.state["left-menu"] ? "" : "d-none d-sm-block"
+        return this.state["left-menu"] ? "d-flex d-block" : "d-none d-sm-block"
     }
 
     checkLeftItem(icon, name) {
@@ -135,13 +135,18 @@ class Layout extends Reflux.Component {
 
         return (
             <Empty align="align-items-start">
-                <div className={ "Side-menu-parent align-self-stretch " + this.checkLeftMenu() } style={{
+                <div className={ "Side-menu-parent d-sm-flex flex-column align-self-stretch " + this.checkLeftMenu() } style={{
                     minWidth: this.state[leftMenu] ? "200px" : null
                 }}>
                     <SideMenu
                         items={items}
                         activeItem={page}
                     />
+                    <div className="mt-auto">
+                        <h2 className="p-2 text-center">
+                            <span className="text-success">4</span>all
+                        </h2>
+                    </div>
                 </div>
                 <div className="align-self-stretch w-100 d-flex flex-column" style={{ minWidth: "320px" }}>
                     <Card>
