@@ -108,7 +108,8 @@ api.getMyOrder = async function(t, notRequired) {
         query: {
             _iduser: u._id,
             status: __.ORDER_STATUS.IN_PROGRESS
-        }
+        },
+        sort: { _dt: -1 }
     });
 
     if (inProgress.count) return inProgress.list[0];

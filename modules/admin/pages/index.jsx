@@ -115,7 +115,8 @@ class OperatorPage extends Component {
                 await api("order.editOrder",token.get(), {
                     data: {
                         _id: order._id,
-                        status: __.ORDER_STATUS.DONE
+                        status: __.ORDER_STATUS.DONE,
+                        info: order.info
                     }
                 });
                 global.router.reload();
@@ -131,7 +132,8 @@ class OperatorPage extends Component {
                 await api("order.editOrder",token.get(), {
                     data: {
                         _id: order._id,
-                        status: __.ORDER_STATUS.UNDER_CALL
+                        status: __.ORDER_STATUS.UNDER_CALL,
+                        info: order.info
                     }
                 });
                 global.router.reload();
@@ -147,7 +149,8 @@ class OperatorPage extends Component {
                 await api("order.editOrder",token.get(), {
                     data: {
                         _id: order._id,
-                        status: __.ORDER_STATUS.DENY
+                        status: __.ORDER_STATUS.DENY,
+                        info: order.info
                     }
                 });
                 global.router.reload();
