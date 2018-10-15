@@ -47,11 +47,10 @@ api.call = async function(t, { phone }) {
     let context = ctx.cfg.ami.context;
     let id = `${exten}-${_.uniqueId()}`;
 
-    await call();
-    return hangup();
+    return call();
 
-    async function hangup () {
-        return new Promise((resolve, reject) => {
+    async function call () {
+        await new Promise((resolve, reject) => {
             ami.on(id, evt => {
                 if (evt.Event === "Hangup") {
                     resolve(_.pick(evt, [
@@ -60,11 +59,7 @@ api.call = async function(t, { phone }) {
                     ]));
                 }
             });
-        });
-    }
 
-    async function call () {
-        await new Promise((resolve, reject) => {
             ami.action(
                 'Originate',
                 { 
@@ -81,8 +76,6 @@ api.call = async function(t, { phone }) {
                     if(data.Response === 'Error'){
                         return reject(data);
                     }
-    
-                    resolve();
                 }
             );
         });
