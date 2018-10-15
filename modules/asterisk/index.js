@@ -46,38 +46,28 @@ api.call = async function(t, { phone }) {
     let exten = u.login;
     let context = ctx.cfg.ami.context;
     let id = `${exten}-${_.uniqueId()}`;
+    let io = await ctx.api.socket.getIo(t, {});
 
-    return call();
+    ami.on(id, async evt => {
+        io.emit(u._id + "-dial", evt);
+    });
 
-    async function call () {
-        await new Promise((resolve, reject) => {
-            ami.on(id, evt => {
-                if (evt.Event === "Hangup") {
-                    resolve(_.pick(evt, [
-                        "Cause-txt",
-                        "CallerIDNum"
-                    ]));
-                }
-            });
-
-            ami.action(
-                'Originate',
-                { 
-                    Channel: `SIP/${phone}@voip1`, 
-                    Context: context, 
-                    Exten: exten, 
-                    Priority: '1',
-                    Async: true,
-                    CallerID: phone,
-                    ActionID: "service_call",
-                    ChannelId: id
-                },
-                function(data){
-                    if(data.Response === 'Error'){
-                        return reject(data);
-                    }
-                }
-            );
-        });
-    }
+    ami.action(
+        'Originate',
+        { 
+            Channel: `SIP/${phone}@voip1`, 
+            Context: context, 
+            Exten: exten, 
+            Priority: '1',
+            Async: true,
+            CallerID: phone,
+            ActionID: "service_call",
+            ChannelId: id
+        },
+        function(data){
+            if(data.Response === 'Error'){
+                throw data;
+            }
+        }
+    );
 }

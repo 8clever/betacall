@@ -3,9 +3,11 @@ import {
     Layout,
     Scroll,
     DatePicker,
-    TimePicker
+    TimePicker,
+    Fa
 } from "../components/index.jsx"
 import { 
+    Socket,
     checkAuth, 
     I18n, 
     __,
@@ -61,8 +63,24 @@ class OperatorPage extends Component {
     constructor (props) {
         super(props);
         this.state = {
-            order: props.order
+            order: props.order,
+            dial: {
+                Event: "Hangup"
+            }
         };
+    }
+
+    componentDidMount () {
+        let { user } = this.props;
+        this.socket = Socket.connect();
+        this.socket.on(user._id + "-dial", (evt) => {
+            this.setState({ dial: evt });
+        });
+    }
+
+    componentWillUnmount () {
+        this.socket.close();
+        this.socket = null;
     }
 
     UNSAFE_componentWillReceiveProps (props) {
@@ -159,9 +177,27 @@ class OperatorPage extends Component {
         }
     }
 
+    get (root, path, def) {
+        return _.get(root, path) || def;
+    }
+
+    beginCall () {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                let phone = this.get(order, "info.clientInfo.phone", "");
+                if (!phone) throw new Error("Invalid phone number");
+
+                await api("asterisk.call", token.get(), {
+                    phone
+                });
+            })
+        }
+    }
+
     render() {
         let { user } = this.props;
-        let { order } = this.state;
+        let { order, dial } = this.state;
         const i18n = new I18n(user);
 
         return (
@@ -179,7 +215,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Name")}</Label>
                                         <Input 
-                                            value={_.get(order, "info.clientInfo.fio", "")}
+                                            value={this.get(order, "info.clientInfo.fio", "")}
                                             onChange={this.change("order.info.clientInfo.fio")}
                                         />
                                     </FormGroup>
@@ -187,7 +223,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Phone")}</Label>
                                         <Input
-                                            value={_.get(order, "info.clientInfo.phone")}
+                                            value={this.get(order, "info.clientInfo.phone", "")}
                                             onChange={this.change("order.info.clientInfo.phone")}
                                         />
                                     </FormGroup>
@@ -195,7 +231,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("E-mail")}</Label>
                                         <Input
-                                            value={_.get(order, "info.clientInfo.email")}
+                                            value={this.get(order, "info.clientInfo.email", "")}
                                             onChange={this.change("order.info.clientInfo.email")}
                                         />
                                     </FormGroup>
@@ -204,7 +240,7 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("Comment")}</Label>
                                         <Input
                                             type="textarea"
-                                            value={_.get(order, "info.clientInfo.comment")}
+                                            value={this.get(order, "info.clientInfo.comment", "")}
                                             onChange={this.change("order.info.clientInfo.comment")}
                                         />
                                     </FormGroup>
@@ -222,7 +258,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
-                                            value={_.get(order, "info.deliveryDate", "")}
+                                            value={this.get(order, "info.deliveryDate", "")}
                                             onChange={this.change("order.info.deliveryDate")}
                                             format="YYYY-MM-DD"
                                             mask={"9999-99-99"}
@@ -232,7 +268,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Time from")}</Label>
                                         <TimePicker
-                                            value={_.get(order, "info.deliveryTimeFrom", "")}
+                                            value={this.get(order, "info.deliveryTimeFrom", "")}
                                             onChange={this.change("order.info.deliveryTimeFrom")}
                                         />
                                     </FormGroup>
@@ -240,7 +276,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Time to")}</Label>
                                         <TimePicker
-                                            value={_.get(order, "info.deliveryTimeTo", "")}
+                                            value={this.get(order, "info.deliveryTimeTo", "")}
                                             onChange={this.change("order.info.deliveryTimeTo")}
                                         />
                                     </FormGroup>
@@ -248,7 +284,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Region")}</Label>
                                         <Input
-                                            value={_.get(order, "info.deliveryAddress.region")}
+                                            value={this.get(order, "info.deliveryAddress.region", "")}
                                             onChange={this.change("info.deliveryAddress.region")}
                                         />
                                     </FormGroup>
@@ -256,7 +292,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery City")}</Label>
                                         <Input
-                                            value={_.get(order, "info.deliveryAddress.city")}
+                                            value={this.get(order, "info.deliveryAddress.city", "")}
                                             onChange={this.change("info.deliveryAddress.city")}
                                         />
                                     </FormGroup>
@@ -264,7 +300,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Zip Code")}</Label>
                                         <Input
-                                            value={_.get(order, "info.deliveryAddress.zipcode")}
+                                            value={this.get(order, "info.deliveryAddress.zipcode", "")}
                                             onChange={this.change("info.deliveryAddress.zipcode")}
                                         />
                                     </FormGroup>
@@ -272,7 +308,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Address")}</Label>
                                         <Input
-                                            value={_.get(order, "info.deliveryAddress.inCityAddress.address")}
+                                            value={this.get(order, "info.deliveryAddress.inCityAddress.address", "")}
                                             onChange={this.change("info.deliveryAddress.inCityAddress.address")}
                                         />
                                     </FormGroup>
@@ -282,7 +318,7 @@ class OperatorPage extends Component {
                                             <Input 
                                                 type="radio" 
                                                 name="delivery-type"
-                                                checked={_.get(order, "info.deliveryType") === __.DELIVERY_TYPE.COURIER}
+                                                checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.COURIER}
                                                 onChange={() => {
                                                     this.change("order.info.deliveryType")({ 
                                                         target: { 
@@ -300,7 +336,7 @@ class OperatorPage extends Component {
                                             <Input 
                                                 type="radio" 
                                                 name="delivery-type"
-                                                checked={_.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP}
+                                                checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP}
                                                 onChange={() => {
                                                     this.change("order.info.deliveryType")({ 
                                                         target: { 
@@ -316,11 +352,11 @@ class OperatorPage extends Component {
                                     <div className="mb-2"></div>
 
                                     {
-                                        _.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
+                                        this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
                                         <FormGroup>
                                             <Label>{i18n.t("Pickup address")}</Label>
                                             <Input
-                                                value={_.get(order, "info.deliveryAddress.pickupAddress") || ""}
+                                                value={this.get(order, "info.deliveryAddress.pickupAddress", "")}
                                                 onChange={this.change("order.info.deliveryAddress.pickupAddress")}
                                             />
                                         </FormGroup> : null
@@ -360,30 +396,47 @@ class OperatorPage extends Component {
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>{_.get(order, "info.orderIdentity.orderId")}</td>
-                                                <td>{_.get(order, "info.orderIdentity.barcode")}</td>
-                                                <td>{_.get(order, "info.orderIdentity.webshopNumber")}</td>
+                                                <td>{this.get(order, "info.orderIdentity.orderId", "")}</td>
+                                                <td>{this.get(order, "info.orderIdentity.barcode", "")}</td>
+                                                <td>{this.get(order, "info.orderIdentity.webshopNumber", "")}</td>
                                             </tr>
                                         </tbody>
                                     </Table>
 
                                     <FormGroup>
-                                        <b>{i18n.t("status")}:</b> {_.get(order, "info.status.name")}
+                                        <b>{i18n.t("status")}:</b> {this.get(order, "info.status.name", "")}
                                         <br/>
-                                        <b>{i18n.t("work status")}:</b> {_.get(order, "info.workStatus.name")}
+                                        <b>{i18n.t("work status")}:</b> {this.get(order, "info.workStatus.name", "")}
                                     </FormGroup>
 
                                     <FormGroup>
                                         <Label>{i18n.t("End of storage date")}</Label>
                                         <DatePicker
-                                            value={_.get(order, "info.endOfStorageDate", "")}
+                                            value={this.get(order, "info.endOfStorageDate", "")}
                                             onChange={this.change("order.info.endOfStorageDate")}
                                             format="YYYY-MM-DD"
                                             mask="9999-99-99"
                                         />
                                     </FormGroup>
 
-                                    <b>{i18n.t("Full order price")}:</b> {_.get(order, "info.clientFullCost")} p.
+                                    <b>{i18n.t("Full order price")}:</b> {this.get(order, "info.clientFullCost", "")} p.
+                                </CardBody>
+                            </Card>
+                            <div className="mb-2"></div>
+
+                            <Card>
+                                <CardBody>
+                                    <CardTitle>
+                                        {i18n.t("Dial")}
+                                        {" "}
+                                        <small className="text-muted">{this.get(dial, 'Event')}</small>
+                                    </CardTitle>
+                                    <Button 
+                                        disabled={this.get(dial, "Event") !== "Hangup"}
+                                        onClick={this.beginCall()}
+                                        color="success">
+                                        {i18n.t("Begin Call")} <Fa fa="phone"/>
+                                    </Button>
                                 </CardBody>
                             </Card>
                             <div className="mb-2"></div>

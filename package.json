@@ -62,6 +62,8 @@
     "safe": "^0.4.5",
     "serve-static": "^1.12.4",
     "short-id": "0.1.0-1",
+    "socket.io": "^2.1.1",
+    "socket.io-client": "^2.1.1",
     "tinyback": "./modules/tinyback",
     "tinyhook": "~0.2.2",
     "yargs": "^8.0.2"

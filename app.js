@@ -86,7 +86,8 @@ async function startApp () {
 		} catch (e) { /* */ }
 	}
 
-	var httpServer = http.createServer(app.express);
+	var httpServer = http.Server(app.express);
+	if (app.api.socket && app.api.socket.init) await app.api.socket.init("", httpServer);
 	httpServer.listen(cfg.config.server.port);
 
 	if (cfg.config.automated && process.send) {

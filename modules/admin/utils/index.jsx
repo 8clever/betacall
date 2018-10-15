@@ -11,6 +11,7 @@ import React from "react";
 import { FormText } from 'reactstrap';
 import _ from "lodash";
 import __ from "../../api/__namespace";
+import Socket from "./socket.jsx";
 
 class Component extends React.Component {
     constructor (props) {
@@ -74,6 +75,7 @@ function downloadFileUrl (filename) {
 }
 
 export {
+    Socket,
     __,
     imgUrl,
     fileUrl,
