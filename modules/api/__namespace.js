@@ -19,8 +19,8 @@ module.exports.PERMISSION = {
 }
 
 module.exports.ROLES = {
-    ADMIN: "admin",
-    OPERATOR: "operator"
+    ADMIN: i18n.t("admin"),
+    OPERATOR: i18n.t("operator")
 }
 
 module.exports.ERROR = {

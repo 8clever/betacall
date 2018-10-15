@@ -1,16 +1,21 @@
 import React from "react";
 import {
     Layout,
-    Scroll
+    Scroll,
+    Panel
 } from "../components/index.jsx"
 import { 
     checkAuth, 
     I18n, 
-    __, 
+    __,
+    withError,
+    api,
+    token,
     Component
 } from "../utils/index.jsx";
 import {
-    Jumbotron
+    Jumbotron,
+    Button
 } from "reactstrap";
 
 class AdminPage extends React.Component {
@@ -35,10 +40,21 @@ class AdminPage extends React.Component {
     }
 }
 
+
+
 class UserPage extends Component {
     constructor (props) {
         super(props);
         this.state = {};
+    }
+
+    call () {
+        return () => {
+            withError(async () => {
+                let response = await api("asterisk.call", token.get(), { phone: "89066482837" });
+                console.log(response)
+            });
+        }
     }
 
     render() {
@@ -48,7 +64,25 @@ class UserPage extends Component {
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
                 <Scroll>
-                   
+                    <Button 
+                        size="lg"
+                        color="success"
+                        className="mx-auto"
+                        onClick={this.call()}>
+                        {i18n.t("Start")}
+                    </Button>
+                </Scroll>
+                <Scroll className="col-sm-3 w-100">
+                    <Panel color="secondary">
+                        89066482837
+                        <br/>
+                        <small className="text-muted">Ivan Vityaev</small>
+                    </Panel>
+                    <Panel color="secondary">
+                        89066482837
+                        <br/>
+                        <small className="text-muted">Ivan Vityaev</small>
+                    </Panel>
                 </Scroll>
             </Layout>
         )
