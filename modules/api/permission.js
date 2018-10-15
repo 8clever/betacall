@@ -10,6 +10,9 @@ module.exports.init = async function (...args) {
     let prms = [
         { prm: __.PERMISSION.USER.EDIT, api: "users", fn: "permUserEdit" },
         { prm: __.PERMISSION.USER.VIEW, api: "users", fn: "permUserView" },
+
+        { prm: __.PERMISSION.ORDER.VIEW, api: "order" },
+        { prm: __.PERMISSION.ORDER.EDIT, api: "order" }
     ]
     
     await Promise.all(prms.map(p => {

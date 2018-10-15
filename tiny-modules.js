@@ -13,6 +13,7 @@ module.exports = [
 	{name:"coreapi",require: path.join(__dirname, "/modules/api/coreapi.js")},
 	{name:"users",require: path.join(__dirname, "/modules/api/users.js")},
 	{name:"email",require: path.join(__dirname, "/modules/api/email.js")},
+	{name:"order",require: path.join(__dirname, "/modules/api/order.js")},
 	{name: "permission", require: path.join(__dirname, "/modules/api/permission.js") },
 	
 	{name:"scheduler",require: path.join(__dirname, "/modules/api/scheduler.js")},

@@ -7,12 +7,13 @@ const _ = require("lodash");
 var api = {};
 var ctx;
 
-module.exports.deps = [];
+module.exports.deps = [ "users" ];
 module.exports.init = async function (_ctx) {
 	ctx = _ctx;
 
 	// WRITE SCHEDULES HERE
 	api.addJob("email.sendAllMessages", { cronTime: ctx.cfg.email.period });
+	api.addJob("order.importFromMySql", { cronTime: "0 */5 * * * *" });
 
 	return { api };
 };

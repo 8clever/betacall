@@ -7,8 +7,12 @@ import Pagination from "./Pagination.jsx";
 import Panel from "./Panel.jsx";
 import Scroll from "./Scroll.jsx";
 import Progress from "./Progress.jsx";
+import DatePicker from "./DatePicker.jsx";
+import TimePicker from "./TimePicker.jsx";
 
 export {
+    TimePicker,
+    DatePicker,
     ClientInfo,
     Empty,
     Fa,
