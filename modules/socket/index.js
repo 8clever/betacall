@@ -1,9 +1,7 @@
 let api = {};
 let io = null;
-let ctx = null;
 
-module.exports.init = async function(_ctx) {
-    ctx = _ctx;
+module.exports.init = async function() {
     return { api };
 }
 

@@ -389,9 +389,9 @@ class OperatorPage extends Component {
                                     <Table bordered>
                                         <thead>
                                             <tr>
-                                                <th>{i18n.t("№ Order")}</th>
+                                                <th>№ {i18n.t("Order")}</th>
                                                 <th>{i18n.t("Bar Code")}</th>
-                                                <th>{i18n.t("№ Order in market")}</th>
+                                                <th>№ {i18n.t("Order in market")}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
