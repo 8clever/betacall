@@ -117,6 +117,9 @@ api.getMyOrder = async function(t, notRequired) {
         query: {
             status: __.ORDER_STATUS.NEW,
             _iduser: { $exists: 0 }
+        },
+        sort: {
+            _dt: -1
         }
     });
 

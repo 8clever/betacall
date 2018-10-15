@@ -24,7 +24,11 @@ import {
     FormGroup,
     Input,
     Table,
-    Button
+    Button,
+    Modal,
+    ModalBody,
+    ModalHeader,
+    ModalFooter
 } from "reactstrap";
 import _ from "lodash";
 import moment from "moment";
@@ -74,12 +78,88 @@ class OperatorPage extends Component {
         }
     }
 
+    static get state () {
+        return {
+            replaceModal: "state-replace-modal",
+            doneModal: "state-done-modal",
+            underCallModal: "state-under-call-modal",
+            denyModal: "state-deny-modal"
+        }
+    }
+
+    replaceDate () {
+        return () => {
+            withError(async () => {
+                let { order } = _.cloneDeep(this.state);
+                await api("order.editOrder", token.get(), {
+                    data: {
+                        _id: order._id,
+                        _dt: order._dt,
+                        _dtupdate: new Date(),
+                        status: __.ORDER_STATUS.NEW
+                    },
+                    unset: {
+                        _iduser: 1
+                    }
+                });
+                global.router.reload();
+                this.toggle(OperatorPage.state.replaceModal)();
+            });
+        }
+    }
+
+    setDone () {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                await api("order.editOrder",token.get(), {
+                    data: {
+                        _id: order._id,
+                        status: __.ORDER_STATUS.DONE
+                    }
+                });
+                global.router.reload();
+                this.toggle(OperatorPage.state.doneModal)();
+            });
+        }
+    }
+
+    setUnderCall () {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                await api("order.editOrder",token.get(), {
+                    data: {
+                        _id: order._id,
+                        status: __.ORDER_STATUS.UNDER_CALL
+                    }
+                });
+                global.router.reload();
+                this.toggle(OperatorPage.state.underCallModal)();
+            });
+        }
+    }
+
+    setDeny () {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                await api("order.editOrder",token.get(), {
+                    data: {
+                        _id: order._id,
+                        status: __.ORDER_STATUS.DENY
+                    }
+                });
+                global.router.reload();
+                this.toggle(OperatorPage.state.denyModal)();
+            });
+        }
+    }
+
     render() {
         let { user } = this.props;
         let { order } = this.state;
         const i18n = new I18n(user);
-
-        console.log(order);
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
@@ -271,7 +351,7 @@ class OperatorPage extends Component {
                                         <thead>
                                             <tr>
                                                 <th>{i18n.t("№ Order")}</th>
-                                                <th>{i18n.t("Bar COde")}</th>
+                                                <th>{i18n.t("Bar Code")}</th>
                                                 <th>{i18n.t("№ Order in market")}</th>
                                             </tr>
                                         </thead>
@@ -311,17 +391,74 @@ class OperatorPage extends Component {
                                         {i18n.t("Actions")}
                                     </CardTitle>
 
-                                    <Button color="success">
+                                    <Button 
+                                        onClick={this.toggle(OperatorPage.state.doneModal)}
+                                        color="success">
                                         {i18n.t("Done")}
                                     </Button>
+                                    <Modal isOpen={this.state[OperatorPage.state.doneModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you set status to done, and go next?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button 
+                                                onClick={this.setDone()}
+                                                color="warning">
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button
+                                                onClick={this.toggle(OperatorPage.state.doneModal)}
+                                                color="light">
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
+
                                     {" "}
-                                    <Button color="primary">
+                                    <Button 
+                                        onClick={this.toggle(OperatorPage.state.underCallModal)}
+                                        color="primary">
                                         {i18n.t("Under call")}
                                     </Button>
+                                    <Modal isOpen={this.state[OperatorPage.state.underCallModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you set status to under call, and go next?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button 
+                                                onClick={this.setUnderCall()}
+                                                color="warning">
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button
+                                                onClick={this.toggle(OperatorPage.state.underCallModal)}
+                                                color="light">
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
+
                                     {" "}
-                                    <Button color="danger">
+                                    <Button 
+                                        onClick={this.toggle(OperatorPage.state.denyModal)}
+                                        color="danger">
                                         {i18n.t("Deny")}
                                     </Button>
+                                    <Modal isOpen={this.state[OperatorPage.state.denyModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you set status to deny, and go next?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button 
+                                                onClick={this.setDeny()}
+                                                color="warning">
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button
+                                                onClick={this.toggle(OperatorPage.state.denyModal)}
+                                                color="light">
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
+
                                 </CardBody>
                             </Card>
                             <div className="mb-2"></div>
@@ -349,9 +486,26 @@ class OperatorPage extends Component {
                                         />
                                     </FormGroup>
                                     <Button
+                                        onClick={this.toggle(OperatorPage.state.replaceModal)}
                                         color="warning">
                                         {i18n.t("Replace")}
                                     </Button>
+                                    <Modal isOpen={this.state[OperatorPage.state.replaceModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you sure replace call and go next?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button 
+                                                onClick={this.replaceDate()}
+                                                color="warning">
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button
+                                                onClick={this.toggle(OperatorPage.state.replaceModal)}
+                                                color="light">
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
                                 </CardBody>
                             </Card>
                         </div>
