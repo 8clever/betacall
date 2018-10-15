@@ -16,17 +16,18 @@ import {
 } from "../utils/index.jsx";
 import {
     Jumbotron,
-    Row,
-    Col,
     Alert,
     Card,
     CardBody,
     CardTitle,
     Label,
     FormGroup,
-    Input
+    Input,
+    Table,
+    Button
 } from "reactstrap";
 import _ from "lodash";
+import moment from "moment";
 
 class AdminPage extends React.Component {
     render() {
@@ -140,6 +141,8 @@ class OperatorPage extends Component {
                                         <DatePicker 
                                             value={_.get(order, "info.deliveryDate", "")}
                                             onChange={this.change("order.info.deliveryDate")}
+                                            format="YYYY-MM-DD"
+                                            mask={"9999-99-99"}
                                         />
                                     </FormGroup>
 
@@ -263,6 +266,41 @@ class OperatorPage extends Component {
                                     <CardTitle>
                                         {i18n.t("Information about order")}
                                     </CardTitle>
+
+                                    <Table bordered>
+                                        <thead>
+                                            <tr>
+                                                <th>{i18n.t("№ Order")}</th>
+                                                <th>{i18n.t("Bar COde")}</th>
+                                                <th>{i18n.t("№ Order in market")}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{_.get(order, "info.orderIdentity.orderId")}</td>
+                                                <td>{_.get(order, "info.orderIdentity.barcode")}</td>
+                                                <td>{_.get(order, "info.orderIdentity.webshopNumber")}</td>
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+
+                                    <FormGroup>
+                                        <b>{i18n.t("status")}:</b> {_.get(order, "info.status.name")}
+                                        <br/>
+                                        <b>{i18n.t("work status")}:</b> {_.get(order, "info.workStatus.name")}
+                                    </FormGroup>
+
+                                    <FormGroup>
+                                        <Label>{i18n.t("End of storage date")}</Label>
+                                        <DatePicker
+                                            value={_.get(order, "info.endOfStorageDate", "")}
+                                            onChange={this.change("order.info.endOfStorageDate")}
+                                            format="YYYY-MM-DD"
+                                            mask="9999-99-99"
+                                        />
+                                    </FormGroup>
+
+                                    <b>{i18n.t("Full order price")}:</b> {_.get(order, "info.clientFullCost")} p.
                                 </CardBody>
                             </Card>
                             <div className="mb-2"></div>
@@ -272,6 +310,18 @@ class OperatorPage extends Component {
                                     <CardTitle>
                                         {i18n.t("Actions")}
                                     </CardTitle>
+
+                                    <Button color="success">
+                                        {i18n.t("Done")}
+                                    </Button>
+                                    {" "}
+                                    <Button color="primary">
+                                        {i18n.t("Under call")}
+                                    </Button>
+                                    {" "}
+                                    <Button color="danger">
+                                        {i18n.t("Deny")}
+                                    </Button>
                                 </CardBody>
                             </Card>
                             <div className="mb-2"></div>
@@ -279,8 +329,29 @@ class OperatorPage extends Component {
                             <Card>
                                 <CardBody>
                                     <CardTitle>
-                                        {i18n.t("Transfer call")}
+                                        {i18n.t("Replace call")}
                                     </CardTitle>
+                                    <FormGroup>
+                                        <Label>{i18n.t("Date Call")}</Label>
+                                        <DatePicker
+                                            value={moment(order._dt).format("YYYY-MM-DD")}
+                                            format={"YYYY-MM-DD"}
+                                            mask={"9999-99-99"}
+                                            onChange={date => {
+                                                if (date) {
+                                                    this.change("order._dt")({ 
+                                                        target: {
+                                                            value: moment(date, "YYYY-MM-DD").toDate()
+                                                        }
+                                                    });
+                                                } 
+                                            }}
+                                        />
+                                    </FormGroup>
+                                    <Button
+                                        color="warning">
+                                        {i18n.t("Replace")}
+                                    </Button>
                                 </CardBody>
                             </Card>
                         </div>

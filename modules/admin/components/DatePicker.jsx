@@ -7,24 +7,33 @@ import InputMask from "react-input-mask";
 
 class DatePicker extends Component {
 
+    static get defaultProps () {
+        return {
+            format: "DD-MM-YYYY",
+            mask: "99-99-9999"
+        }
+    }
+
     static get propTypes () {
         return {
             value: PropTypes.string,
-            onChange: PropTypes.func.isRequired
+            onChange: PropTypes.func.isRequired,
+            format: PropTypes.string,
+            mask: PropTypes.string
         }
     }
 
     render () {
-        let { value, onChange } = this.props;
+        let { value, onChange, format, mask } = this.props;
         return (
             <Datetime
-                dateFormat="DD-MM-YYYY"
+                dateFormat={format}
                 timeFormat={false}
                 defaultValue={value || ""}
                 onChange={date => {
                     let value = date && date.toDate && date;
                     if (value) {
-                        value = value.format("DD-MM-YYYY")
+                        value = value.format(format)
                         onChange({ target: { value }});
                         return;
                     }
@@ -39,8 +48,8 @@ class DatePicker extends Component {
                                 onClick={props.onClick}
                                 onChange={props.onChange}
                                 className="form-control"
-                                placeholder="DD-MM-YYYY"
-                                mask="99-99-9999"
+                                placeholder={format}
+                                mask={mask}
                             />
                             <InputGroupAddon addonType="append">
                                 <InputGroupText>
