@@ -104,18 +104,18 @@ api.importFromMySql = async function(t, p) {
 
 api.importFromTopDelivery = async function(t, p) {
     // TODO Complete integration with top delivery
-    let u = await ctx.api.users.getCurrentUserPublic(t, {});
-    let client = await soap.createClientAsync(ctx.cfg.topDelivery.url);
-    client.setSecurity(new soap.BasicAuthSecurity(
-        ctx.cfg.topDelivery.login, 
-        ctx.cfg.topDelivery.password
-    ));
-    let orders = await client.getCallOrdersAsync({
-        auth: {
-            login: ctx.cfg.topDelivery.login,
-            password: ctx.cfg.topDelivery.password
-        }
-    });
+    // let u = await ctx.api.users.getCurrentUserPublic(t, {});
+    // let client = await soap.createClientAsync(ctx.cfg.topDelivery.url);
+    // client.setSecurity(new soap.BasicAuthSecurity(
+    //     ctx.cfg.topDelivery.login, 
+    //     ctx.cfg.topDelivery.password
+    // ));
+    // let orders = await client.getCallOrdersAsync({
+    //     auth: {
+    //         login: ctx.cfg.topDelivery.login,
+    //         password: ctx.cfg.topDelivery.password
+    //     }
+    // });
 }
 
 api.getMyOrders = async function(t, notRequired) {
