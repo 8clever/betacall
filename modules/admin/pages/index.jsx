@@ -621,6 +621,8 @@ class OperatorPage extends Component {
                 <Scroll className="col-sm-2">
                     {
                         _.map(orders, (order, page) => {
+                            let dial = this.getDial(page)();
+                            let iCalling = dial.Event !== "Hangup";
 
                             return (
                                 <Panel 
@@ -630,6 +632,16 @@ class OperatorPage extends Component {
                                         redirect(null, "index", { page }) 
                                     }}>
                                     {_.get(order, "info.clientInfo.phone")}
+                                    
+                                    {
+                                        iCalling ?
+                                        <span className="fa-stack fa-lg pull-right">
+                                            <i className="text-secondary fa fa-spinner fa-pulse fa-stack-2x"></i>
+                                            <i className="fa fa-phone text-success fa-stack-1x "></i>
+                                        </span> :
+                                        <span className="fa fa-phone text-danger pull-right fa-lg fa-rotate-90 mt-2 mr-2"></span>
+                                    }
+
                                     <br/>
                                     <small className="text-muted">{_.get(order, "info.clientInfo.fio")}</small>
                                 </Panel>
