@@ -49,7 +49,8 @@ api.call = async function(t, { phone }) {
     let io = await ctx.api.socket.getIo(t, {});
 
     ami.on(id, async evt => {
-        io.emit(u._id + "-dial", evt);
+        let idSocket = `${u._id}-dial-${phone}`;
+        io.emit(idSocket, evt);
     });
 
     ami.action(

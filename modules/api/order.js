@@ -118,7 +118,7 @@ api.importFromTopDelivery = async function(t, p) {
     });
 }
 
-api.getMyOrder = async function(t, notRequired) {
+api.getMyOrders = async function(t, notRequired) {
     let u = await ctx.api.users.getCurrentUserPublic(t, {});
 
     let inProgress = await ctx.api.order.getOrders(t, {
@@ -129,7 +129,7 @@ api.getMyOrder = async function(t, notRequired) {
         sort: { _dt: -1 }
     });
 
-    if (inProgress.count) return inProgress.list[0];
+    if (inProgress.count) return inProgress.list;
 
     let freeOrder = await ctx.api.order.getOrders(t, {
         query: {
@@ -148,7 +148,7 @@ api.getMyOrder = async function(t, notRequired) {
         await ctx.api.order.editOrder(t, {
             data: _.pick(order, [ "_id", "status", "_iduser" ])
         });
-        return order;
+        return [ order ];
     }
 
     return null;
