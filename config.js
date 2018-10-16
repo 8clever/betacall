@@ -33,6 +33,11 @@ module.exports = {
 		port: 3000,
 		ssl_port: false
 	},
+	topDelivery: {
+		url: "",
+		login: "",
+		password: ""
+	},
 	monitoring: {
 		tinelic: {
 			enable: false,

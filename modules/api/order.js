@@ -6,6 +6,7 @@ let cols = {};
 const __ = require("./__namespace");
 const _ = require("lodash");
 const COLLECTION = __.ESSENCE;
+const soap = require("soap");
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -99,6 +100,22 @@ api.importFromMySql = async function(t, p) {
             });
         })();
     }));
+}
+
+api.importFromTopDelivery = async function(t, p) {
+    // TODO Complete integration with top delivery
+    let u = await ctx.api.users.getCurrentUserPublic(t, {});
+    let client = await soap.createClientAsync(ctx.cfg.topDelivery.url);
+    client.setSecurity(new soap.BasicAuthSecurity(
+        ctx.cfg.topDelivery.login, 
+        ctx.cfg.topDelivery.password
+    ));
+    let orders = await client.getCallOrdersAsync({
+        auth: {
+            login: ctx.cfg.topDelivery.login,
+            password: ctx.cfg.topDelivery.password
+        }
+    });
 }
 
 api.getMyOrder = async function(t, notRequired) {
