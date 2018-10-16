@@ -246,7 +246,6 @@ class OperatorPage extends Component {
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
-
                 {/** LEFT FORM */}
                 <Scroll>
                     {
@@ -304,8 +303,8 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
-                                            value={this.get(order, "info.deliveryDate", "")}
-                                            onChange={this.change("order.info.deliveryDate")}
+                                            value={this.get(order, "info.desiredDateDelivery.date", "")}
+                                            onChange={this.change("order.info.desiredDateDelivery.date")}
                                             format="YYYY-MM-DD"
                                             mask={"9999-99-99"}
                                         />
@@ -314,16 +313,20 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Time from")}</Label>
                                         <TimePicker
-                                            value={this.get(order, "info.deliveryTimeFrom", "")}
-                                            onChange={this.change("order.info.deliveryTimeFrom")}
+                                            format="HH:mm:ss"
+                                            mask="99:99:99"
+                                            value={this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "")}
+                                            onChange={this.change("order.info.desiredDateDelivery.timeInterval.bTime")}
                                         />
                                     </FormGroup>
 
                                     <FormGroup>
                                         <Label>{i18n.t("Time to")}</Label>
                                         <TimePicker
-                                            value={this.get(order, "info.deliveryTimeTo", "")}
-                                            onChange={this.change("order.info.deliveryTimeTo")}
+                                            format="HH:mm:ss"
+                                            mask="99:99:99"
+                                            value={this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "")}
+                                            onChange={this.change("order.info.desiredDateDelivery.timeInterval.eTime")}
                                         />
                                     </FormGroup>
 
