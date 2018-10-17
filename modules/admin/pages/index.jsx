@@ -4,7 +4,6 @@ import {
     Scroll,
     DatePicker,
     TimePicker,
-    Fa,
     Panel
 } from "../components/index.jsx"
 import { 
