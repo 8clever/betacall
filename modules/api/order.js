@@ -6,7 +6,7 @@ let cols = {};
 const __ = require("./__namespace");
 const _ = require("lodash");
 const COLLECTION = __.ESSENCE;
-//const soap = require("soap");
+const soap = require("soap");
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -103,19 +103,18 @@ api.importFromMySql = async function(t, p) {
 }
 
 api.importFromTopDelivery = async function(t, p) {
-    // TODO Complete integration with top delivery
-    // let u = await ctx.api.users.getCurrentUserPublic(t, {});
-    // let client = await soap.createClientAsync(ctx.cfg.topDelivery.url);
-    // client.setSecurity(new soap.BasicAuthSecurity(
-    //     ctx.cfg.topDelivery.login, 
-    //     ctx.cfg.topDelivery.password
-    // ));
-    // let orders = await client.getCallOrdersAsync({
-    //     auth: {
-    //         login: ctx.cfg.topDelivery.login,
-    //         password: ctx.cfg.topDelivery.password
-    //     }
-    // });
+    await ctx.api.users.getCurrentUserPublic(t, {});
+    let client = await soap.createClientAsync(ctx.cfg.topDelivery.url);
+    let topDeliveryCfg = ctx.cfg.topDelivery;
+    client.setSecurity(new soap.BasicAuthSecurity(
+        topDeliveryCfg.basicAuth.user,
+        topDeliveryCfg.basicAuth.password
+    ));
+    let [ orders ] = await client.getCallOrdersAsync({
+        auth: topDeliveryCfg.bodyAuth
+    });
+
+    console.dir(orders, { depth: null })
 }
 
 api.getMyOrders = async function(t, notRequired) {

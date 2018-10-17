@@ -34,9 +34,15 @@ module.exports = {
 		ssl_port: false
 	},
 	topDelivery: {
-		url: "",
-		login: "",
-		password: ""
+		url: "http://is-test.topdelivery.ru/api/soap/c/2.0/?WSDL",
+		basicAuth: {
+			user: "tdsoap",
+			password: "5f3b5023270883afb9ead456c8985ba8"
+		},
+		bodyAuth: {
+			login: "KobotovCall",
+			password: "pass"
+		}
 	},
 	monitoring: {
 		tinelic: {

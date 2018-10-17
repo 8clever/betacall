@@ -13,7 +13,7 @@ module.exports.init = async function (_ctx) {
 
 	// WRITE SCHEDULES HERE
 	api.addJob("email.sendAllMessages", { cronTime: ctx.cfg.email.period });
-	api.addJob("order.importFromMySql", { cronTime: "0 */5 * * * *" });
+	api.addJob("order.importFromTopDelivery", { cronTime: "*/3 * * * * *" });
 
 	return { api };
 };
