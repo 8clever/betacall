@@ -6,7 +6,7 @@ let cols = {};
 const __ = require("./__namespace");
 const _ = require("lodash");
 const COLLECTION = __.ESSENCE;
-const soap = require("soap");
+//const soap = require("soap");
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -121,7 +121,7 @@ api.importFromTopDelivery = async function(t, p) {
 api.getMyOrders = async function(t, notRequired) {
     let u = await ctx.api.users.getCurrentUserPublic(t, {});
 
-    let inProgress = await ctx.api.order.getOrders(t, {
+    let myOrders = await ctx.api.order.getOrders(t, {
         query: {
             _iduser: u._id,
             status: __.ORDER_STATUS.IN_PROGRESS
@@ -129,29 +129,7 @@ api.getMyOrders = async function(t, notRequired) {
         sort: { _dt: -1 }
     });
 
-    if (inProgress.count) return inProgress.list;
-
-    let freeOrder = await ctx.api.order.getOrders(t, {
-        query: {
-            status: __.ORDER_STATUS.NEW,
-            _iduser: { $exists: 0 }
-        },
-        sort: {
-            _dt: -1
-        }
-    });
-
-    if (freeOrder.count) {
-        let order = freeOrder.list[0];
-        order.status = __.ORDER_STATUS.IN_PROGRESS
-        order._iduser = u._id;
-        await ctx.api.order.editOrder(t, {
-            data: _.pick(order, [ "_id", "status", "_iduser" ])
-        });
-        return [ order ];
-    }
-
-    return null;
+    return myOrders.list;
 }
 
 // permissions

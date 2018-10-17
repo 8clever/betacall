@@ -28,37 +28,54 @@ module.exports.init = async function (...args) {
             ami.on("eventAny", evt => {
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
+
+            setTimeout(() => {
+                api._call("", {
+                    phone: "89537471001"
+                })
+            }, 5000)
+            
         });
     });
 
     return { api };
 }
 
-/**
- * @param p.phone
- */
-api.call = async function(t, { phone }) {
-    let u = await ctx.api.users.getCurrentUserPublic(t, {});
-
-    if (!phone) throw new Error("Invalid phone number");
-    if (u.role !== __.ROLES.OPERATOR) throw new Error("Invalid user role");
-    
-    let exten = u.login;
-    let context = ctx.cfg.ami.context;
-    let id = `${exten}-${_.uniqueId()}`;
+api._call = async function(t, {
+    phone
+}) {
+    let id = _.uniqueId("call_");
     let io = await ctx.api.socket.getIo(t, {});
 
     ami.on(id, async evt => {
-        let idSocket = `${u._id}-dial-${phone}`;
-        io.emit(idSocket, evt);
+        if (!(
+            evt.Event === 'DialEnd',
+            evt.DialStatus === 'ANSWER'
+        )) return
+
+        let { 
+            DestConnectedLineNum, // phone number
+            DestCallerIDNum // user login
+        } = evt;
+
+        let user = await ctx.api.users.getUsers(t, {
+            query: { login: DestCallerIDNum }
+        });
+
+        user = user.list[0];
+        if (!user) throw new Error(`User with login extension ${DestCallerIDNum} not found!`);
+        
+        io.emit(user._id, {
+            phone: DestConnectedLineNum
+        });
     });
 
     ami.action(
         'Originate',
         { 
             Channel: `SIP/${phone}@voip1`, 
-            Context: context, 
-            Exten: exten, 
+            Context: "ringing", 
+            Exten: "333", 
             Priority: '1',
             Async: true,
             CallerID: phone,
@@ -71,4 +88,18 @@ api.call = async function(t, { phone }) {
             }
         }
     );
+}
+
+/**
+ * @param p.phone
+ */
+api.call = async function(t, { phone }) {
+    let u = await ctx.api.users.getCurrentUserPublic(t, {});
+
+    if (!phone) throw new Error("Invalid phone number");
+    if (u.role !== __.ROLES.OPERATOR) throw new Error("Invalid user role");
+    
+    api._call(t, {
+        phone
+    });
 }

@@ -75,7 +75,8 @@ module.exports.init = async function (...args) {
 					type: "string",
 					format: "integer",
 					required: true,
-					minLength: 2,
+					minLength: 3,
+					maxLength: 3,
 					messages: {
 						type: "Invalid type of Login",
 						required: "Login is required",

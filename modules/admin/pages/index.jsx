@@ -70,16 +70,31 @@ class OperatorPage extends Component {
     }
 
     componentDidMount () {
-        let { user, orders } = this.props;
+        let { user } = this.props;
         this.socket = Socket.connect();
+        this.socket.on(user._id, (evt) => {
+            let { phone } = evt;
 
-        _.map(orders, order => {
-            let phone = _.get(order, "info.clientInfo.phone");
-            let idSocket = `${user._id}-dial-${phone}`;
-            this.socket.on(idSocket , (evt) => {
-                this.setState({ [`dial-${phone}`]: evt });
+            withError(async () => {
+                let order = await api("order.getOrders", token.get(), {
+                    query: {
+                        status: __.ORDER_STATUS.NEW,
+                        "info.clientInfo.phone": phone
+                    }
+                });
+                order = order.list[0];
+                if (!order) throw new Error("Order by phone not found! " + phone);
+
+                await api("order.editOrder", token.get(), {
+                    data: {
+                        _id: order._id,
+                        _iduser: user._id,
+                        status: __.ORDER_STATUS.IN_PROGRESS 
+                    }
+                });
+                global.router.reload();
             });
-        })
+        });
     }
 
     componentWillUnmount () {
@@ -89,15 +104,6 @@ class OperatorPage extends Component {
 
     UNSAFE_componentWillReceiveProps (props) {
         this.setState({ order: props.order });
-    }
-
-    call () {
-        return () => {
-            withError(async () => {
-                let response = await api("asterisk.call", token.get(), { phone: "89066482837" });
-                console.log(response)
-            });
-        }
     }
 
     static get state () {
@@ -183,60 +189,6 @@ class OperatorPage extends Component {
 
     get (root, path, def) {
         return _.get(root, path) || def;
-    }
-
-    beginCall () {
-        return () => {
-            let { order } = _.cloneDeep(this.state);
-            withError(async () => {
-                let phone = this.get(order, "info.clientInfo.phone", "");
-                if (!phone) throw new Error("Invalid phone number");
-
-                await api("asterisk.call", token.get(), {
-                    phone
-                });
-            })
-        }
-    }
-
-    addNewOrder () {
-        return () => {
-            withError(async () => {
-                let { user } = this.props;
-                let orders = await api("order.getOrders", token.get(), {
-                    query: {
-                        _iduser: { $exists: 0 },
-                        status: __.ORDER_STATUS.NEW
-                    },
-                    sort: {
-                        _dt: -1
-                    },
-                    limit: 1
-                });
-
-                if (!orders.count) throw new Error("Sorry we not have new orders for you");
-
-                let order = orders.list[0];
-                await api("order.editOrder", token.get(), {
-                    data: {
-                        _id: order._id,
-                        _iduser: user._id,
-                        status: __.ORDER_STATUS.IN_PROGRESS
-                    }
-                });
-
-                global.router.reload();
-            });
-        }
-    }
-
-    getDial (idx) {
-        return () => {
-            let { orders } = this.props;
-            let phone = this.get(orders, `${idx}.info.clientInfo.phone`, "");
-            let dial = this.get(this.state, `dial-${phone}`, { Event: "Hangup" });
-            return dial;
-        }
     }
 
     render() {
@@ -475,24 +427,6 @@ class OperatorPage extends Component {
                             </Card>
                             <div className="mb-2"></div>
 
-                            {/** DIAL */}
-                            <Card>
-                                <CardBody>
-                                    <CardTitle>
-                                        {i18n.t("Dial")}
-                                        {" "}
-                                        <small className="text-muted">{this.getDial(filter.page)().Event}</small>
-                                    </CardTitle>
-                                    <Button 
-                                        disabled={this.getDial(filter.page)().Event !== "Hangup"}
-                                        onClick={this.beginCall()}
-                                        color="success">
-                                        {i18n.t("Begin Call")} <Fa fa="phone"/>
-                                    </Button>
-                                </CardBody>
-                            </Card>
-                            <div className="mb-2"></div>
-
                             {/** ACTIONS */}
                             <Card>
                                 <CardBody>
@@ -624,8 +558,6 @@ class OperatorPage extends Component {
                 <Scroll className="col-sm-2">
                     {
                         _.map(orders, (order, page) => {
-                            let dial = this.getDial(page)();
-                            let iCalling = dial.Event !== "Hangup";
 
                             return (
                                 <Panel 
@@ -636,27 +568,12 @@ class OperatorPage extends Component {
                                     }}>
                                     {_.get(order, "info.clientInfo.phone")}
                                     
-                                    {
-                                        iCalling ?
-                                        <span className="fa-stack fa-lg pull-right">
-                                            <i className="text-secondary fa fa-spinner fa-pulse fa-stack-2x"></i>
-                                            <i className="fa fa-phone text-success fa-stack-1x "></i>
-                                        </span> :
-                                        <span className="fa fa-phone text-danger pull-right fa-lg fa-rotate-90 mt-2 mr-2"></span>
-                                    }
-
                                     <br/>
                                     <small className="text-muted">{_.get(order, "info.clientInfo.fio")}</small>
                                 </Panel>
                             )
                         })
                     }
-
-                    <div className="text-right">
-                        <Button color="success" onClick={this.addNewOrder()}>
-                            <Fa fa="plus" />
-                        </Button>
-                    </div>
                 </Scroll>
             </Layout>
         )
