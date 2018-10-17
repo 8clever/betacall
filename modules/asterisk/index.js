@@ -28,13 +28,6 @@ module.exports.init = async function (...args) {
             ami.on("eventAny", evt => {
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
-
-            setTimeout(() => {
-                api._call("", {
-                    phone: "89537471001"
-                })
-            }, 5000)
-            
         });
     });
 
