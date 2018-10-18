@@ -6,10 +6,12 @@ const __ = require("./__namespace");
 const soap = require("soap");
 const _ = require("lodash");
 const md5 = require("md5");
+const COLLECTION = __.ESSENCE;
 
 let topDelivery = null;
 let topDeliveryCfg = null;
 let __orders = [];
+let cols = {};
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -23,6 +25,42 @@ module.exports.init = async function(...args) {
     ));
     
     await api._getCallOrders().catch(console.log);
+
+    ctx.api.validate.register(COLLECTION.STATS, {
+		$set: {
+			properties: {
+				_id: {
+					type: "mongoId"
+				},
+				_iduser: {
+					type: "mongoId",
+					required: true
+                },
+                orderId: {
+                    type: "string",
+                    required: true
+                },
+                status: {
+                    type: "string",
+                    required: true
+                },
+                _dt: {
+                    type: "date",
+                    required: true
+                }
+			}
+		}
+	});
+
+	let db = await ctx.api.mongo.getDb({});
+    cols[COLLECTION.STATS] = await db.collection(COLLECTION.STATS);
+    
+    api.getStats = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS]);
+    api.addStats = ctx.api.coreapi.initEditApiFunction({
+        collection: cols[COLLECTION.STATS],
+        validate: COLLECTION.STATS
+    });
+
     return { api }
 }
 
@@ -134,8 +172,12 @@ api.doneOrder = async function(t, { order }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
     await this.unsetMyOrder(t, { orderId });
-
-    // TO DO ADD LOGS
+    await this.addStats(t, { edit: {
+        _iduser: user._id,
+        status: "done",
+        orderId,
+        _dt: new Date()
+    }})
 }
 
 api.denyOrder = async function(t, { order }) {
@@ -179,7 +221,12 @@ api.denyOrder = async function(t, { order }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
     await this.unsetMyOrder(t, { orderId });
 
-    // TO DO ADD LOGS
+    await this.addStats(t, { edit: {
+        _iduser: user._id,
+        status: "deny",
+        orderId,
+        _dt: new Date()
+    }})
 }
 
 api.replaceCallDate = async function(t, { order, replaceDate }) {
@@ -217,7 +264,12 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
     await this.unsetMyOrder(t, { orderId });
 
-    // to do add stats
+    await this.addStats(t, { edit: {
+        _iduser: user._id,
+        status: "replace_date",
+        orderId,
+        _dt: new Date()
+    }})
 }
 
 // permissions
