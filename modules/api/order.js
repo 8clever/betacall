@@ -158,17 +158,6 @@ api.doneOrder = async function(t, { order }) {
         ])
     });
 
-    console.log(_.pick(order, [
-        "accessCode",
-        "orderIdentity",
-        "workStatus",
-        "desiredDateDelivery",
-        "clientInfo"
-    ]));
-
-    console.dir(response, { depth: null })
-
-
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
     await this.unsetMyOrder(t, { orderId });
