@@ -142,7 +142,7 @@ api.doneOrder = async function(t, { order }) {
     let accessCode = md5(`${orderId}+${barcode}`);
 
     if (!orderId) throw new Error("Invalid order id");
-    if (!deliveryDate) throw new Error("Delivery date is required for complete date");
+    if (!deliveryDate) throw new Error("Delivery date is required for complete order");
 
     order.accessCode = accessCode;
     order.workStatus.id = 2;
