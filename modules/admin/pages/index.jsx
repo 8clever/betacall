@@ -75,22 +75,8 @@ class OperatorPage extends Component {
             let { phone } = evt;
 
             withError(async () => {
-                let order = await api("order.getOrders", token.get(), {
-                    query: {
-                        status: __.ORDER_STATUS.NEW,
-                        "info.clientInfo.phone": phone
-                    }
-                });
-                order = order.list[0];
-                if (!order) throw new Error("Order by phone not found! " + phone);
-
-                await api("order.editOrder", token.get(), {
-                    data: {
-                        _id: order._id,
-                        _iduser: user._id,
-                        status: __.ORDER_STATUS.IN_PROGRESS 
-                    }
-                });
+                let order = await api("order.getOrderByPhone", token.get(), { phone });
+                await api("order.addToMyOrders", token.get(), { orderId: order.orderIdentity.orderId });
                 global.router.reload();
             });
         });
@@ -109,7 +95,6 @@ class OperatorPage extends Component {
         return {
             replaceModal: "state-replace-modal",
             doneModal: "state-done-modal",
-            underCallModal: "state-under-call-modal",
             denyModal: "state-deny-modal"
         }
     }
@@ -118,16 +103,9 @@ class OperatorPage extends Component {
         return () => {
             withError(async () => {
                 let { order } = _.cloneDeep(this.state);
-                await api("order.editOrder", token.get(), {
-                    data: {
-                        _id: order._id,
-                        _dt: order._dt,
-                        _dtupdate: new Date(),
-                        status: __.ORDER_STATUS.NEW
-                    },
-                    unset: {
-                        _iduser: 1
-                    }
+                await api("order.replaceCallDate", token.get(), {
+                    order: order.info,
+                    replaceDate: order.replaceDate
                 });
                 global.router.reload();
                 this.toggle(OperatorPage.state.replaceModal)();
@@ -139,32 +117,9 @@ class OperatorPage extends Component {
         return () => {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
-                await api("order.editOrder",token.get(), {
-                    data: {
-                        _id: order._id,
-                        status: __.ORDER_STATUS.DONE,
-                        info: order.info
-                    }
-                });
+                await api("order.doneOrder",token.get(), { order: order.info });
                 global.router.reload();
                 this.toggle(OperatorPage.state.doneModal)();
-            });
-        }
-    }
-
-    setUnderCall () {
-        return () => {
-            let { order } = _.cloneDeep(this.state);
-            withError(async () => {
-                await api("order.editOrder",token.get(), {
-                    data: {
-                        _id: order._id,
-                        status: __.ORDER_STATUS.UNDER_CALL,
-                        info: order.info
-                    }
-                });
-                global.router.reload();
-                this.toggle(OperatorPage.state.underCallModal)();
             });
         }
     }
@@ -173,12 +128,8 @@ class OperatorPage extends Component {
         return () => {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
-                await api("order.editOrder",token.get(), {
-                    data: {
-                        _id: order._id,
-                        status: __.ORDER_STATUS.DENY,
-                        info: order.info
-                    }
+                await api("order.denyOrder",token.get(), {
+                    order: order.info
                 });
                 global.router.reload();
                 this.toggle(OperatorPage.state.denyModal)();
@@ -255,7 +206,14 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
                                             value={this.get(order, "info.desiredDateDelivery.date", "")}
-                                            onChange={this.change("order.info.desiredDateDelivery.date")}
+                                            onChange={e => {
+                                                let date = e.target.value;
+                                                if (date) {
+                                                    this.change("order.info.desiredDateDelivery.date")({
+                                                        target: { value: moment(date, "YYYY-MM-DD").toDate() }
+                                                    });
+                                                }
+                                            }}
                                             format="YYYY-MM-DD"
                                             mask={"9999-99-99"}
                                         />
@@ -415,7 +373,14 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("End of storage date")}</Label>
                                         <DatePicker
                                             value={this.get(order, "info.endOfStorageDate", "")}
-                                            onChange={this.change("order.info.endOfStorageDate")}
+                                            onChange={e => {
+                                                let date = e.target.value;
+                                                if (date) {
+                                                    this.change("order.info.endOfStorageDate")({
+                                                        target: { value: moment(date, "YYYY-MM-DD").toDate() }
+                                                    });
+                                                }
+                                            }}
                                             format="YYYY-MM-DD"
                                             mask="9999-99-99"
                                         />
@@ -438,7 +403,7 @@ class OperatorPage extends Component {
                                         color="success">
                                         {i18n.t("Done")}
                                     </Button>
-                                    <Modal isOpen={this.state[OperatorPage.state.doneModal]}>
+                                    <Modal isOpen={!!this.state[OperatorPage.state.doneModal]}>
                                         <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
                                         <ModalBody>{i18n.t("Are you set status to done, and go next?")}</ModalBody>
                                         <ModalFooter>
@@ -457,40 +422,37 @@ class OperatorPage extends Component {
 
                                     {" "}
                                     <Button 
-                                        onClick={this.toggle(OperatorPage.state.underCallModal)}
-                                        color="primary">
-                                        {i18n.t("Under call")}
-                                    </Button>
-                                    <Modal isOpen={this.state[OperatorPage.state.underCallModal]}>
-                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
-                                        <ModalBody>{i18n.t("Are you set status to under call, and go next?")}</ModalBody>
-                                        <ModalFooter>
-                                            <Button 
-                                                onClick={this.setUnderCall()}
-                                                color="warning">
-                                                {i18n.t("Confirm")}
-                                            </Button>
-                                            <Button
-                                                onClick={this.toggle(OperatorPage.state.underCallModal)}
-                                                color="light">
-                                                {i18n.t("Cancel")}
-                                            </Button>
-                                        </ModalFooter>
-                                    </Modal>
-
-                                    {" "}
-                                    <Button 
                                         onClick={this.toggle(OperatorPage.state.denyModal)}
                                         color="danger">
                                         {i18n.t("Deny")}
                                     </Button>
-                                    <Modal isOpen={this.state[OperatorPage.state.denyModal]}>
-                                        <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
-                                        <ModalBody>{i18n.t("Are you set status to deny, and go next?")}</ModalBody>
+                                    <Modal isOpen={!!this.state[OperatorPage.state.denyModal]}>
+                                        <ModalHeader className="bg-danger text-white">{i18n.t("Are you sure deny order?")}</ModalHeader>
+                                        <ModalBody>
+                                            <FormGroup>
+                                                <Label>{i18n.t("Deny Cause")}</Label>
+                                                <Input 
+                                                    onChange={this.change("order.info.denyParams.reason.id")}
+                                                    type="select">
+                                                    <option value="">{i18n.t("Not Selected")}</option>
+                                                    <option value={1}>{i18n.t("Delivery time violated")}</option>
+                                                    <option value={2}>{i18n.t("No money available")}</option>
+                                                    <option value={3}>{i18n.t("changed my mind to acquire")}</option>
+                                                    <option value={4}>{i18n.t("Purchased in another store")}</option>
+                                                    <option value={5}>{i18n.t("Did not order")}</option>
+                                                    <option value={6}>{i18n.t("Not phoned / expired")}</option>
+                                                    <option value={7}>{i18n.t("Other")}</option>
+                                                    <option value={8}>{i18n.t("Size does not match the stated")}</option>
+                                                    <option value={9}>{i18n.t("This product looks different than on the site.")}</option>
+                                                    <option value={10}>{i18n.t("Not satisfied with the quality")}</option>
+                                                    <option value={11}>{i18n.t("Another item deliverede")}</option>
+                                                </Input>
+                                            </FormGroup>
+                                        </ModalBody>
                                         <ModalFooter>
                                             <Button 
                                                 onClick={this.setDeny()}
-                                                color="warning">
+                                                color="danger">
                                                 {i18n.t("Confirm")}
                                             </Button>
                                             <Button
@@ -513,12 +475,13 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Date Call")}</Label>
                                         <DatePicker
-                                            value={moment(order._dt).format("YYYY-MM-DD")}
+                                            value={""}
                                             format={"YYYY-MM-DD"}
                                             mask={"9999-99-99"}
-                                            onChange={date => {
+                                            onChange={e => {
+                                                let date = e.target.value;
                                                 if (date) {
-                                                    this.change("order._dt")({ 
+                                                    this.change("order.replaceDate")({ 
                                                         target: {
                                                             value: moment(date, "YYYY-MM-DD").toDate()
                                                         }
@@ -532,7 +495,7 @@ class OperatorPage extends Component {
                                         color="warning">
                                         {i18n.t("Replace")}
                                     </Button>
-                                    <Modal isOpen={this.state[OperatorPage.state.replaceModal]}>
+                                    <Modal isOpen={!!this.state[OperatorPage.state.replaceModal]}>
                                         <ModalHeader className="bg-warning">{i18n.t("Attention")}</ModalHeader>
                                         <ModalBody>{i18n.t("Are you sure replace call and go next?")}</ModalBody>
                                         <ModalFooter>
@@ -590,6 +553,7 @@ export default async (ctx) => {
     let orders = await api("order.getMyOrders", token.get(ctx), {});
     let order = orders[filter.page] || orders[0] || null;
 
+    console.log(order)
     return ctx.res._render(OperatorPage, { 
         user: u,
         orders,

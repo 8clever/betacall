@@ -128,6 +128,18 @@ module.exports.init = async function (...args) {
 				googleId: {
 					type: "string",
 					minLength: 2
+				},
+				orders: {
+					type: "array",
+					items: {
+						type: "object",
+						properties: {
+							orderId: {
+								type: "number",
+								required: true
+							}
+						}
+					}
 				}
 			}
 		}

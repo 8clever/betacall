@@ -8,7 +8,9 @@ module.exports = {
         host: "localhost",
         username: "",
 		password: "",
-		context: ""
+		context: "",
+		maxQueue: 7,
+		sandbox: true
     },
 	mongo: {
 		main: {

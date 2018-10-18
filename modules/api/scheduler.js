@@ -7,13 +7,14 @@ const _ = require("lodash");
 var api = {};
 var ctx;
 
-module.exports.deps = [ "users" ];
+module.exports.deps = [ "users", "order" ];
 module.exports.init = async function (_ctx) {
 	ctx = _ctx;
 
 	// WRITE SCHEDULES HERE
 	api.addJob("email.sendAllMessages", { cronTime: ctx.cfg.email.period });
-	api.addJob("order.importFromTopDelivery", { cronTime: "*/3 * * * * *" });
+	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
+	api.addJob("asterisk._startCalls", { cronTime: "*/10 * * * * *" });
 
 	return { api };
 };
