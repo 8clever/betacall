@@ -209,12 +209,15 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
         orderEvent: _.pick(order, [
             "accessCode",
             "orderIdentity",
-            "event"
+            "event",
+            "comment"
         ])
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
     await this.unsetMyOrder(t, { orderId });
+
+    // to do add stats
 }
 
 // permissions
