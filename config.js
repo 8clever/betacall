@@ -10,7 +10,8 @@ module.exports = {
 		password: "",
 		context: "",
 		maxQueue: 7,
-		sandbox: true
+		sandbox: true,
+		phone: "89066482837"
     },
 	mongo: {
 		main: {

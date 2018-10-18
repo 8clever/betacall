@@ -7,6 +7,7 @@ let ami = null;
 let ctx = null;
 
 let __queueSize = 0;
+let __phonesInQueue = {};
 let __ordersCallMem = {};
 let m10 = 1000 + 60 * 10;
 
@@ -31,7 +32,11 @@ module.exports.init = async function (...args) {
             resolve();
 
             ami.on("eventAny", evt => {
-                if (evt.Event === "Hangup") __queueSize --;
+                console.log(evt)
+                if (evt.Event === "Hangup") {
+                    __queueSize --;
+                    delete __phonesInQueue[evt.CallerIDNum];
+                }
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
         });
@@ -51,7 +56,7 @@ api._startCalls = async function(t, p) {
         if (__queueSize >= ctx.cfg.ami.maxQueue) return;
         if (__queueSize >= (listenersCount + 1)) return;
 
-        if (!__ordersCallMem[orderId]) {
+        if (!__ordersCallMem[orderId] && !__phonesInQueue[phone]) {
             await this._call(t, { phone });
             __ordersCallMem[orderId] = 1;
             setTimeout(() => {
@@ -92,16 +97,16 @@ api._call = async function(t, {
         });
     });
 
-    if (ctx.cfg.ami.sandbox) {
-        __queueSize++;
-        ami.emit(id, {
-            Event: "DialEnd",
-            DialStatus: "ANSWER",
-            DestConnectedLineNum: phone,
-            DestCallerIDNum: "116"
-        });
-        return;
-    }
+    // if (ctx.cfg.ami.sandbox) {
+    //     __queueSize++;
+    //     ami.emit(id, {
+    //         Event: "DialEnd",
+    //         DialStatus: "ANSWER",
+    //         DestConnectedLineNum: phone,
+    //         DestCallerIDNum: "116"
+    //     });
+    //     return;
+    // }
 
     await new Promise((resolve, reject) => {
         ami.action(
@@ -121,6 +126,7 @@ api._call = async function(t, {
                     reject(data);
                 }
                 __queueSize++;
+                __phonesInQueue[phone] = 1;
                 resolve();
             }
         );

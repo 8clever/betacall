@@ -69,6 +69,12 @@ api._getCallOrders = async function(t, p) {
         auth: topDeliveryCfg.bodyAuth
     });
 
+    if (ctx.cfg.ami.sandbox && ctx.cfg.ami.phone) {
+        _.each(orders.orderInfo, order => {
+            order.clientInfo.phone = ctx.cfg.ami.phone;
+        });
+    }
+
     __orders = orders.orderInfo;
 }
 
@@ -169,6 +175,7 @@ api.doneOrder = async function(t, { order }) {
         orderId,
         _dt: new Date()
     }})
+    await this._getCallOrders(t, {});
 }
 
 api.denyOrder = async function(t, { order }) {
@@ -220,7 +227,8 @@ api.denyOrder = async function(t, { order }) {
         status: "deny",
         orderId,
         _dt: new Date()
-    }})
+    }});
+    await this._getCallOrders(t, {});
 }
 
 api.replaceCallDate = async function(t, { order, replaceDate }) {
@@ -263,7 +271,8 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
         status: "replace_date",
         orderId,
         _dt: new Date()
-    }})
+    }});
+    await this._getCallOrders(t, {});
 }
 
 // permissions
