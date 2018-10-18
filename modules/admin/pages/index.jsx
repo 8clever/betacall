@@ -141,10 +141,20 @@ class OperatorPage extends Component {
         return _.get(root, path) || def;
     }
 
+    convertToYYYYMMDD (date, format) {
+        return _.isDate(date) && moment(date).format(format) || "";
+    }
+
     render() {
         let { user, orders, filter } = this.props;
         let { order } = this.state;
         const i18n = new I18n(user);
+
+        let desiredDate = this.get(order, "info.desiredDateDelivery.date", "");
+        let storageDate = this.get(order, "info.endOfStorageDate", "");
+
+        desiredDate = this.convertToYYYYMMDD(desiredDate, "YYYY-MM-DD");
+        storageDate = this.convertToYYYYMMDD(storageDate, "YYYY-MM-DD");
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
@@ -206,7 +216,7 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
                                             key={order.info.orderIdentity.orderId}
-                                            value={this.get(order, "info.desiredDateDelivery.date", "")}
+                                            value={desiredDate}
                                             onChange={this.change("order.info.desiredDateDelivery.date")}
                                             format="YYYY-MM-DD"
                                             mask={"9999-99-99"}
@@ -366,7 +376,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("End of storage date")}</Label>
                                         <DatePicker
-                                            value={this.get(order, "info.endOfStorageDate", "")}
+                                            value={storageDate}
                                             onChange={e => {
                                                 let date = e.target.value;
                                                 if (date) {
