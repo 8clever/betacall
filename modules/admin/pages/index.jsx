@@ -205,15 +205,9 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
+                                            key={order.info.orderIdentity.orderId}
                                             value={this.get(order, "info.desiredDateDelivery.date", "")}
-                                            onChange={e => {
-                                                let date = e.target.value;
-                                                if (date) {
-                                                    this.change("order.info.desiredDateDelivery.date")({
-                                                        target: { value: moment(date, "YYYY-MM-DD").toDate() }
-                                                    });
-                                                }
-                                            }}
+                                            onChange={this.change("order.info.desiredDateDelivery.date")}
                                             format="YYYY-MM-DD"
                                             mask={"9999-99-99"}
                                         />
@@ -553,7 +547,6 @@ export default async (ctx) => {
     let orders = await api("order.getMyOrders", token.get(ctx), {});
     let order = orders[filter.page] || orders[0] || null;
 
-    console.log(order)
     return ctx.res._render(OperatorPage, { 
         user: u,
         orders,

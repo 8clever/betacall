@@ -37,7 +37,7 @@ module.exports.init = async function(...args) {
 					required: true
                 },
                 orderId: {
-                    type: "string",
+                    type: "number",
                     required: true
                 },
                 status: {
@@ -147,13 +147,15 @@ api.doneOrder = async function(t, { order }) {
     order.accessCode = accessCode;
     order.workStatus.id = 2;
     order.workStatus.name = "В работе";
-    let [ response ] = await topDelivery.setOrdersFinalStatusAsync({
-        auth: topDeliveryCfg,
-        finalStatusParams: _.pick(order, [
+    order.desireDateDelivery = order.desiredDateDelivery;
+
+    let [ response ] = await topDelivery.editOrdersAsync({
+        auth: topDeliveryCfg.bodyAuth,
+        editOrderParams: _.pick(order, [
             "accessCode",
             "orderIdentity",
             "workStatus",
-            "desiredDateDelivery",
+            "desireDateDelivery",
             "clientInfo"
         ])
     });
@@ -161,7 +163,7 @@ api.doneOrder = async function(t, { order }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
     await this.unsetMyOrder(t, { orderId });
-    await this.addStats(t, { edit: {
+    await this.addStats(t, { data: {
         _iduser: user._id,
         status: "done",
         orderId,
@@ -184,21 +186,24 @@ api.denyOrder = async function(t, { order }) {
     order.workStatus.name = "отказ";
     order.denyParams.type = "CALL"
     order.denyParams.reason = {
-        1: "Нарушен срок доставки",
-        2: "Нет денег в наличии",
-        3: "Передумал приобретать",
-        4: "Приобрел в другом магазине",
-        5: "Не заказывали",
-        6: "Не дозвонились/истек срок хранения",
-        7: "Другое",
-        8: "Размер не соответствует заявленному",
-        9: "Товар выглядит иначе, чем на сайте",
-        10: "Не устраивает качество",
-        11: "Доставлен другой товар"
-    }[denyId];
+        id: denyId,
+        name: {
+            1: "Нарушен срок доставки",
+            2: "Нет денег в наличии",
+            3: "Передумал приобретать",
+            4: "Приобрел в другом магазине",
+            5: "Не заказывали",
+            6: "Не дозвонились/истек срок хранения",
+            7: "Другое",
+            8: "Размер не соответствует заявленному",
+            9: "Товар выглядит иначе, чем на сайте",
+            10: "Не устраивает качество",
+            11: "Доставлен другой товар"
+        }[denyId]
+    };
 
     let [ response] = await topDelivery.setOrdersFinalStatusAsync({
-        auth: topDeliveryCfg,
+        auth: topDeliveryCfg.bodyAuth,
         finalStatusParams: _.pick(order, [
             "accessCode",
             "orderIdentity",
@@ -210,7 +215,7 @@ api.denyOrder = async function(t, { order }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
     await this.unsetMyOrder(t, { orderId });
 
-    await this.addStats(t, { edit: {
+    await this.addStats(t, { data: {
         _iduser: user._id,
         status: "deny",
         orderId,
@@ -235,13 +240,13 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     order.accessCode = accessCode;
     order.event = {
         eventType: {
-            id: "26",
-            name: "set_shift"
+            id: 20,
+            name: "edit_by_cc"
         }
     }
     order.comment = "Причина переноса: не дозвонились (Не берет трубку)";
-    let [ response] = await topDelivery.setOrdersFinalStatusAsync({
-        auth: topDeliveryCfg,
+    let [ response] = await topDelivery.addOrderEventAsync({
+        auth: topDeliveryCfg.bodyAuth,
         orderEvent: _.pick(order, [
             "accessCode",
             "orderIdentity",
@@ -253,7 +258,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
     await this.unsetMyOrder(t, { orderId });
 
-    await this.addStats(t, { edit: {
+    await this.addStats(t, { data: {
         _iduser: user._id,
         status: "replace_date",
         orderId,
