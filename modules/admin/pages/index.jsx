@@ -107,6 +107,7 @@ class OperatorPage extends Component {
                     order: order.info,
                     replaceDate: order.replaceDate
                 });
+                this.dropPhone()();
                 global.router.reload();
                 this.toggle(OperatorPage.state.replaceModal)();
             });
@@ -118,6 +119,7 @@ class OperatorPage extends Component {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
                 await api("order.doneOrder",token.get(), { order: order.info });
+                this.dropPhone()();
                 global.router.reload();
                 this.toggle(OperatorPage.state.doneModal)();
             });
@@ -131,9 +133,18 @@ class OperatorPage extends Component {
                 await api("order.denyOrder",token.get(), {
                     order: order.info
                 });
+                this.dropPhone()();
                 global.router.reload();
                 this.toggle(OperatorPage.state.denyModal)();
             });
+        }
+    }
+
+    dropPhone() {
+        return () => {
+            let { order, user } = _.cloneDeep(this.state);
+            let phone = _.get(order, "info.clientInfo.phone");
+            this.socket.emit(`${user._id}-${phone}-done`, {});
         }
     }
 

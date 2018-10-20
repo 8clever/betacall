@@ -8,8 +8,9 @@ module.exports = {
         host: "localhost",
         username: "",
 		password: "",
-		context: "",
-		maxQueue: 7,
+		context: "ringing",
+		exten: "333",
+		maxQueue: 1,
 		sandbox: true,
 		phone: "89066482837"
     },

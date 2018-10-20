@@ -1,6 +1,7 @@
 const aio = require("asterisk.io");
 const __ = require("../api/__namespace");
 const _ = require("lodash");
+const moment = require("moment");
 
 let api = {};
 let ami = null;
@@ -8,8 +9,9 @@ let ctx = null;
 
 let __queueSize = 0;
 let __phonesInQueue = {};
-let __ordersCallMem = {};
-let m10 = 1000 + 60 * 10;
+let __phoneUnnavailable = {};
+let __phoneUnnavailabelTimes = {};
+let __phoneInOperatorProcess = {};
 
 module.exports.deps = [ "socket", "order" ]
 module.exports.init = async function (...args) {
@@ -32,11 +34,6 @@ module.exports.init = async function (...args) {
             resolve();
 
             ami.on("eventAny", evt => {
-                console.log(evt)
-                if (evt.Event === "Hangup") {
-                    __queueSize --;
-                    delete __phonesInQueue[evt.CallerIDNum];
-                }
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
         });
@@ -46,35 +43,76 @@ module.exports.init = async function (...args) {
 }
 
 api._startCalls = async function(t, p) {
-    let listenersCount = await ctx.api.socket.getListenersCount(t, {});
     let orders = await ctx.api.order.getOrders(t, {});
 
     for (let order of orders) {
-        let orderId = order.orderIdentity.orderId;
         let phone = order.clientInfo.phone;
-
-        if (__queueSize >= ctx.cfg.ami.maxQueue) return;
-        if (__queueSize >= (listenersCount + 1)) return;
-
-        if (!__ordersCallMem[orderId] && !__phonesInQueue[phone]) {
-            await this._call(t, { phone });
-            __ordersCallMem[orderId] = 1;
-            setTimeout(() => {
-                delete __ordersCallMem[orderId];
-            }, m10);
-        }
+        await this._call(t, { phone });
     }
+}
+
+api._processUnnavailableCalls = async function(t, p) {
+    _.each(__phoneUnnavailable, (val, phone) => {
+        __phoneUnnavailabelTimes[phone] = __phoneUnnavailabelTimes[phone] || 1;
+        __phoneUnnavailabelTimes++;
+    });
+
+    await Promise.all(_.map(__phoneUnnavailabelTimes, (times, phone) => {
+        return (async () => {
+            if (times < 3) return;
+            let order = await ctx.api.order.getOrderByPhone(t, { phone });
+            await ctx.api.order.replaceCallDate(t, {
+                order,
+                replaceCallDate: moment().add(1, "day").toDate()
+            });
+            delete __phoneUnnavailabelTimes[phone];
+        })().catch(console.log);
+    }));
+
+    __phoneUnnavailable = {};
 }
 
 api._call = async function(t, {
     phone
 }) {
+    let listenersCount = await ctx.api.socket.getListenersCount(t, {});
+
+    if (__queueSize >= ctx.cfg.ami.maxQueue) return;
+    if (listenersCount === 0 || __queueSize >= (listenersCount + 1)) return;
+    if (__phoneInOperatorProcess[phone]) return;
+    if (__phonesInQueue[phone]) return;
+    if (__phoneUnnavailable[phone]) return;
+
     await ctx.api.users.getCurrentUserPublic(t, {});
 
     let id = _.uniqueId("call_");
     let io = await ctx.api.socket.getIo(t, {});
 
     ami.on(id, async evt => {
+
+        if (evt.Event === "Hangup") {
+            
+            // not connecting
+            if (evt.ChannelState === "5") {
+                
+                if (
+                    evt.Cause === "16" || // unnavailable
+                    evt.Cause === "34" || // inavlid phone number
+                    evt.Cause === "17" // user busy
+                ) {
+                    let phone = evt.DestConnectedLineNum;
+                    __phoneUnnavailable[phone] = 1;
+                    clearQueue();
+                    return;
+                }
+            }
+            
+            // connecting
+            if (evt.ChannelState === "6") {
+                /** EMPTY */
+            }
+        }
+
         if (!(
             evt.Event === 'DialEnd',
             evt.DialStatus === 'ANSWER'
@@ -91,30 +129,30 @@ api._call = async function(t, {
 
         user = user.list[0];
         if (!user) throw new Error(`User with login extension ${DestCallerIDNum} not found!`);
-        
+    
+        __phoneInOperatorProcess[phone] = 1;
+
+        io.once(`${user._id}-${phone}-done`, () => {
+            delete __phoneInOperatorProcess[phone];
+        });
+
         io.emit(user._id, {
             phone: DestConnectedLineNum
         });
-    });
 
-    // if (ctx.cfg.ami.sandbox) {
-    //     __queueSize++;
-    //     ami.emit(id, {
-    //         Event: "DialEnd",
-    //         DialStatus: "ANSWER",
-    //         DestConnectedLineNum: phone,
-    //         DestCallerIDNum: "116"
-    //     });
-    //     return;
-    // }
+        function clearQueue () {
+            __queueSize --;
+            delete __phonesInQueue[evt.CallerIDNum];
+        }
+    });
 
     await new Promise((resolve, reject) => {
         ami.action(
             'Originate',
             { 
                 Channel: `SIP/${phone}@voip1`, 
-                Context: "ringing", 
-                Exten: "333", 
+                Context: ctx.cfg.ami.context, 
+                Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
                 Async: true,
                 CallerID: phone,
@@ -122,6 +160,7 @@ api._call = async function(t, {
                 ChannelId: id
             },
             function(data){
+                console.log(data)
                 if(data.Response === 'Error'){
                     reject(data);
                 }

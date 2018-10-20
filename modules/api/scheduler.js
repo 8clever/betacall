@@ -15,6 +15,7 @@ module.exports.init = async function (_ctx) {
 	api.addJob("email.sendAllMessages", { cronTime: ctx.cfg.email.period });
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
 	api.addJob("asterisk._startCalls", { cronTime: "*/10 * * * * *" });
+	api.addJob("asterisk._processUnnavailableCalls", { cronTime: "0 0 */1 * * *" });
 
 	return { api };
 };
