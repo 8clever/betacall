@@ -68,6 +68,7 @@ module.exports.init = async function(...args) {
 }
 
 api._getCallOrders = async function(t, p) {
+    let currentDate = new Date();
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth
     });
@@ -77,6 +78,24 @@ api._getCallOrders = async function(t, p) {
             order.clientInfo.phone = ctx.cfg.ami.phone;
         });
     }
+
+    let completeOrders = await ctx.api.order.getStats(t, {
+        query: {
+            $or: [
+                { status: { $in: [ "deny", "done" ]} },
+                { status: "replace_date", _dtnextCall: { $gte: currentDate }}
+            ]
+        },
+        fields: {
+            orderId: 1
+        }
+    });
+
+    let ordersMap = _.keyBy(completeOrders.list, "orderId");
+    _.remove(orders.orderInfo, order => {
+        let orderId = _.get(order, "orderIdentity.orderId");
+        return ordersMap[orderId];
+    });
 
     __orders = orders.orderInfo;
 }
