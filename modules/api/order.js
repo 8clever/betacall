@@ -17,7 +17,7 @@ let cols = {};
 let callTimes = {
     default: {
         from: moment().startOf("day").add(9, "hours").toDate(),
-        to: moment().startOf("day").add(23, "hours").toDate()
+        to: moment().startOf("day").add(21, "hours").toDate()
     }
 }
 callTimes["Красноярский край"] = {
