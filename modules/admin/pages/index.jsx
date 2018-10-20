@@ -142,9 +142,14 @@ class OperatorPage extends Component {
 
     dropPhone() {
         return () => {
-            let { order, user } = _.cloneDeep(this.state);
+            let { user } = this.props;
+            let { order } = _.cloneDeep(this.state);
             let phone = _.get(order, "info.clientInfo.phone");
-            this.socket.emit(`${user._id}-${phone}-done`, {});
+            let idSocketDone = `${user._id}-${phone}-done`;
+            this.socket.emit("msg", {
+                evtid: idSocketDone,
+                done: 1
+            });
         }
     }
 

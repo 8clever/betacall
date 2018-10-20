@@ -51,6 +51,13 @@ api._startCalls = async function(t, p) {
     }
 }
 
+api._phoneLogs = async function() {
+    console.log("__phonesInQueue", __phonesInQueue);
+    console.log("__phoneUnnavailable", __phoneUnnavailable);
+    console.log("__phoneUnnavailabelTimes", __phoneUnnavailabelTimes);
+    console.log("__phoneInOperatorProcess", __phoneInOperatorProcess);
+}
+
 api._processUnnavailableCalls = async function(t, p) {
     _.each(__phoneUnnavailable, (val, phone) => {
         __phoneUnnavailabelTimes[phone] = __phoneUnnavailabelTimes[phone] || 1;
@@ -87,6 +94,7 @@ api._call = async function(t, {
 
     let id = _.uniqueId("call_");
     let io = await ctx.api.socket.getIo(t, {});
+    let serverIo = await ctx.api.socket.getServerIo(t, {});
 
     ami.on(id, async evt => {
 
@@ -100,7 +108,6 @@ api._call = async function(t, {
                     evt.Cause === "34" || // inavlid phone number
                     evt.Cause === "17" // user busy
                 ) {
-                    let phone = evt.DestConnectedLineNum;
                     __phoneUnnavailable[phone] = 1;
                     clearQueue();
                     return;
@@ -132,7 +139,8 @@ api._call = async function(t, {
     
         __phoneInOperatorProcess[phone] = 1;
 
-        io.once(`${user._id}-${phone}-done`, () => {
+        let idSocketDone = `${user._id}-${phone}-done`;
+        serverIo.once(idSocketDone, () => {
             delete __phoneInOperatorProcess[phone];
         });
 
