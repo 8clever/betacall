@@ -55,14 +55,10 @@ api._startCalls = async function(t, p) {
             }
         });
 
-        console.log("start")
-
-        if (dontCall.count) return;
-
-        console.log("here");
-
-        let phone = order.clientInfo.phone;
-        await this._call(t, { phone });
+        if (!dontCall.count) {
+            let phone = order.clientInfo.phone;
+            await this._call(t, { phone });
+        }
     }
 }
 
