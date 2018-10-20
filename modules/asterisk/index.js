@@ -97,8 +97,6 @@ api._call = async function(t, {
     let serverIo = await ctx.api.socket.getServerIo(t, {});
 
     ami.on(id, async evt => {
-        console.log(evt);
-
         if (evt.Event === "Hangup") {
             
             // not connecting
