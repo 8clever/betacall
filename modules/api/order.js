@@ -24,8 +24,6 @@ module.exports.init = async function(...args) {
         topDeliveryCfg.basicAuth.password
     ));
     
-    await api._getCallOrders().catch(console.log);
-
     ctx.api.validate.register(COLLECTION.STATS, {
 		$set: {
 			properties: {
@@ -63,6 +61,8 @@ module.exports.init = async function(...args) {
         collection: cols[COLLECTION.STATS],
         validate: COLLECTION.STATS
     });
+
+    await api._getCallOrders().catch(console.log);
 
     return { api }
 }
