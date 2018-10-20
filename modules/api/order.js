@@ -79,7 +79,7 @@ api._getCallOrders = async function(t, p) {
         });
     }
 
-    let completeOrders = await ctx.api.order.getStats(t, {
+    let completeOrders = await api.getStats(t, {
         query: {
             $or: [
                 { status: { $in: [ "deny", "done" ]} },
