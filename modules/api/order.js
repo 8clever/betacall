@@ -298,6 +298,21 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     await this._getCallOrders(t, {});
 }
 
+api.skipCall = async function(t, { order }) {
+    if (!order) throw new Error("Order not found!");
+    
+    let user = await ctx.api.users.getCurrentUserPublic(t, {});
+    let orderId = _.get(order, "orderIdentity.orderId");
+    await this.unsetMyOrder(t, { orderId });
+    await this.addStats(t, { data: {
+        _iduser: user._id,
+        status: "skip",
+        orderId,
+        _dt: new Date()
+    }});
+    await this._getCallOrders(t, {});
+}
+
 // permissions
 
 api[ __.PERMISSION.ORDER.VIEW ] = async function(t, p) {

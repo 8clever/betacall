@@ -95,7 +95,8 @@ class OperatorPage extends Component {
         return {
             replaceModal: "state-replace-modal",
             doneModal: "state-done-modal",
-            denyModal: "state-deny-modal"
+            denyModal: "state-deny-modal",
+            skipModal: "state-skip-modal"
         }
     }
 
@@ -149,6 +150,20 @@ class OperatorPage extends Component {
             this.socket.emit("msg", {
                 evtid: idSocketDone,
                 done: 1
+            });
+        }
+    }
+
+    skipOrder() {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                await api("order.skipOrder",token.get(), {
+                    order: order.info
+                });
+                this.dropPhone()();
+                global.router.reload();
+                this.toggle(OperatorPage.state.skipModal)();
             });
         }
     }
@@ -477,6 +492,29 @@ class OperatorPage extends Component {
                                             </Button>
                                             <Button
                                                 onClick={this.toggle(OperatorPage.state.denyModal)}
+                                                color="light">
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
+                                    {" "}
+
+                                    <Button 
+                                        onClick={this.toggle(OperatorPage.state.skipModal)}
+                                        color="primary">
+                                        {i18n.t("Skip")}
+                                    </Button>
+                                    <Modal isOpen={!!this.state[OperatorPage.state.skipModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention!")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you sure skip modal?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button
+                                                onClick={this.skipOrder()}
+                                                color="warning">
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button
+                                                onClick={this.toggle(OperatorPage.state.skipModal)}
                                                 color="light">
                                                 {i18n.t("Cancel")}
                                             </Button>
