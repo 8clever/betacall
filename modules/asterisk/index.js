@@ -55,12 +55,6 @@ api._startCalls = async function(t, p) {
             }
         });
 
-        console.log(orderId)
-        console.log(dontCall.list)
-
-        console.log(orders[1])
-        return;
-
         if (!dontCall.count) {
             let phone = order.clientInfo.phone;
             await this._call(t, { phone });
