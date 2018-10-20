@@ -168,7 +168,6 @@ api._call = async function(t, {
                 ChannelId: id
             },
             function(data){
-                console.log(data)
                 if(data.Response === 'Error'){
                     reject(data);
                 }
