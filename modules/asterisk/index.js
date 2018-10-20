@@ -34,7 +34,6 @@ module.exports.init = async function (...args) {
             resolve();
 
             ami.on("eventAny", evt => {
-                console.log(evt);
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
         });
