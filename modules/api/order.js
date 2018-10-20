@@ -47,6 +47,9 @@ module.exports.init = async function(...args) {
                 _dt: {
                     type: "date",
                     required: true
+                },
+                _dtnextCall: {
+                    type: "date"
                 }
 			}
 		}
@@ -270,7 +273,8 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
         _iduser: user._id,
         status: "replace_date",
         orderId,
-        _dt: new Date()
+        _dt: new Date(),
+        _dtnextCall: replaceDate
     }});
     await this._getCallOrders(t, {});
 }

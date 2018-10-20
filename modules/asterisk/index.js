@@ -44,8 +44,19 @@ module.exports.init = async function (...args) {
 
 api._startCalls = async function(t, p) {
     let orders = await ctx.api.order.getOrders(t, {});
+    let currentDate = new Date();
 
     for (let order of orders) {
+        let orderId = _.get(order, "orderIdentity.orderId");
+        let dontCall = await ctx.api.getStats({
+            query: {
+                orderId,
+                _dtnextCall: { $lte: currentDate }
+            }
+        });
+
+        if (dontCall.count) return;
+
         let phone = order.clientInfo.phone;
         await this._call(t, { phone });
     }
