@@ -34,6 +34,7 @@ module.exports.init = async function (...args) {
             resolve();
 
             ami.on("eventAny", evt => {
+                console.log(evt);
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
         });
@@ -98,8 +99,6 @@ api._call = async function(t, {
     let serverIo = await ctx.api.socket.getServerIo(t, {});
 
     ami.on(id, async evt => {
-        console.log(evt);
-        
         if (evt.Event === "Hangup") {
             
             // not connecting
