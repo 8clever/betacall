@@ -298,7 +298,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     await this._getCallOrders(t, {});
 }
 
-api.skipCall = async function(t, { order }) {
+api.skipOrder = async function(t, { order }) {
     if (!order) throw new Error("Order not found!");
     
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
