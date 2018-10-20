@@ -55,6 +55,7 @@ api._startCalls = async function(t, p) {
             }
         });
 
+        console.log(dontCall)
         if (!dontCall.count) {
             console.log("== start ==")
             let phone = order.clientInfo.phone;
