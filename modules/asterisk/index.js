@@ -101,17 +101,16 @@ api._call = async function(t, {
             
             // not connecting
             if (evt.ChannelState === "5") {
-                
-                if (
-                    evt.Cause === "16" || // unnavailable
-                    evt.Cause === "34" || // inavlid phone number
-                    evt.Cause === "17" || // user busy
-                    evt.Cause === "21" // call rejected
-                ) {
-                    __phoneUnnavailable[phone] = 1;
-                    clearQueue();
-                    return;
-                }
+                __phoneUnnavailable[phone] = 1;
+                clearQueue();
+                return;
+
+                // if (
+                //     evt.Cause === "16" || // unnavailable
+                //     evt.Cause === "34" || // inavlid phone number
+                //     evt.Cause === "17" || // user busy
+                //     evt.Cause === "21" // call rejected
+                // ) {
             }
             
             // connecting
