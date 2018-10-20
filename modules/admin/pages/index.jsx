@@ -4,7 +4,9 @@ import {
     Scroll,
     DatePicker,
     TimePicker,
-    Panel
+    Panel,
+    Fa,
+    Pagination
 } from "../components/index.jsx"
 import { 
     Socket,
@@ -18,7 +20,6 @@ import {
     redirect
 } from "../utils/index.jsx";
 import {
-    Jumbotron,
     Alert,
     Card,
     CardBody,
@@ -37,21 +38,174 @@ import _ from "lodash";
 import moment from "moment";
 
 class AdminPage extends React.Component {
+
+    componentDidMount () {
+        this.refreshInterval = setInterval(() => {
+            global.router.reload();
+        }, 30000);
+    }
+
+    componentWillUnmount () {
+        clearInterval(this.refreshInterval);
+    }
+
+    resetSystem () {
+        return () => {
+            withError(async () => {
+                await api("asterisk.restart", token.get(), {});
+                global.router.reload();
+            })
+        }
+    }
+
     render() {
-        let { user } = this.props;
+        let { user, orders, status, limit, filter  } = this.props;
         const i18n = new I18n(user);
+
+        console.log(orders.count, limit, filter)
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
                 <Scroll>
-                    <Jumbotron>
-                        <h1 className="display-3">
-                            { `${i18n.t("Hi") }, ${user.name}!`}
-                        </h1>
-                        <p className="lead">
-                            { i18n.t("You are ADMIN user. You can create / edit users.") }
-                        </p>
-                    </Jumbotron>
+                    <Card>
+                        <CardBody>
+                            <CardTitle>{i18n.t("Call Orders")}</CardTitle>
+                            
+                            {
+                                orders.list.length ?
+                                null :
+                                <Alert>
+                                    <b>{i18n.t("Information")}</b>
+                                    <p>{i18n.t("You not have active orders.")}</p>
+                                </Alert>
+                            }
+
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <th>{i18n.t("Order ID")}</th>
+                                        <th>{i18n.t("Phone")}</th>
+                                        <th>{i18n.t("Client")}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        _.map(orders.list, (order, key) => {
+                                            return (
+                                                <tr key={key}>
+                                                    <td>{_.get(order, "orderIdentity.orderId")}</td>
+                                                    <td>{_.get(order, "clientInfo.phone")}</td>
+                                                    <td>{_.get(order, "clientInfo.fio")}</td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </Table>
+                        </CardBody>
+                        
+                        <div className="px-2">
+                            <Pagination 
+                                limit={limit}
+                                count={orders.count}
+                                filter={filter}
+                            />
+                        </div>
+                    </Card>
+                </Scroll>
+                <Scroll className="col-5 w-100">
+                    <Card>
+                        <CardBody>
+                            <div className="d-flex">
+                                <div className="w-100">
+                                    <CardTitle>{i18n.t("Phones in Queue")}</CardTitle>
+                                </div>
+                                <div>
+                                    <Button 
+                                        onClick={this.resetSystem()}
+                                        size="sm"
+                                        outline
+                                        color="primary">
+                                        {i18n.t("Reset")} <Fa fa="refresh" />
+                                    </Button>
+                                </div>
+                            </div>
+                            <hr/>
+                            {
+                                _.map(status.__phonesInQueue, (val, phone) => {
+                                    return (
+                                        <div key={phone}>{phone}</div>
+                                    )
+                                })
+                            }
+
+                            {
+                                _.isEmpty(status.__phonesInQueue) ?
+                                <Alert color="warning">
+                                    {i18n.t("Queue is empty")}
+                                </Alert> : null
+                            }
+                        </CardBody>
+
+                        <CardBody>
+                            <CardTitle>{i18n.t("Phones in operator process")}</CardTitle>
+                            <hr/>
+                            {
+                                _.map(status.__phoneInOperatorProcess, (val, phone) => {
+                                    return (
+                                        <div key={phone}>{phone}</div>
+                                    )
+                                })
+                            }
+
+                            {
+                                _.isEmpty(status.__phoneInOperatorProcess) ?
+                                <Alert color="warning">
+                                    {i18n.t("Operators not manage phones")}
+                                </Alert> : null
+                            }
+                        </CardBody>
+
+                        <CardBody>
+                            <CardTitle>{i18n.t("Phones Unnavailable")}</CardTitle>
+                            <hr/>
+                            {
+                                _.map(status.__phoneUnnavailable, (val, phone) => {
+                                    return (
+                                        <div key={phone}>{phone}</div>
+                                    )
+                                })
+                            }
+
+                            {
+                                _.isEmpty(status.__phoneUnnavailable) ?
+                                <Alert color="warning">
+                                    {i18n.t("You not have unnavailable phones")}
+                                </Alert> : null
+                            }
+                        </CardBody>
+
+                        <CardBody>
+                            <CardTitle>{i18n.t("Call times to unnavailable phones")}</CardTitle>
+                            <hr/>
+                            {
+                                _.map(status.__phoneUnnavailabelTimes, (times, phone) => {
+                                    return (
+                                        <div key={phone}>
+                                            {phone}: {times}
+                                        </div>
+                                    )
+                                })
+                            }
+
+                            {
+                                _.isEmpty(status.__phoneUnnavailabelTimes) ?
+                                <Alert color="warning">
+                                    {i18n.t("You not have unnavailable phones in memory")}
+                                </Alert> : null
+                            }
+                        </CardBody>
+                    </Card>    
                 </Scroll>
             </Layout>
         );
@@ -602,12 +756,27 @@ class OperatorPage extends Component {
 
 export default async (ctx) => {
     let u = await checkAuth(ctx);
+    let filter = _.cloneDeep(ctx.req.query);
+    let limit = 20;
+    filter.page = parseInt(ctx.req.query.page || 0);
+
     if (u.role === __.ROLES.ADMIN) {
-        return ctx.res._render(AdminPage, { user: u });
+        let [ status, orders ] = await Promise.all([
+            api("asterisk.getStatus", token.get(ctx), {}),
+            api("order.getOrders", token.get(ctx), {
+                page: filter.page,
+                limit
+            })
+        ]);
+        return ctx.res._render(AdminPage, { 
+            user: u, 
+            status,
+            orders,
+            filter,
+            limit
+        });
     }
 
-    let filter = _.cloneDeep(ctx.req.query);
-    filter.page = parseInt(ctx.req.query.page || 0);
     let orders = await api("order.getMyOrders", token.get(ctx), {});
     let order = orders[filter.page] || orders[0] || null;
 

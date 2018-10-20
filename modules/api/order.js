@@ -107,6 +107,7 @@ module.exports.init = async function(...args) {
     return { api }
 }
 
+//** GET CALL ORDERS FROM Top Delivery */
 api._getCallOrders = async function(t, p) {
     let currentDate = new Date();
     let [ orders ] = await topDelivery.getCallOrdersAsync({
@@ -146,9 +147,28 @@ api._getCallOrders = async function(t, p) {
     __orders = orders.orderInfo;
 }
 
+
+/**
+ * p.page
+ * p.limit
+ */
 api.getOrders = async function(t, p) {
     await ctx.api.users.getCurrentUserPublic(t, {});
-    return __orders.concat([]);
+
+    let orders = __orders.concat([]);
+    let count = orders.length;
+
+    if (p.limit) {
+        let limit = parseInt(p.limit);
+        let page = parseInt(p.page || 0);
+        let skip = page * limit;
+        orders = orders.slice(skip, skip + limit);
+    }
+
+    return {
+        list: orders,
+        count
+    };
 }
 
 api.getOrderByID = async function(t, { orderId }) {

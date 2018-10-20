@@ -45,7 +45,7 @@ module.exports.init = async function (...args) {
 api._startCalls = async function(t, p) {
     let orders = await ctx.api.order.getOrders(t, {});
 
-    for (let order of orders) {
+    for (let order of orders.list) {
         let phone = order.clientInfo.phone;
         await this._call(t, { phone });
     }
@@ -89,7 +89,7 @@ api._call = async function(t, {
         let isBlack = regex.test(phone);
         if (isBlack) return;
     }
-    
+
     if (__queueSize >= ctx.cfg.ami.maxQueue) return;
     if (listenersCount === 0 || __queueSize >= (listenersCount + 1)) return;
     if (__phoneInOperatorProcess[phone]) return;
@@ -192,16 +192,22 @@ api._call = async function(t, {
     
 }
 
-/**
- * @param p.phone
- */
-api.call = async function(t, { phone }) {
-    let u = await ctx.api.users.getCurrentUserPublic(t, {});
+api.getStatus = async function(t, p) {
+    let u = await ctx.api.users.getCurrentUserPublic(t, p);
+    if (u.role !== __.ROLES.ADMIN) throw new Error("Only Admin can look asterisk system status");
 
-    if (!phone) throw new Error("Invalid phone number");
-    if (u.role !== __.ROLES.OPERATOR) throw new Error("Invalid user role");
-    
-    api._call(t, {
-        phone
-    });
+    return {
+        __phonesInQueue,
+        __phoneUnnavailable,
+        __phoneUnnavailabelTimes,
+        __phoneInOperatorProcess
+    }
+}
+
+api.restart = async function(t, p) {
+    let u = await ctx.api.users.getCurrentUserPublic(t, p);
+    if (u.role !== __.ROLES.ADMIN) throw new Error("Only Admin can reset asterisk system");
+
+    __phonesInQueue = {};
+    __phoneInOperatorProcess = {};
 }
