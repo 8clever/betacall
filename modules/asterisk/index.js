@@ -48,16 +48,14 @@ api._startCalls = async function(t, p) {
 
     for (let order of orders) {
         let orderId = _.get(order, "orderIdentity.orderId");
-        let dontCall = await ctx.api.order.getStats({
+        let dontCall = await ctx.api.order.getStats(t, {
             query: {
                 orderId,
                 _dtnextCall: { $lte: currentDate }
             }
         });
 
-        console.log(dontCall)
         if (!dontCall.count) {
-            console.log("== start ==")
             let phone = order.clientInfo.phone;
             await this._call(t, { phone });
         }
