@@ -107,7 +107,8 @@ api._call = async function(t, {
                 if (
                     evt.Cause === "16" || // unnavailable
                     evt.Cause === "34" || // inavlid phone number
-                    evt.Cause === "17" // user busy
+                    evt.Cause === "17" || // user busy
+                    evt.Cause === "21" // call rejected
                 ) {
                     __phoneUnnavailable[phone] = 1;
                     clearQueue();
