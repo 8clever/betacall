@@ -82,7 +82,7 @@ api._getCallOrders = async function(t, p) {
     let completeOrders = await api.getStats(t, {
         query: {
             $or: [
-                { status: { $in: [ "deny", "done" ]} },
+                { status: { $in: [ "deny", "done", "skip" ]} },
                 { status: "replace_date", _dtnextCall: { $gte: currentDate }}
             ]
         },
