@@ -117,6 +117,11 @@ api._call = async function(t, {
             
             // connecting
             if (evt.ChannelState === "6") {
+                if (evt.CallerIDNum === evt.ConnectedLineNum) {
+                    __phoneUnnavailable[phone] = 1;
+                    clearQueue();
+                    return;
+                }
                 /** EMPTY */
             }
         }
