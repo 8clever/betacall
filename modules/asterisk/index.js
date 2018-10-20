@@ -51,7 +51,7 @@ api._startCalls = async function(t, p) {
         let dontCall = await ctx.api.order.getStats(t, {
             query: {
                 orderId,
-                _dtnextCall: { $lte: currentDate }
+                _dtnextCall: { $gte: currentDate }
             }
         });
 
