@@ -84,6 +84,7 @@ api._call = async function(t, {
 }) {
     let listenersCount = await ctx.api.socket.getListenersCount(t, {});
 
+    if (ctx.cfg.ami.blackList[phone]) return;
     if (__queueSize >= ctx.cfg.ami.maxQueue) return;
     if (listenersCount === 0 || __queueSize >= (listenersCount + 1)) return;
     if (__phoneInOperatorProcess[phone]) return;

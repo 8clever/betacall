@@ -12,7 +12,10 @@ module.exports = {
 		exten: "333",
 		maxQueue: 1,
 		sandbox: true,
-		phone: "89066482837"
+		phone: "89066482837",
+		blackList: {
+			"88003016013": 1
+		}
     },
 	mongo: {
 		main: {

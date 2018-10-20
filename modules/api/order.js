@@ -6,12 +6,52 @@ const __ = require("./__namespace");
 const soap = require("soap");
 const _ = require("lodash");
 const md5 = require("md5");
+const moment = require("moment");
 const COLLECTION = __.ESSENCE;
 
 let topDelivery = null;
 let topDeliveryCfg = null;
 let __orders = [];
 let cols = {};
+
+let callTimes = {
+    default: {
+        from: moment().startOf("day").add(9, "hours").toDate(),
+        to: moment().startOf("day").add(21, "hours").toDate()
+    }
+}
+callTimes["Красноярский край"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(17, "hours").toDate()
+}
+callTimes["Томская область"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(17, "hours").toDate()
+}
+callTimes["Новосибирская область"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(17, "hours").toDate()
+}
+callTimes["Кемеровская область"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(17, "hours").toDate()
+}
+callTimes["Омская область"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(18, "hours").toDate()
+}
+callTimes["Республика Башкортостан"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(19, "hours").toDate()
+}
+callTimes["Пермский край"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(19, "hours").toDate()
+}
+callTimes["Тюменская область"] = {
+    from: callTimes.default.from,
+    to: moment().startOf("day").add(19, "hours").toDate()
+}
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -94,6 +134,12 @@ api._getCallOrders = async function(t, p) {
     let ordersMap = _.keyBy(completeOrders.list, "orderId");
     _.remove(orders.orderInfo, order => {
         let orderId = _.get(order, "orderIdentity.orderId");
+        let region = _.get(order, "deliveryAddress.region");
+        let timeCall = callTimes[region] || callTimes.default;
+
+        let weCanCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
+        if (!weCanCall) return true;
+
         return ordersMap[orderId];
     });
 
