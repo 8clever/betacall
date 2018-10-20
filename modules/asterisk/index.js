@@ -148,6 +148,8 @@ api._call = async function(t, {
             phone: DestConnectedLineNum
         });
 
+        clearQueue();
+
         function clearQueue () {
             __queueSize --;
             delete __phonesInQueue[evt.CallerIDNum];
