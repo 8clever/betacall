@@ -23,14 +23,6 @@ module.exports = {
 			ccfg: {native_parser: true, w: 1}
 		}
 	},
-	mysql: {
-		main: {
-			host: "",
-			user: "",
-			password: "",
-			database: "db"
-		}
-	},
 	server: {
 		https: 0,
 		domain: "localhost:3000",
