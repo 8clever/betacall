@@ -110,6 +110,8 @@ module.exports.init = async function(...args) {
 //** GET CALL ORDERS FROM Top Delivery */
 api._getCallOrders = async function(t, p) {
     let currentDate = new Date();
+    let oneHourInPast = moment().add(-1, "hour").toDate();
+
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth
     });
@@ -124,6 +126,7 @@ api._getCallOrders = async function(t, p) {
         query: {
             $or: [
                 { status: { $in: [ "deny", "done", "skip" ]} },
+                { status: "under_call", _dt: { $gte: oneHourInPast }},
                 { status: "replace_date", _dtnextCall: { $gte: currentDate }}
             ]
         },
