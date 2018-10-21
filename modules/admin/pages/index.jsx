@@ -131,11 +131,10 @@ class OperatorPage extends Component {
         let { user } = this.props;
         this.socket = Socket.connect();
         this.socket.on(user._id, (evt) => {
-            let { phone } = evt;
+            let { orderId } = evt;
 
             withError(async () => {
-                let order = await api("order.getOrderByPhone", token.get(), { phone });
-                await api("order.addToMyOrders", token.get(), { orderId: order.orderIdentity.orderId });
+                await api("order.addToMyOrders", token.get(), { orderId });
                 global.router.reload();
             });
         });
@@ -204,8 +203,8 @@ class OperatorPage extends Component {
         return () => {
             let { user } = this.props;
             let { order } = _.cloneDeep(this.state);
-            let phone = _.get(order, "info.clientInfo.phone");
-            let idSocketDone = `${user._id}-${phone}-done`;
+            let orderId = _.get(order, "info.orderIdentity.orderId");
+            let idSocketDone = `${user._id}-${orderId}`;
             this.socket.emit("msg", {
                 evtid: idSocketDone,
                 done: 1

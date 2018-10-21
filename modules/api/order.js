@@ -130,42 +130,8 @@ module.exports.init = async function(...args) {
 
 //** GET CALL ORDERS FROM Top Delivery */
 api._getCallOrders = async function(t, p) {
-    let currentDate = new Date();
-    let oneHourInPast = moment().add(-1, "hour").toDate();
-
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth
-    });
-
-    if (ctx.cfg.ami.sandbox && ctx.cfg.ami.phone) {
-        _.each(orders.orderInfo, order => {
-            order.clientInfo.phone = ctx.cfg.ami.phone;
-        });
-    }
-
-    let completeOrders = await api.getStats(t, {
-        query: {
-            $or: [
-                { status: { $in: [ "deny", "done", "skip" ]} },
-                { status: "under_call", _dt: { $gte: oneHourInPast }},
-                { status: "replace_date", _dtnextCall: { $gte: currentDate }}
-            ]
-        },
-        fields: {
-            orderId: 1
-        }
-    });
-
-    let ordersMap = _.keyBy(completeOrders.list, "orderId");
-    _.remove(orders.orderInfo, order => {
-        let orderId = _.get(order, "orderIdentity.orderId");
-        let region = _.get(order, "deliveryAddress.region");
-        let timeCall = callTimes[region] || callTimes.default;
-
-        let weCanCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
-        if (!weCanCall) return true;
-
-        return ordersMap[orderId];
     });
 
     __orders = orders.orderInfo;
@@ -442,11 +408,28 @@ api.skipOrder = async function(t, { order }) {
     await this._getCallOrders(t, {});
 }
 
+let ORDERS_IN_OPERATORS = {};
 // scheduler function
 api.startCallByOrder =  async function(t, p) {
     let orders = await this.getOrders(t, {});
     let listenersCount = await ctx.api.socket.getListenersCount();
     let io = await ctx.api.socket.getIo();
+    let serverIo = await ctx.api.socket.getServerIo();
+    let currentDate = new Date();
+    let oneHourInPast = moment().add(-1, "hour").toDate();
+    let ordersManagedMap = await api.getStats(t, {
+        query: {
+            $or: [
+                { status: { $in: [ __.ORDER_STATUS.DENY, __.ORDER_STATUS.DONE, __.ORDER_STATUS.SKIP ]} },
+                { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: oneHourInPast }},
+                { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
+            ]
+        },
+        fields: {
+            orderId: 1
+        }
+    });
+    ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
 
     console.log(`log -- queue: ${callQueue.length()} -- listeners: ${listenersCount}`);
 
@@ -454,48 +437,67 @@ api.startCallByOrder =  async function(t, p) {
         if (listenersCount === 0) return;
         if (callQueue.length() >= (listenersCount + 1)) return;
 
-        callQueue.push(async () => {
-            let phone = _.get(order, "clientInfo.phone");
-            let orderId = _.get(order, "orderIdentity.orderId");
-            let call = await ctx.api.asterisk.__call(t, { phone });
+        let phone = ctx.cfg.ami.sandbox ? ctx.cfg.ami.phone :_.get(order, "clientInfo.phone");
+        let orderId = _.get(order, "orderIdentity.orderId");
+        let region = _.get(order, "deliveryAddress.region");
+        let timeCall = callTimes[region] || callTimes.default;
+        let allowedTimeToCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
+        let orderIsManaged = ordersManagedMap[orderId];
+        let weCanCall = (
+            allowedTimeToCall &&
+            !orderIsManaged &&
+            !ORDERS_IN_OPERATORS[orderId]
+        )
 
-            if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
-                let unnavailableTimes = await ctx.api.order.getStats(t, {
-                    query: {
-                        orderId,
-                        status: __.ORDER_STATUS.UNDER_CALL
-                    },
-                    fields: {
-                        _id: 1
-                    }
-                });
+        if (weCanCall) {
 
-                if (unnavailableTimes.count >= 2) {
-                    await ctx.api.order.replaceCallDate(t, {
-                        order,
-                        replaceDate: moment().add(1, "day").toDate()
-                    })
-                } else {
-                    await ctx.api.order.underCall(t, { order });
-                }
-                return;
-            }
+            console.log("log -- push: " + phone);
             
-            if (call.status === __.CALL_STATUS.DONE) {
-                let user = await ctx.api.users.getUsers(t, {
-                    query: { login: call.exten }
-                });
-                user = user.list[0];
-                if (!user) throw new Error("User not found. Exten: " + call.exten);
-
-                io.emit(user._id, {
-                    phone
-                });
-                return;
-            }
-
-            throw new Error("Invalid call status: " + call.status);
-        });
+            callQueue.push(async () => {
+                let call = await ctx.api.asterisk.__call(t, { phone });
+    
+                if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
+                    let unnavailableTimes = await ctx.api.order.getStats(t, {
+                        query: {
+                            orderId,
+                            status: __.ORDER_STATUS.UNDER_CALL
+                        },
+                        fields: {
+                            _id: 1
+                        }
+                    });
+    
+                    if (unnavailableTimes.count >= 2) {
+                        await ctx.api.order.replaceCallDate(t, {
+                            order,
+                            replaceDate: moment().add(1, "day").toDate()
+                        })
+                    } else {
+                        await ctx.api.order.underCall(t, { order });
+                    }
+                    return;
+                }
+                
+                if (call.status === __.CALL_STATUS.DONE) {
+                    let user = await ctx.api.users.getUsers(t, {
+                        query: { login: call.exten }
+                    });
+                    user = user.list[0];
+                    if (!user) throw new Error("User not found. Exten: " + call.exten);
+                    
+                    ORDERS_IN_OPERATORS[orderId] = 1;
+                    serverIo.once(`${user._id}-${orderId}`, () => {
+                        delete ORDERS_IN_OPERATORS[orderId];
+                    });
+                    io.emit(user._id, {
+                        orderId
+                    });
+                    return;
+                }
+    
+                throw new Error("Invalid call status: " + call.status);
+            });
+        }
     }
 }
 
