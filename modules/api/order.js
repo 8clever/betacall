@@ -462,6 +462,9 @@ api.startCallByOrder =  async function(t, p) {
                     query: {
                         orderId,
                         status: __.ORDER_STATUS.UNDER_CALL
+                    },
+                    fields: {
+                        _id: 1
                     }
                 });
 
