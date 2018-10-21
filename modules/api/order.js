@@ -448,6 +448,8 @@ api.startCallByOrder =  async function(t, p) {
     let listenersCount = await ctx.api.socket.getListenersCount();
     let io = await ctx.api.socket.getIo();
 
+    console.log(`log -- queue: ${callQueue.length()} -- listeners: ${listenersCount}`);
+
     for (let order of orders.list) {
         if (listenersCount === 0) return;
         if (callQueue.length() >= (listenersCount + 1)) return;
