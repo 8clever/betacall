@@ -59,7 +59,7 @@ class AdminPage extends React.Component {
     }
 
     render() {
-        let { user, orders, status, limit, filter  } = this.props;
+        let { user, orders, limit, filter  } = this.props;
         const i18n = new I18n(user);
 
         console.log(orders.count, limit, filter)
@@ -112,100 +112,6 @@ class AdminPage extends React.Component {
                             />
                         </div>
                     </Card>
-                </Scroll>
-                <Scroll className="col-5 w-100">
-                    <Card>
-                        <CardBody>
-                            <div className="d-flex">
-                                <div className="w-100">
-                                    <CardTitle>{i18n.t("Phones in Queue")}</CardTitle>
-                                </div>
-                                <div>
-                                    <Button 
-                                        onClick={this.resetSystem()}
-                                        size="sm"
-                                        outline
-                                        color="primary">
-                                        {i18n.t("Reset")} <Fa fa="refresh" />
-                                    </Button>
-                                </div>
-                            </div>
-                            <hr/>
-                            {
-                                _.map(status.__phonesInQueue, (val, phone) => {
-                                    return (
-                                        <div key={phone}>{phone}</div>
-                                    )
-                                })
-                            }
-
-                            {
-                                _.isEmpty(status.__phonesInQueue) ?
-                                <Alert color="warning">
-                                    {i18n.t("Queue is empty")}
-                                </Alert> : null
-                            }
-                        </CardBody>
-
-                        <CardBody>
-                            <CardTitle>{i18n.t("Phones in operator process")}</CardTitle>
-                            <hr/>
-                            {
-                                _.map(status.__phoneInOperatorProcess, (val, phone) => {
-                                    return (
-                                        <div key={phone}>{phone}</div>
-                                    )
-                                })
-                            }
-
-                            {
-                                _.isEmpty(status.__phoneInOperatorProcess) ?
-                                <Alert color="warning">
-                                    {i18n.t("Operators not manage phones")}
-                                </Alert> : null
-                            }
-                        </CardBody>
-
-                        <CardBody>
-                            <CardTitle>{i18n.t("Phones Unnavailable")}</CardTitle>
-                            <hr/>
-                            {
-                                _.map(status.__phoneUnnavailable, (val, phone) => {
-                                    return (
-                                        <div key={phone}>{phone}</div>
-                                    )
-                                })
-                            }
-
-                            {
-                                _.isEmpty(status.__phoneUnnavailable) ?
-                                <Alert color="warning">
-                                    {i18n.t("You not have unnavailable phones")}
-                                </Alert> : null
-                            }
-                        </CardBody>
-
-                        <CardBody>
-                            <CardTitle>{i18n.t("Call times to unnavailable phones")}</CardTitle>
-                            <hr/>
-                            {
-                                _.map(status.__phoneUnnavailabelTimes, (times, phone) => {
-                                    return (
-                                        <div key={phone}>
-                                            {phone}: {times}
-                                        </div>
-                                    )
-                                })
-                            }
-
-                            {
-                                _.isEmpty(status.__phoneUnnavailabelTimes) ?
-                                <Alert color="warning">
-                                    {i18n.t("You not have unnavailable phones in memory")}
-                                </Alert> : null
-                            }
-                        </CardBody>
-                    </Card>    
                 </Scroll>
             </Layout>
         );
@@ -761,8 +667,7 @@ export default async (ctx) => {
     filter.page = parseInt(ctx.req.query.page || 0);
 
     if (u.role === __.ROLES.ADMIN) {
-        let [ status, orders ] = await Promise.all([
-            api("asterisk.getStatus", token.get(ctx), {}),
+        let [ orders ] = await Promise.all([
             api("order.getOrders", token.get(ctx), {
                 page: filter.page,
                 limit
@@ -770,7 +675,6 @@ export default async (ctx) => {
         ]);
         return ctx.res._render(AdminPage, { 
             user: u, 
-            status,
             orders,
             filter,
             limit
