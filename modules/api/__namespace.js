@@ -14,6 +14,19 @@ module.exports.LANGS = {
     EN: "en"
 }
 
+module.exports.CALL_STATUS = {
+    DONE: "done",
+    UNNAVAILABLE: "unnavailable"
+}
+
+module.exports.ORDER_STATUS = {
+    DONE: "done",
+    DENY: "deny",
+    UNDER_CALL: "under_call",
+    REPLACE_DATE: "replace_date",
+    SKIP: "skip"
+}
+
 module.exports.LANG_DEF = module.exports.LANGS.EN;
 
 module.exports.PERMISSION = {

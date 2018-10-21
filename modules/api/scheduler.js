@@ -12,11 +12,9 @@ module.exports.init = async function (_ctx) {
 	ctx = _ctx;
 
 	// WRITE SCHEDULES HERE
-	api.addJob("email.sendAllMessages", { cronTime: ctx.cfg.email.period });
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
-	api.addJob("asterisk._startCalls", { cronTime: "*/5 * * * * *" });
-	api.addJob("asterisk._processUnnavailableCalls", { cronTime: "0 0 */1 * * *" });
-	api.addJob("asterisk._phoneLogs", { cronTime: "*/10 * * * * *" });
+	api.addJob("order.replaceUndercallOrderDate", { cronTime: "0 */15 * * * *" });
+	api.addJob("order.startCallByOrder", { crontTime: "*/5 * * * * *" });
 
 	return { api };
 };

@@ -7,12 +7,14 @@ const soap = require("soap");
 const _ = require("lodash");
 const md5 = require("md5");
 const moment = require("moment");
+const async = require("async");
 const COLLECTION = __.ESSENCE;
 
 let topDelivery = null;
 let topDeliveryCfg = null;
 let __orders = [];
 let cols = {};
+let callQueue = null;
 
 let callTimes = {
     default: {
@@ -103,6 +105,25 @@ module.exports.init = async function(...args) {
     });
 
     await api._getCallOrders().catch(console.log);
+    callQueue = async.queue(function(task, cb) {
+        let exit = false;
+        let timeout = setTimeout(() => {
+            exit = true;
+            cb(new Error("Not respond more than 2 minutes"));
+        }, 1000 * 60 * 2)
+
+        task().then(response => {
+            if (exit) return;
+
+            clearTimeout(timeout);
+            cb(null, response);
+        }).catch(err => {
+            if (exit) return;
+            
+            clearTimeout(timeout);
+            cb(err);
+        });
+    }, ctx.cfg.ami.maxQueue);
 
     return { api }
 }
@@ -150,6 +171,32 @@ api._getCallOrders = async function(t, p) {
     __orders = orders.orderInfo;
 }
 
+api.replaceUndercallOrderDate = async function(t, p) {
+    let [ orders ] = await topDelivery.getCallOrdersAsync({
+        auth: topDeliveryCfg.bodyAuth
+    });
+    orders = orders.orderInfo;
+    let stats = await ctx.api.order.getStats(t, {
+        aggregate: [
+            { $match: { status: "under_call" }},
+            { $group: {
+                _id: "$orderId",
+                count: { $sum: 1 }
+            }},
+            { $match: { count: { $gte: 3 }}}
+        ]
+    });
+
+    for (let stat of stats.list) {
+        let order = _.find(orders, _.matchesProperty("orderIdentity.orderId", stat._id));
+        if (order) {
+            await ctx.api.order.replaceCallDate(t, {
+                order,
+                replaceDate: moment().add(1, "day").toDate()
+            });
+        } 
+    }
+}
 
 /**
  * p.page
@@ -262,7 +309,7 @@ api.doneOrder = async function(t, { order }) {
     await this.unsetMyOrder(t, { orderId });
     await this.addStats(t, { data: {
         _iduser: user._id,
-        status: "done",
+        status: __.ORDER_STATUS.DONE,
         orderId,
         _dt: new Date()
     }})
@@ -315,7 +362,7 @@ api.denyOrder = async function(t, { order }) {
 
     await this.addStats(t, { data: {
         _iduser: user._id,
-        status: "deny",
+        status: __.ORDER_STATUS.DENY,
         orderId,
         _dt: new Date()
     }});
@@ -355,7 +402,7 @@ api.underCall = async function(t, { order }) {
 
     await this.addStats(t, { data: {
         _iduser: user._id,
-        status: "under_call",
+        status: __.ORDER_STATUS.UNDER_CALL,
         orderId,
         _dt: new Date()
     }});
@@ -399,7 +446,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
 
     await this.addStats(t, { data: {
         _iduser: user._id,
-        status: "replace_date",
+        status: __.ORDER_STATUS.REPLACE_DATE,
         orderId,
         _dt: new Date(),
         _dtnextCall: replaceDate
@@ -415,11 +462,65 @@ api.skipOrder = async function(t, { order }) {
     await this.unsetMyOrder(t, { orderId });
     await this.addStats(t, { data: {
         _iduser: user._id,
-        status: "skip",
+        status: __.ORDER_STATUS.SKIP,
         orderId,
         _dt: new Date()
     }});
     await this._getCallOrders(t, {});
+}
+
+// scheduler function
+
+
+api.startCallByOrder =  async function(t, p) {
+    let orders = await this.getOrders(t, {});
+    let listenersCount = await ctx.api.socket.getListenersCount();
+    let io = await ctx.api.socket.getIo();
+
+    for (let order of orders.list) {
+        if (listenersCount === 0) return;
+        if (callQueue.length() >= (listenersCount + 1)) return;
+
+        callQueue.push(async () => {
+            let phone = _.get(order, "clientInfo.phone");
+            let orderId = _.get(order, "orderIdentity.orderId");
+            let call = await ctx.api.asterisk.__call(t, { phone });
+
+            if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
+                let unnavailableTimes = await ctx.api.order.getStats(t, {
+                    query: {
+                        orderId,
+                        status: __.ORDER_STATUS.UNDER_CALL
+                    }
+                });
+
+                if (unnavailableTimes.count >= 2) {
+                    await ctx.api.order.replaceCallDate(t, {
+                        order,
+                        replaceDate: moment().add(1, "day").toDate()
+                    })
+                } else {
+                    await ctx.api.order.underCall(t, { order });
+                }
+                return;
+            }
+            
+            if (call.status === __.CALL_STATUS.DONE) {
+                let user = await ctx.api.users.getUsers(t, {
+                    query: { login: call.exten }
+                });
+                user = user.list[0];
+                if (!user) throw new Error("User not found. Exten: " + call.exten);
+
+                io.emit(user._id, {
+                    phone
+                });
+                return;
+            }
+
+            throw new Error("Invalid call status: " + call.status);
+        });
+    }
 }
 
 // permissions
