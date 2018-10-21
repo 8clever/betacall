@@ -319,6 +319,46 @@ api.denyOrder = async function(t, { order }) {
     await this._getCallOrders(t, {});
 }
 
+api.underCall = async function(t, { order }) {
+    if (!( order )) throw new Error("Order is required");
+
+    let user = await ctx.api.users.getCurrentUserPublic(t, {});
+    let orderId = _.get(order, "orderIdentity.orderId");
+    let barcode = _.get(order, "orderIdentity.barcode");
+    let accessCode = md5(`${orderId}+${barcode}`);
+
+    if (!orderId) throw new Error("Invalid order id");
+
+    order.accessCode = accessCode;
+    order.event = {
+        eventType: {
+            id: 20,
+            name: "edit_by_cc"
+        }
+    }
+    order.comment = "Недоступен";
+    let [ response] = await topDelivery.addOrderEventAsync({
+        auth: topDeliveryCfg.bodyAuth,
+        orderEvent: _.pick(order, [
+            "accessCode",
+            "orderIdentity",
+            "event",
+            "comment"
+        ])
+    });
+
+    if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
+    await this.unsetMyOrder(t, { orderId });
+
+    await this.addStats(t, { data: {
+        _iduser: user._id,
+        status: "under_call",
+        orderId,
+        _dt: new Date()
+    }});
+    await this._getCallOrders(t, {});
+}
+
 api.replaceCallDate = async function(t, { order, replaceDate }) {
     if (!(
         order &&
@@ -340,7 +380,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
             name: "edit_by_cc"
         }
     }
-    order.comment = "Причина переноса: не дозвонились (Не берет трубку)";
+    order.comment = `Просит перезвонить позднее %${moment(replaceDate).format("DD.MM.YYYY")}%`;
     let [ response] = await topDelivery.addOrderEventAsync({
         auth: topDeliveryCfg.bodyAuth,
         orderEvent: _.pick(order, [
