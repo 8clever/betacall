@@ -5,7 +5,6 @@ import {
     DatePicker,
     TimePicker,
     Panel,
-    Fa,
     Pagination
 } from "../components/index.jsx"
 import { 
