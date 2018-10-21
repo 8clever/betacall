@@ -7,13 +7,12 @@ const _ = require("lodash");
 var api = {};
 var ctx;
 
-module.exports.deps = [ "users", "order" ];
+module.exports.deps = [ "users", "order", "socket", "asterisk" ];
 module.exports.init = async function (_ctx) {
 	ctx = _ctx;
 
 	// WRITE SCHEDULES HERE
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
-	api.addJob("order.replaceUndercallOrderDate", { cronTime: "0 */15 * * * *" });
 	api.addJob("order.startCallByOrder", { crontTime: "*/5 * * * * *" });
 
 	return { api };

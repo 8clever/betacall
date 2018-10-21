@@ -171,33 +171,6 @@ api._getCallOrders = async function(t, p) {
     __orders = orders.orderInfo;
 }
 
-api.replaceUndercallOrderDate = async function(t, p) {
-    let [ orders ] = await topDelivery.getCallOrdersAsync({
-        auth: topDeliveryCfg.bodyAuth
-    });
-    orders = orders.orderInfo;
-    let stats = await ctx.api.order.getStats(t, {
-        aggregate: [
-            { $match: { status: "under_call" }},
-            { $group: {
-                _id: "$orderId",
-                count: { $sum: 1 }
-            }},
-            { $match: { count: { $gte: 3 }}}
-        ]
-    });
-
-    for (let stat of stats.list) {
-        let order = _.find(orders, _.matchesProperty("orderIdentity.orderId", stat._id));
-        if (order) {
-            await ctx.api.order.replaceCallDate(t, {
-                order,
-                replaceDate: moment().add(1, "day").toDate()
-            });
-        } 
-    }
-}
-
 /**
  * p.page
  * p.limit
@@ -470,8 +443,6 @@ api.skipOrder = async function(t, { order }) {
 }
 
 // scheduler function
-
-
 api.startCallByOrder =  async function(t, p) {
     let orders = await this.getOrders(t, {});
     let listenersCount = await ctx.api.socket.getListenersCount();
