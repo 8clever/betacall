@@ -13,7 +13,7 @@ module.exports.init = async function (_ctx) {
 
 	// WRITE SCHEDULES HERE
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
-	api.addJob("order.startCallByOrder", { crontTime: "*/5 * * * * *" });
+	api.addJob("order.startCallByOrder", { cronTime: "*/5 * * * * *" });
 
 	return { api };
 };
