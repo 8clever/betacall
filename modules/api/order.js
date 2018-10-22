@@ -335,8 +335,7 @@ api.underCall = async function(t, { order }) {
         orderEvent: _.pick(order, [
             "accessCode",
             "orderIdentity",
-            "event",
-            "comment"
+            "event"
         ])
     });
 
@@ -379,8 +378,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
         orderEvent: _.pick(order, [
             "accessCode",
             "orderIdentity",
-            "event",
-            "comment"
+            "event"
         ])
     });
 
