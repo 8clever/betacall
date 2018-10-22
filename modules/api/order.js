@@ -450,7 +450,7 @@ api.startCallByOrder =  async function(t, p) {
         if (listenersCount === 0) return;
         if (callQueue.length() >= (listenersCount + 1)) return;
 
-        let phone = ctx.cfg.ami.sandbox ? ctx.cfg.ami.phone :_.get(order, "clientInfo.phone");
+        let phone = _.get(order, "clientInfo.phone");
         let orderId = _.get(order, "orderIdentity.orderId");
         let region = _.get(order, "deliveryAddress.region");
         let timeCall = callTimes[region] || callTimes.default;
@@ -465,6 +465,12 @@ api.startCallByOrder =  async function(t, p) {
                 return false;
             }
         });
+
+        if (ctx.cfg.ami.sandbox) {
+            phone = ctx.cfg.ami.phone;
+            allowedTimeToCall = true;
+            blackPhone = false;
+        }
 
         let weCanCall = (
             allowedTimeToCall &&
