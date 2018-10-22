@@ -107,6 +107,8 @@ module.exports.init = async function(...args) {
     });
 
     await api._getCallOrders().catch(console.log);
+    if (!ctx.cfg.ami.maxQueue) return { api };
+
     callQueue = async.queue(function({ name, fn }, cb) {
         callQueue.tasks = callQueue.tasks || {};
         callQueue.tasks[name] = 1;
