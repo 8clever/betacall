@@ -90,7 +90,7 @@ async function startApp () {
 	if (app.api.socket && app.api.socket.init) await app.api.socket.init("", httpServer);
 	httpServer.listen(cfg.config.server.port);
 
-	if (cfg.config.automated && process.send) {
-		process.send({ c: "startapp_repl", data: null });
+	if (argv.env === "test") {
+		await require("./test")(app);
 	}
 }

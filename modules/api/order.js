@@ -225,6 +225,43 @@ api.unsetMyOrder = async function(t, { orderId }) {
     }});
 }
 
+api.doneOrderPickup = async function(t, { order, pickupId }) {
+    let user = await ctx.api.users.getCurrentUserPublic(t, {});
+    let orderId = _.get(order, "orderIdentity.orderId");
+    let barcode = _.get(order, "orderIdentity.barcode");
+    let accessCode = md5(`${orderId}+${barcode}`);
+
+    if (!orderId) throw new Error("Invalid order id");
+    if (!pickupId) throw new Error("Invalid pickup id");
+
+    order.accessCode = accessCode;
+    order.pickupAddress = {
+        id: pickupId
+    }
+    
+    let [ response ] = await topDelivery.changeOrderDeliveryTypeAsync({
+        auth: topDeliveryCfg.bodyAuth,
+        deliveryTypeParams: _.pick(order, [
+            "accessCode",
+            "orderIdentity",
+            "deliveryType",
+            "pickupAddress",
+            "clientInfo"
+        ])
+    });
+
+    if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.PICKUP,
+            orderId,
+            _dt: new Date()
+        }})
+    ]);
+}
+
 api.doneOrder = async function(t, { order }) {
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let deliveryDate = _.get(order, "desiredDateDelivery.date");

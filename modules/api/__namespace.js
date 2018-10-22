@@ -24,7 +24,8 @@ module.exports.ORDER_STATUS = {
     DENY: "deny",
     UNDER_CALL: "under_call",
     REPLACE_DATE: "replace_date",
-    SKIP: "skip"
+    SKIP: "skip",
+    PICKUP: "pickup"
 }
 
 module.exports.LANG_DEF = module.exports.LANGS.EN;
