@@ -528,3 +528,8 @@ api[ __.PERMISSION.ORDER.EDIT ] = async function(t, p) {
     await ctx.api.users.getCurrentUserPublic(t, {});
     return true;
 }
+
+api[ __.PERMISSION.STATS.VIEW ] = async function(t, p) {
+    let u = await ctx.api.users.getCurrentUserPublic(t, {});
+    return u.role === __.ROLES.ADMIN;
+}

@@ -112,6 +112,12 @@ class Layout extends Reflux.Component {
                 value: "home"
             },
             {
+                label: this.checkLeftItem("bar-chart", i18n.t("Statistics")),
+                onClick: () => { redirect(null, "stats") },
+                value: "stats",
+                permission: __.PERMISSION.STATS.VIEW
+            },
+            {
                 label: this.checkLeftItem("users", i18n.t("Users")),
                 onClick: () => { redirect(null, "users") },
                 value: "users",

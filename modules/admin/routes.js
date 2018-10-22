@@ -10,6 +10,7 @@ module.exports = function (router) {
     router.get('/', promiseRouter(require('./pages/index.jsx')));
     router.get("/signin", promiseRouter(require("./pages/signin.jsx")));
     router.get("/users", promiseRouter(require("./pages/users.jsx")));
+    router.get("/stats", promiseRouter(require("./pages/stats.jsx")));
     router.get("/redirect", promiseRouter(require("./pages/redirect.jsx")));
     
     // err handler

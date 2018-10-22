@@ -37,6 +37,9 @@ module.exports.PERMISSION = {
     ORDER: {
         EDIT: "order.edit",
         VIEW: "order.view"
+    },
+    STATS: {
+        VIEW: "stats.view"
     }
 }
 
