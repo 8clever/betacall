@@ -456,11 +456,22 @@ api.startCallByOrder =  async function(t, p) {
         let timeCall = callTimes[region] || callTimes.default;
         let allowedTimeToCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
         let orderIsManaged = ordersManagedMap[orderId];
+        let blackPhone = false;
+
+        _.each(ctx.cfg.ami.blackList, black => {
+            let regex = new RegExp(black);
+            if (regex.test(phone)) {
+                blackPhone = true;
+                return false;
+            }
+        });
+
         let weCanCall = (
             allowedTimeToCall &&
             !orderIsManaged &&
             !ORDERS_IN_OPERATORS[orderId] &&
-            !callQueue.tasks[orderId]
+            !callQueue.tasks[orderId] &&
+            !blackPhone
         )
         
         if (weCanCall) {
