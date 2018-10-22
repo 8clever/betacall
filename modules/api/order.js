@@ -417,6 +417,8 @@ api.skipOrder = async function(t, { order }) {
 let ORDERS_IN_OPERATORS = {};
 // scheduler function
 api.startCallByOrder =  async function(t, p) {
+    if (!ctx.cfg.ami.maxQueue) return;
+
     let orders = await this.getOrders(t, {});
     let listenersCount = await ctx.api.socket.getListenersCount();
     let io = await ctx.api.socket.getIo();
