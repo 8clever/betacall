@@ -61,8 +61,6 @@ class AdminPage extends React.Component {
         let { user, orders, limit, filter  } = this.props;
         const i18n = new I18n(user);
 
-        console.log(orders.count, limit, filter)
-
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
                 <Scroll>
@@ -116,8 +114,6 @@ class AdminPage extends React.Component {
         );
     }
 }
-
-
 
 class OperatorPage extends Component {
     constructor (props) {
@@ -175,9 +171,16 @@ class OperatorPage extends Component {
 
     setDone () {
         return () => {
-            let { order } = _.cloneDeep(this.state);
+            let { order, pickupId } = _.cloneDeep(this.state);
             withError(async () => {
-                await api("order.doneOrder",token.get(), { order: order.info });
+                if (order.info.deliveryType === __.DELIVERY_TYPE.PICKUP) {
+                    await api("order.doneOrderPickup", token.get(), {
+                        order: order.info,
+                        pickupId
+                    });
+                } else {
+                    await api("order.doneOrder", token.get(), { order: order.info });
+                }
                 this.dropPhone()();
                 global.router.reload();
                 this.toggle(OperatorPage.state.doneModal)();
@@ -405,10 +408,10 @@ class OperatorPage extends Component {
                                     {
                                         this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
                                         <FormGroup>
-                                            <Label>{i18n.t("Pickup address")}</Label>
+                                            <Label>{i18n.t("Pickup ID")}</Label>
                                             <Input
-                                                value={this.get(order, "info.deliveryAddress.pickupAddress", "")}
-                                                onChange={this.change("order.info.deliveryAddress.pickupAddress")}
+                                                value={this.get(this.state, "pickupId", "")}
+                                                onChange={this.change("pickupId")}
                                             />
                                         </FormGroup> : null
                                     }
