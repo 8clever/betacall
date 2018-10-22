@@ -252,15 +252,15 @@ api.doneOrder = async function(t, { order }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
-
-    await this.unsetMyOrder(t, { orderId });
-    await this.addStats(t, { data: {
-        _iduser: user._id,
-        status: __.ORDER_STATUS.DONE,
-        orderId,
-        _dt: new Date()
-    }})
-    await this._getCallOrders(t, {});
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.DONE,
+            orderId,
+            _dt: new Date()
+        }})
+    ]);
 }
 
 api.denyOrder = async function(t, { order }) {
@@ -305,15 +305,16 @@ api.denyOrder = async function(t, { order }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
-    await this.unsetMyOrder(t, { orderId });
 
-    await this.addStats(t, { data: {
-        _iduser: user._id,
-        status: __.ORDER_STATUS.DENY,
-        orderId,
-        _dt: new Date()
-    }});
-    await this._getCallOrders(t, {});
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.DENY,
+            orderId,
+            _dt: new Date()
+        }})
+    ]);
 }
 
 api.underCall = async function(t, { order }) {
@@ -344,15 +345,16 @@ api.underCall = async function(t, { order }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
-    await this.unsetMyOrder(t, { orderId });
 
-    await this.addStats(t, { data: {
-        _iduser: user._id,
-        status: __.ORDER_STATUS.UNDER_CALL,
-        orderId,
-        _dt: new Date()
-    }});
-    await this._getCallOrders(t, {});
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.UNDER_CALL,
+            orderId,
+            _dt: new Date()
+        }})
+    ]);
 }
 
 api.replaceCallDate = async function(t, { order, replaceDate }) {
@@ -387,16 +389,17 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
-    await this.unsetMyOrder(t, { orderId });
 
-    await this.addStats(t, { data: {
-        _iduser: user._id,
-        status: __.ORDER_STATUS.REPLACE_DATE,
-        orderId,
-        _dt: new Date(),
-        _dtnextCall: replaceDate
-    }});
-    await this._getCallOrders(t, {});
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.REPLACE_DATE,
+            orderId,
+            _dt: new Date(),
+            _dtnextCall: replaceDate
+        }})
+    ]);
 }
 
 api.skipOrder = async function(t, { order }) {
@@ -404,14 +407,16 @@ api.skipOrder = async function(t, { order }) {
     
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let orderId = _.get(order, "orderIdentity.orderId");
-    await this.unsetMyOrder(t, { orderId });
-    await this.addStats(t, { data: {
-        _iduser: user._id,
-        status: __.ORDER_STATUS.SKIP,
-        orderId,
-        _dt: new Date()
-    }});
-    await this._getCallOrders(t, {});
+
+    await Promise.all([
+        this.unsetMyOrder(t, { orderId }),
+        this.addStats(t, { data: {
+            _iduser: user._id,
+            status: __.ORDER_STATUS.SKIP,
+            orderId,
+            _dt: new Date()
+        }})
+    ]);
 }
 
 let ORDERS_IN_OPERATORS = {};
