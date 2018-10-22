@@ -97,6 +97,8 @@ module.exports.init = async function(...args) {
 
 	let db = await ctx.api.mongo.getDb({});
     cols[COLLECTION.STATS] = await db.collection(COLLECTION.STATS);
+    await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { orderId: 1 });
+    await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { status: 1 });
     
     api.getStats = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS]);
     api.addStats = ctx.api.coreapi.initEditApiFunction({
