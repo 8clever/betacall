@@ -448,6 +448,10 @@ api.startCallByOrder =  async function(t, p) {
             !orderIsManaged &&
             !ORDERS_IN_OPERATORS[orderId]
         )
+        
+        if (!weCanCall) {
+            console.log(`log -- can't call -- ${allowedTimeToCall} -- ${orderIsManaged} -- ${ORDERS_IN_OPERATORS[orderId]}`);
+        }
 
         if (weCanCall) {
 
