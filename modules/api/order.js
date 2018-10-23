@@ -518,8 +518,6 @@ api.startCallByOrder =  async function(t, p) {
         )
         
         if (weCanCall) {
-
-            console.log("log -- push: " + phone);
             callQueue.push({
                 name: orderId,
                 fn: async () => {
