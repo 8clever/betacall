@@ -83,6 +83,8 @@ class AdminPage extends React.Component {
                                         <th>{i18n.t("Order ID")}</th>
                                         <th>{i18n.t("Phone")}</th>
                                         <th>{i18n.t("Client")}</th>
+                                        <th>{i18n.t("Delivery Type")}</th>
+                                        <th>{i18n.t("Full Price")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -93,6 +95,8 @@ class AdminPage extends React.Component {
                                                     <td>{_.get(order, "orderIdentity.orderId")}</td>
                                                     <td>{_.get(order, "clientInfo.phone")}</td>
                                                     <td>{_.get(order, "clientInfo.fio")}</td>
+                                                    <td>{_.get(order, "deliveryType")}</td>
+                                                    <td>{_.get(order, "clientFullCost")} p.</td>
                                                 </tr>
                                             )
                                         })
@@ -100,15 +104,15 @@ class AdminPage extends React.Component {
                                 </tbody>
                             </Table>
                         </CardBody>
-                        
-                        <div className="px-2">
-                            <Pagination 
-                                limit={limit}
-                                count={orders.count}
-                                filter={filter}
-                            />
-                        </div>
                     </Card>
+
+                    <div className="mb-2"></div>
+
+                    <Pagination 
+                        limit={limit}
+                        count={orders.count}
+                        filter={filter}
+                    />
                 </Scroll>
             </Layout>
         );

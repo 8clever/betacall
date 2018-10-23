@@ -12,6 +12,4 @@ updateDb()
 
 async function updateDb () {
     let { db } = await init();
-    
-    // do anything
 }

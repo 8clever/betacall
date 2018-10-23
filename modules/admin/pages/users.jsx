@@ -28,7 +28,9 @@ import {
     Input,
     Row,
     Col,
-    Table
+    Table,
+    Card,
+    CardBody
 } from "reactstrap"
 
 class EditUser extends Component {
@@ -246,37 +248,41 @@ class Filter extends Component {
     render () {
         let { filter, currentUser } = this.props;
         let editUserState = "edit-user";
-        let inlineFormStyle = "mb-2 mr-sm-2";
         let i18n = new I18n(currentUser);
 
         return (
-            <Form inline className="w-100" onKeyDown={ this.pressEnter() }>
-                <Input 
-                    className={inlineFormStyle}
-                    defaultValue={ filter.text } 
-                    placeholder={ i18n.t("Simple Search") } 
-                    onChange={ this.change("filter.text") }
-                />
-
-                <Button className={inlineFormStyle} onClick={ this.filterSubmit() }>
-                    <Fa fa="search"></Fa> { i18n.t("Search") }
-                </Button>
-                
-                {
-                    currentUser.security[__.PERMISSION.USER.EDIT].global ?
-                    [
-                        <Button key={0} color="primary" className="ml-auto mb-2" onClick={this.toggle(editUserState)}>
-                            <Fa fa="plus" /> { i18n.t("User") }
-                        </Button>,
-                        <EditUser
-                            key={1}
-                            currentUser={currentUser}
-                            toggle={this.toggle(editUserState)}
-                            visible={this.state[editUserState]}
-                            onSave={() => global.router.reload()}
+            <Form onKeyDown={ this.pressEnter() }>
+                <Row form>
+                    <Col md={4}>
+                        <Input 
+                            defaultValue={ filter.text } 
+                            placeholder={ i18n.t("Simple Search") } 
+                            onChange={ this.change("filter.text") }
                         />
-                    ] : null
-                }
+                    </Col>
+                    <Col md={4}>
+                        <Button onClick={ this.filterSubmit() }>
+                            <Fa fa="search"></Fa> { i18n.t("Search") }
+                        </Button>
+                    </Col>
+                    <Col className="text-right" md={4}>
+                        {
+                            currentUser.security[__.PERMISSION.USER.EDIT].global ?
+                            [
+                                <Button key={0} color="primary" onClick={this.toggle(editUserState)}>
+                                    <Fa fa="plus" /> { i18n.t("User") }
+                                </Button>,
+                                <EditUser
+                                    key={1}
+                                    currentUser={currentUser}
+                                    toggle={this.toggle(editUserState)}
+                                    visible={this.state[editUserState]}
+                                    onSave={() => global.router.reload()}
+                                />
+                            ] : null
+                        }
+                    </Col>
+                </Row>
             </Form>
         )
     }
@@ -304,43 +310,56 @@ class Users extends Component {
         return (
             <Layout title={ i18n.t("Users") } page="users" user={user}>
                 <Scroll>
-                    <Filter filter={ filter } currentUser={currentUser} />
-                    <Table responsive>
-                        <thead>
-                            <tr>
-                                <th>{ i18n.t("Name") }</th>
-                                <th>{ i18n.t("E-mail") }</th>
-                                <th>{ i18n.t("Role") }</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                _.map(users.list, (user, idx) => {
-                                    let stateEdit = "edit-user-" + user._id;
-                                    return (
-                                        <tr key={ user._id }>
-                                            <td>{ user.name }</td>
-                                            <td>{ user.email }</td>
-                                            <td>{ user.role }</td>
-                                            <td>
-                                                <Button outline color="success" size="sm" className="pull-right" onClick={this.toggle(stateEdit)} >
-                                                    <Fa fa="info" />
-                                                </Button>
-                                                <EditUser 
-                                                    toggle={this.toggle(stateEdit)}
-                                                    visible={this.state[stateEdit]}
-                                                    currentUser={ currentUser }
-                                                    user={ user } 
-                                                    onSave={() => global.router.reload()} 
-                                                />
-                                            </td>
-                                        </tr>
-                                    )
-                                })
-                            }
-                        </tbody>
-                    </Table>
+                    <Card>
+                        <CardBody>
+                            <Filter filter={ filter } currentUser={currentUser} />
+                        </CardBody>
+                    </Card>
+
+                    <div className="mb-2"></div>
+
+                    <Card>
+                        <CardBody>
+                            <Table responsive>
+                                <thead>
+                                    <tr>
+                                        <th>{ i18n.t("Name") }</th>
+                                        <th>{ i18n.t("E-mail") }</th>
+                                        <th>{ i18n.t("Role") }</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {
+                                        _.map(users.list, (user, idx) => {
+                                            let stateEdit = "edit-user-" + user._id;
+                                            return (
+                                                <tr key={ user._id }>
+                                                    <td>{ user.name }</td>
+                                                    <td>{ user.email }</td>
+                                                    <td>{ user.role }</td>
+                                                    <td>
+                                                        <Button outline color="success" size="sm" className="pull-right" onClick={this.toggle(stateEdit)} >
+                                                            <Fa fa="info" />
+                                                        </Button>
+                                                        <EditUser 
+                                                            toggle={this.toggle(stateEdit)}
+                                                            visible={this.state[stateEdit]}
+                                                            currentUser={ currentUser }
+                                                            user={ user } 
+                                                            onSave={() => global.router.reload()} 
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })
+                                    }
+                                </tbody>
+                            </Table>
+                        </CardBody>
+                    </Card>
+
+                    <div className="mb-2"></div>
 
                     <Pagination  
                         location="users"
