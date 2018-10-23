@@ -408,11 +408,22 @@ class OperatorPage extends Component {
                                     {
                                         this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
                                         <FormGroup>
-                                            <Label>{i18n.t("Pickup ID")}</Label>
+                                            <Label>{i18n.t("Pickup Point")}</Label>
                                             <Input
+                                                type="select"
                                                 value={this.get(this.state, "pickupId", "")}
-                                                onChange={this.change("pickupId")}
-                                            />
+                                                onChange={this.change("pickupId")}>
+                                                <option value="">{i18n.t("Not Selected")}</option>
+                                                {
+                                                    _.map(order.info.pickupPoints, (point, idx) => {
+                                                        return (
+                                                            <option key={idx} value={point.locationId}>
+                                                                {point.cityOfLocation} {point.addressOfLocation}
+                                                            </option>
+                                                        )
+                                                    })
+                                                }
+                                            </Input>
                                         </FormGroup> : null
                                     }
 

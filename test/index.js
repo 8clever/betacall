@@ -12,7 +12,7 @@ module.exports = async (...args) => {
 }
 
 async function doneOrderPickup () {
-    console.log("check done order");
+    console.log("check doneOrderPickup");
 
     let orders = await ctx.api.order.getOrders(t, {});
     let order = orders.list[orders.list.length - 1];

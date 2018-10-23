@@ -13,6 +13,7 @@ const COLLECTION = __.ESSENCE;
 let topDelivery = null;
 let topDeliveryCfg = null;
 let __orders = [];
+let __pickups = _.groupBy(require("../../public/pickupPoint.json"), "partnerId");
 let cols = {};
 let callQueue = null;
 
@@ -143,8 +144,20 @@ api._getCallOrders = async function(t, p) {
         auth: topDeliveryCfg.bodyAuth
     });
 
+    _.each(orders.orderInfo, order => {
+        let partnerId = _.get(order, "partnerExecutor.id");
+        if (!(
+            partnerId &&
+            __pickups[partnerId]
+        )) return;
+        
+        order.pickupPoints = __pickups[partnerId];
+    });
+
     __orders = orders.orderInfo;
 }
+
+
 
 /**
  * p.page
