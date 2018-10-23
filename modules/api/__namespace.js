@@ -21,11 +21,11 @@ module.exports.CALL_STATUS = {
 
 module.exports.ORDER_STATUS = {
     DONE: "done",
+    DONE_PICKUP: "done_pickup",
     DENY: "deny",
     UNDER_CALL: "under_call",
     REPLACE_DATE: "replace_date",
-    SKIP: "skip",
-    PICKUP: "pickup"
+    SKIP: "skip"
 }
 
 module.exports.LANG_DEF = module.exports.LANGS.EN;

@@ -256,7 +256,7 @@ api.doneOrderPickup = async function(t, { order, pickupId }) {
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
             _iduser: user._id,
-            status: __.ORDER_STATUS.PICKUP,
+            status: __.ORDER_STATUS.DONE_PICKUP,
             orderId,
             _dt: new Date()
         }})
@@ -472,7 +472,12 @@ api.startCallByOrder =  async function(t, p) {
         query: {
             orderId: { $in: _.map(orders.list, "orderIdentity.orderId") },
             $or: [
-                { status: { $in: [ __.ORDER_STATUS.DENY, __.ORDER_STATUS.DONE, __.ORDER_STATUS.SKIP ]} },
+                { status: { $in: [ 
+                    __.ORDER_STATUS.DENY, 
+                    __.ORDER_STATUS.DONE,
+                    __.ORDER_STATUS.DONE_PICKUP, 
+                    __.ORDER_STATUS.SKIP 
+                ]}},
                 { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: oneHourInPast }},
                 { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
             ]
@@ -522,8 +527,10 @@ api.startCallByOrder =  async function(t, p) {
             callQueue.push({
                 name: orderId,
                 fn: async () => {
+                    let asterisIsOn = await ctx.api.asterisk.__isOn(t, {});
+                    if (!asterisIsOn) return;
+
                     let call = await ctx.api.asterisk.__call(t, { phone });
-        
                     if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
                         let unnavailableTimes = await ctx.api.order.getStats(t, {
                             query: {

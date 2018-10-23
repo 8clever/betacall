@@ -5,6 +5,7 @@ const _ = require("lodash");
 let api = {};
 let ami = null;
 let ctx = null;
+let asteriskON = 1;
 
 module.exports.deps = [ "socket", "order" ]
 module.exports.init = async function (...args) {
@@ -27,12 +28,20 @@ module.exports.init = async function (...args) {
             resolve();
 
             ami.on("eventAny", evt => {
+                if (evt.Event === "PeerStatus") {
+                    asteriskON = evt.PeerStatus === "Registered";
+                }
+
                 if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
             });
         });
     });
 
     return { api };
+}
+
+api.__isOn = async function(t, p) {
+    return asteriskON;
 }
 
 api.__call = async function(t, { phone }) {
