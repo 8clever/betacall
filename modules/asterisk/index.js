@@ -29,6 +29,7 @@ module.exports.init = async function (...args) {
 
             ami.on("eventAny", evt => {
                 if (evt.Event === "PeerStatus") {
+                    console.log(evt)
                     asteriskON = evt.PeerStatus === "Registered";
                 }
 
