@@ -128,6 +128,7 @@ module.exports.init = async function(...args) {
             exit = true;
             delete callQueue.tasks[name];
             clearTimeout(timeout);
+            console.log("done --- " + name)
             cb(...args);
         }
     }, ctx.cfg.ami.maxQueue);
