@@ -16,45 +16,7 @@ let __orders = [];
 let __pickups = _.groupBy(require("../../public/pickupPoint.json"), "partnerId");
 let cols = {};
 let callQueue = null;
-
-let callTimes = {
-    default: {
-        from: moment().startOf("day").add(9, "hours").toDate(),
-        to: moment().startOf("day").add(21, "hours").toDate()
-    }
-}
-callTimes["Красноярский край"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(17, "hours").toDate()
-}
-callTimes["Томская область"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(17, "hours").toDate()
-}
-callTimes["Новосибирская область"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(17, "hours").toDate()
-}
-callTimes["Кемеровская область"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(17, "hours").toDate()
-}
-callTimes["Омская область"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(18, "hours").toDate()
-}
-callTimes["Республика Башкортостан"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(19, "hours").toDate()
-}
-callTimes["Пермский край"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(19, "hours").toDate()
-}
-callTimes["Тюменская область"] = {
-    from: callTimes.default.from,
-    to: moment().startOf("day").add(19, "hours").toDate()
-}
+let callTimes = {};
 
 module.exports.deps = ['mongo', 'obac'];
 module.exports.init = async function(...args) {
@@ -138,8 +100,52 @@ module.exports.init = async function(...args) {
     return { api }
 }
 
-//** GET CALL ORDERS FROM Top Delivery */
+/** 
+ * GET CALL ORDERS FROM Top Delivery 
+ * And update call times
+ * used by scheduller each 15 minutes
+ * 
+ * */
 api._getCallOrders = async function(t, p) {
+
+    // set/update call times
+    callTimes[ "default" ] = {
+        from: moment().startOf("day").add(9, "hours").toDate(),
+        to: moment().startOf("day").add(21, "hours").toDate()
+    }
+    callTimes["Красноярский край"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(17, "hours").toDate()
+    }
+    callTimes["Томская область"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(17, "hours").toDate()
+    }
+    callTimes["Новосибирская область"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(17, "hours").toDate()
+    }
+    callTimes["Кемеровская область"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(17, "hours").toDate()
+    }
+    callTimes["Омская область"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(18, "hours").toDate()
+    }
+    callTimes["Республика Башкортостан"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(19, "hours").toDate()
+    }
+    callTimes["Пермский край"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(19, "hours").toDate()
+    }
+    callTimes["Тюменская область"] = {
+        from: callTimes.default.from,
+        to: moment().startOf("day").add(19, "hours").toDate()
+    }
+
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth
     });
