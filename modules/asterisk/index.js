@@ -64,6 +64,14 @@ api.__call = async function(t, { phone }) {
                     }
                     /** EMPTY */
                 }
+
+                // our connecting problems
+                if (
+                    evt.ChannelState === "7" && 
+                    evt.ConnectedLineNum === '<unknown>'
+                ) {
+                    return resolve({ status: __.CALL_STATUS.CONNECTING_PROBLEM });
+                }
             }
     
             if (!(
