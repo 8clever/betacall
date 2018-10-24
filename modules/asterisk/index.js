@@ -47,7 +47,7 @@ api.__isOn = async function(t, p) {
 
 api.__call = async function(t, { phone }) {
     return new Promise((resolve, reject) => {
-        let id = _.uniqueId("call_");
+        let id = new Date().getTime();
 
         ami.on(id, async evt => {
             if (evt.Event === "Hangup") {
