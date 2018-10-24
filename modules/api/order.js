@@ -171,15 +171,7 @@ api._getCallOrders = async function(t, p) {
  */
 api.getOrders = async function(t, p) {
     await ctx.api.users.getCurrentUserPublic(t, {});
-
     let orders = __orders.concat([]);
-
-    if (p.limit) {
-        let limit = parseInt(p.limit);
-        let page = parseInt(p.page || 0);
-        let skip = page * limit;
-        orders = orders.slice(skip, skip + limit);
-    }
 
     if (p.query) {
         _.each(p.query, (v, k) => {
@@ -192,6 +184,13 @@ api.getOrders = async function(t, p) {
     }
 
     let count = orders.length;
+
+    if (p.limit) {
+        let limit = parseInt(p.limit);
+        let page = parseInt(p.page || 0);
+        let skip = page * limit;
+        orders = orders.slice(skip, skip + limit);
+    }
 
     return {
         list: orders,
