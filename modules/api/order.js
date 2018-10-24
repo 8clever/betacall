@@ -546,8 +546,8 @@ api.startCallByOrder =  async function(t, p) {
             callQueue.push({
                 name: orderId,
                 fn: async () => {
-                    let asterisIsOn = await ctx.api.asterisk.__isOn(t, {});
-                    if (!asterisIsOn) return;
+                    let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
+                    if (!asteriskIsOn) return;
 
                     let call = await ctx.api.asterisk.__call(t, { phone });
                     if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
