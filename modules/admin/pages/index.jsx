@@ -5,7 +5,8 @@ import {
     DatePicker,
     TimePicker,
     Panel,
-    Pagination
+    Pagination,
+    Fa
 } from "../components/index.jsx"
 import { 
     Socket,
@@ -31,12 +32,25 @@ import {
     Modal,
     ModalBody,
     ModalHeader,
-    ModalFooter
+    ModalFooter,
+    Row,
+    Col
 } from "reactstrap";
 import _ from "lodash";
 import moment from "moment";
 
-class AdminPage extends React.Component {
+class AdminPage extends Component {
+
+    constructor (props) {
+        super(props);
+        this.state = { filter: props.filter };
+    }
+
+    UNSAFE_componentWillReceiveProps (props) {
+        this.setState({
+            filter: props.filter
+        });
+    }
 
     componentDidMount () {
         this.refreshInterval = setInterval(() => {
@@ -57,13 +71,56 @@ class AdminPage extends React.Component {
         }
     }
 
+    search () {
+        return () => {
+            let { filter } = _.cloneDeep(this.state);
+            redirect(null, "index", filter);
+        }
+    }
+
     render() {
-        let { user, orders, limit, filter  } = this.props;
+        let { user, orders, limit  } = this.props;
+        let { filter } = this.state;
         const i18n = new I18n(user);
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
                 <Scroll>
+
+                    <Card>
+                        <CardBody>
+                            <Row form>
+                                <Col md={4}>
+                                    <Label>{i18n.t("Phone Number")}</Label>
+                                    <Input 
+                                        value={filter.phone || ""}
+                                        placeholder={i18n.t("Number...")}
+                                        onChange={this.change("filter.phone")}
+                                    />
+                                </Col>
+                                <Col md={4}>
+                                    <Label>{i18n.t("Order ID")}</Label>
+                                    <Input 
+                                        value={filter.orderId || ""}
+                                        placeholder={i18n.t("Number...")}
+                                        onChange={this.change("filter.orderId")}
+                                    />
+                                </Col>
+                                <Col md={4} className="text-right">
+                                    <Label>&nbsp;</Label>
+                                    <br/>
+                                    <Button
+                                        onClick={this.search()}
+                                        color="primary">
+                                        <Fa fa="refresh"/> {i18n.t("Search")}
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </CardBody>
+                    </Card>
+
+                    <div className="mb-2"></div>
+
                     <Card>
                         <CardBody>
                             <CardTitle>{i18n.t("Call Orders")}</CardTitle>
@@ -683,9 +740,20 @@ export default async (ctx) => {
     filter.page = parseInt(ctx.req.query.page || 0);
 
     if (u.role === __.ROLES.ADMIN) {
+        let query = {};
+
+        if (filter.orderId) {
+            query["orderIdentity.orderId"] = filter.orderId;
+        }
+
+        if (filter.phone) {
+            query["clientInfo.phone"] = filter.phone;
+        }
+
         let [ orders ] = await Promise.all([
             api("order.getOrders", token.get(ctx), {
                 page: filter.page,
+                query,
                 limit
             })
         ]);

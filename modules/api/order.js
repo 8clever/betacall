@@ -167,12 +167,12 @@ api._getCallOrders = async function(t, p) {
 /**
  * p.page
  * p.limit
+ * p.query
  */
 api.getOrders = async function(t, p) {
     await ctx.api.users.getCurrentUserPublic(t, {});
 
     let orders = __orders.concat([]);
-    let count = orders.length;
 
     if (p.limit) {
         let limit = parseInt(p.limit);
@@ -180,6 +180,18 @@ api.getOrders = async function(t, p) {
         let skip = page * limit;
         orders = orders.slice(skip, skip + limit);
     }
+
+    if (p.query) {
+        _.each(p.query, (v, k) => {
+            let regexp = new RegExp(v);
+            orders = _.filter(orders, o => {
+                let value = _.get(o, k);
+                return regexp.test(value);
+            });
+        });
+    }
+
+    let count = orders.length;
 
     return {
         list: orders,
@@ -550,7 +562,7 @@ api.startCallByOrder =  async function(t, p) {
 
                     let call = await ctx.api.asterisk.__call(t, { phone });
                     console.log(`end call --- ` + call.status);
-                    
+
                     if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
                         let unnavailableTimes = await ctx.api.order.getStats(t, {
                             query: {
