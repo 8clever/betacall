@@ -1,6 +1,5 @@
 const aio = require("asterisk.io");
 const __ = require("../api/__namespace");
-const _ = require("lodash");
 
 let api = {};
 let ami = null;
@@ -29,11 +28,31 @@ module.exports.init = async function (...args) {
 
             ami.on("eventAny", evt => {
                 if (evt.Event === "PeerStatus") {
-                    console.log(evt)
                     asteriskON = evt.PeerStatus === "Registered";
                 }
 
-                if (evt.Uniqueid) ami.emit(evt.Uniqueid, evt);
+                if (evt.Uniqueid) {
+
+                    // end dial
+                    if (evt.Event === "Hangup") {
+                        if (
+                            evt.Cause === "16" ||
+                            evt.Cause === "17"
+                        ) {
+                            ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.UNNAVAILABLE });
+                        } else {
+                            ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.CONNECTING_PROBLEM });
+                        }
+                    }
+                    
+                    // connect with operator
+                    if (evt.Event === 'DialEnd' && evt.DialStatus === 'ANSWER') {
+                        ami.emit(evt.Uniqueid, { 
+                            status: __.CALL_STATUS.DONE,
+                            exten: evt.DestCallerIDNum
+                        });
+                    }
+                }
             });
         });
     });
@@ -47,46 +66,10 @@ api.__isOn = async function(t, p) {
 
 api.__call = async function(t, { phone }) {
     return new Promise((resolve, reject) => {
-        let id = new Date().getTime();
+        let id = Math.random(new Date().getTime());
 
-        ami.on(id, async evt => {
-            if (evt.Event === "Hangup") {
-                
-                // not connecting
-                if (evt.ChannelState === "5") {
-                    return resolve({ status: __.CALL_STATUS.UNNAVAILABLE });
-                }
-                
-                // connecting
-                if (evt.ChannelState === "6") {
-                    if (evt.CallerIDNum === evt.ConnectedLineNum) {
-                        return resolve({ status: __.CALL_STATUS.UNNAVAILABLE });
-                    }
-                    /** EMPTY */
-                }
-
-                // our connecting problems
-                if (
-                    evt.ChannelState === "7" && 
-                    evt.ConnectedLineNum === '<unknown>'
-                ) {
-                    return resolve({ status: __.CALL_STATUS.CONNECTING_PROBLEM });
-                }
-            }
-    
-            if (!(
-                evt.Event === 'DialEnd',
-                evt.DialStatus === 'ANSWER'
-            )) return
-            
-            let { 
-                DestCallerIDNum // user login
-            } = evt;
-
-            resolve({ 
-                status: __.CALL_STATUS.DONE,
-                exten: DestCallerIDNum
-            });
+        ami.once(id, response => {
+            resolve(response);
         });
     
         ami.action(

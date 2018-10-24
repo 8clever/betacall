@@ -91,7 +91,6 @@ module.exports.init = async function(...args) {
             exit = true;
             delete callQueue.tasks[name];
             clearTimeout(timeout);
-            console.log("done --- " + name)
             cb(...args);
         }
     }, ctx.cfg.ami.maxQueue);
@@ -550,6 +549,7 @@ api.startCallByOrder =  async function(t, p) {
                     if (!asteriskIsOn) return;
 
                     let call = await ctx.api.asterisk.__call(t, { phone });
+                    console.log(`end call --- ` + call.status);
                     if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
                         let unnavailableTimes = await ctx.api.order.getStats(t, {
                             query: {
