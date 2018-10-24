@@ -550,6 +550,7 @@ api.startCallByOrder =  async function(t, p) {
 
                     let call = await ctx.api.asterisk.__call(t, { phone });
                     console.log(`end call --- ` + call.status);
+                    
                     if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
                         let unnavailableTimes = await ctx.api.order.getStats(t, {
                             query: {
