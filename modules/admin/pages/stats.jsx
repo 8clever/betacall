@@ -86,6 +86,7 @@ class Default extends Component {
                                     <Col md={3}>
                                         <Label>{i18n.t("Date From")}</Label>
                                         <DatePicker 
+                                            i18n={i18n}
                                             value={filter.from ? moment(filter.from).format("DD-MM-YYYY") : ""}
                                             onChange={this.change("filter.from")}
                                         />
@@ -93,6 +94,7 @@ class Default extends Component {
                                     <Col md={3}>
                                         <Label>{i18n.t("Date To")}</Label>
                                         <DatePicker 
+                                            i18n={i18n}
                                             value={filter.from ? moment(filter.from).format("DD-MM-YYYY") : ""}
                                             onChange={this.change("filter.to")}
                                         />

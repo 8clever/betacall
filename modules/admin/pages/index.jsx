@@ -368,6 +368,12 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Date")}</Label>
                                         <DatePicker 
+                                            isValidDate={current => {
+                                                if (current.isBefore(new Date())) return false;
+                                                if (current.day() === 0) return false;
+                                                return true
+                                            }}
+                                            i18n={i18n}
                                             key={order.info.orderIdentity.orderId}
                                             value={desiredDate}
                                             onChange={this.change("order.info.desiredDateDelivery.date")}
@@ -540,6 +546,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("End of storage date")}</Label>
                                         <DatePicker
+                                            i18n={i18n}
                                             value={storageDate}
                                             onChange={e => {
                                                 let date = e.target.value;
@@ -666,6 +673,11 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Date Call")}</Label>
                                         <DatePicker
+                                            isValidDate={current => {
+                                                if (current.isBefore(new Date())) return false;
+                                                return true
+                                            }}
+                                            i18n={i18n}
                                             value={""}
                                             format={"YYYY-MM-DD"}
                                             mask={"9999-99-99"}

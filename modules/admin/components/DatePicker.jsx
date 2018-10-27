@@ -10,23 +10,27 @@ class DatePicker extends Component {
     static get defaultProps () {
         return {
             format: "DD-MM-YYYY",
-            mask: "99-99-9999"
+            mask: "99-99-9999",
+            isValidDate: () => { return true }
         }
     }
 
     static get propTypes () {
         return {
-            value: PropTypes.string,
             onChange: PropTypes.func.isRequired,
+            value: PropTypes.string,
             format: PropTypes.string,
-            mask: PropTypes.string
+            mask: PropTypes.string,
+            i18n: PropTypes.object,
+            isValidDate: PropTypes.func
         }
     }
 
     render () {
-        let { value, onChange, format, mask } = this.props;
+        let { value, onChange, format, mask, i18n, isValidDate } = this.props;
         return (
             <Datetime
+                locale={i18n.lang}
                 dateFormat={format}
                 timeFormat={false}
                 defaultValue={value || ""}
@@ -40,6 +44,7 @@ class DatePicker extends Component {
 
                     onChange({ target: { value: "" }});
                 }}
+                isValidDate={isValidDate}
                 renderInput={props => {
                     return (
                         <InputGroup>
