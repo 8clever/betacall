@@ -552,9 +552,6 @@ api.startCallByOrder =  async function(t, p) {
             !blackPhone
         )
 
-        console.log(callQueue.tasks)
-        console.log(weCanCall);
-        
         if (weCanCall) {
             callQueue.tasks[orderId] = 1;
             callQueue.push({
