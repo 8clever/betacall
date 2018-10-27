@@ -99,7 +99,17 @@ class Default extends Component {
                                             onChange={this.change("filter.to")}
                                         />
                                     </Col>
-                                    <Col md={3} className="text-right">
+                                    <Col md={3}>
+                                        <Label>{i18n.t("Order ID")}</Label>
+                                        <Input
+                                            onChange={this.change("filter.orderId")}
+                                            placeholder={i18n.t("Number...")}
+                                            value={filter.orderId || ""}
+                                        />
+                                    </Col>
+                                </Row>
+                                <Row form>
+                                    <Col md={3}>
                                         <Label>&nbsp;</Label>
                                         <br/>
                                         <Button 
@@ -186,6 +196,10 @@ export default async (ctx) => {
     if (filter.to) {
         query._dt = query._dt || {};
         query._dt.$lte = moment(filter.to, "DD-MM-YYYY").endOf("day").toDate()
+    }
+
+    if (filter.orderId) {
+        query.orderId = parseInt(filter.orderId);
     }
 
     let [ stats, users ] = await Promise.all([
