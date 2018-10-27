@@ -516,7 +516,7 @@ api.startCallByOrder =  async function(t, p) {
         }
     });
     ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
-    console.log(`log -- queue: ${callQueue.length()} -- listeners: ${listenersCount} -- in queue: ${_.keys(callQueue.tasks)}`);
+    console.log(`log -- queue: ${_.keys(callQueue.tasks).length} -- listeners: ${listenersCount} -- in queue: ${_.keys(callQueue.tasks)}`);
 
     for (let order of orders.list) {
         if (listenersCount === 0) return;
