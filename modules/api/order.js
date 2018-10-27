@@ -520,7 +520,7 @@ api.startCallByOrder =  async function(t, p) {
 
     for (let order of orders.list) {
         if (listenersCount === 0) return;
-        if (callQueue.length() >= (listenersCount + 1)) return;
+        if (_.keys(callQueue.tasks).length >= (listenersCount + 1)) return;
 
         let phone = _.get(order, "clientInfo.phone");
         let orderId = _.get(order, "orderIdentity.orderId");
@@ -553,6 +553,7 @@ api.startCallByOrder =  async function(t, p) {
         )
         
         if (weCanCall) {
+            callQueue.tasks[orderId] = 1;
             callQueue.push({
                 name: orderId,
                 fn: async () => {
