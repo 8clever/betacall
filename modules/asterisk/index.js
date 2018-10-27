@@ -37,7 +37,8 @@ module.exports.init = async function (...args) {
                     if (evt.Event === "Hangup") {
                         if (
                             evt.Cause === "16" ||
-                            evt.Cause === "17"
+                            evt.Cause === "17" ||
+                            evt.Cause === "34"
                         ) {
                             ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.UNNAVAILABLE });
                         } else {
