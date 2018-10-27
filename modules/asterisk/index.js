@@ -42,6 +42,7 @@ module.exports.init = async function (...args) {
                         ) {
                             ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.UNNAVAILABLE });
                         } else {
+                            console.log(evt.Cause, evt["Cause-txt"]);
                             ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.CONNECTING_PROBLEM });
                         }
                     }
