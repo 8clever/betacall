@@ -210,6 +210,7 @@ class OperatorPage extends Component {
             replaceModal: "state-replace-modal",
             doneModal: "state-done-modal",
             denyModal: "state-deny-modal",
+            undercallModal: "state-undercall-modal",
             skipModal: "state-skip-modal"
         }
     }
@@ -271,6 +272,20 @@ class OperatorPage extends Component {
             this.socket.emit("msg", {
                 evtid: idSocketDone,
                 done: 1
+            });
+        }
+    }
+
+    undercallOrder() {
+        return () => {
+            let { order } = _.cloneDeep(this.state);
+            withError(async () => {
+                await api("order.underCall",token.get(), {
+                    order: order.info
+                });
+                this.dropPhone()();
+                global.router.reload();
+                this.toggle(OperatorPage.state.undercallModal)();
             });
         }
     }
@@ -642,6 +657,25 @@ class OperatorPage extends Component {
                                     </Modal>
                                     {" "}
 
+                                    <Button
+                                        onClick={this.toggle(OperatorPage.state.undercallModal)}
+                                        color="warning">
+                                        {i18n.t("Under Call")}
+                                    </Button>
+                                    <Modal isOpen={!!this.state[OperatorPage.state.undercallModal]}>
+                                        <ModalHeader className="bg-warning">{i18n.t("Attention!")}</ModalHeader>
+                                        <ModalBody>{i18n.t("Are you sure set as undercall this order?")}</ModalBody>
+                                        <ModalFooter>
+                                            <Button color="warning" onClick={this.undercallOrder()}>
+                                                {i18n.t("Confirm")}
+                                            </Button>
+                                            <Button color="light" onClick={this.toggle(OperatorPage.state.undercallModal)}>
+                                                {i18n.t("Cancel")}
+                                            </Button>
+                                        </ModalFooter>
+                                    </Modal>
+                                    {" "}
+
                                     <Button 
                                         onClick={this.toggle(OperatorPage.state.skipModal)}
                                         color="primary">
@@ -649,7 +683,7 @@ class OperatorPage extends Component {
                                     </Button>
                                     <Modal isOpen={!!this.state[OperatorPage.state.skipModal]}>
                                         <ModalHeader className="bg-warning">{i18n.t("Attention!")}</ModalHeader>
-                                        <ModalBody>{i18n.t("Are you sure skip modal?")}</ModalBody>
+                                        <ModalBody>{i18n.t("Are you sure skip order?")}</ModalBody>
                                         <ModalFooter>
                                             <Button
                                                 onClick={this.skipOrder()}
