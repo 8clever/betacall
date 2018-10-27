@@ -309,6 +309,9 @@ class OperatorPage extends Component {
         desiredDate = this.convertToYYYYMMDD(desiredDate, "YYYY-MM-DD");
         storageDate = this.convertToYYYYMMDD(storageDate, "YYYY-MM-DD");
 
+        let timeStart = this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "");
+        let timeEnd = this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "");
+
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
                 {/** LEFT FORM */}
@@ -383,23 +386,24 @@ class OperatorPage extends Component {
                                     </FormGroup>
 
                                     <FormGroup>
-                                        <Label>{i18n.t("Time from")}</Label>
-                                        <TimePicker
-                                            format="HH:mm:ss"
-                                            mask="99:99:99"
-                                            value={this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "")}
-                                            onChange={this.change("order.info.desiredDateDelivery.timeInterval.bTime")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Time to")}</Label>
-                                        <TimePicker
-                                            format="HH:mm:ss"
-                                            mask="99:99:99"
-                                            value={this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "")}
-                                            onChange={this.change("order.info.desiredDateDelivery.timeInterval.eTime")}
-                                        />
+                                        <Label>{i18n.t("Time intervals")}</Label>
+                                        <Input
+                                            type="select"
+                                            onChange={e => {
+                                                let { order } = _.cloneDeep(this.state);
+                                                let [ timeStart, timeEnd ] = e.target.value.split("|");
+                                                timeStart = timeStart || "";
+                                                timeEnd = timeEnd || "";
+                                                _.set(order, "info.desiredDateDelivery.timeInterval.bTime", timeStart);
+                                                _.set(order, "info.desiredDateDelivery.timeInterval.eTime", timeEnd);
+                                                this.setState({ order });
+                                            }}
+                                            value={timeStart && timeEnd && `${timeStart}|${timeEnd}` || ""}>
+                                            <option value="">{i18n.t("Not Selected")}</option>
+                                            <option value="10:00:00|14:00:00">10:00 - 14:00</option>
+                                            <option value="14:00:00|18:00:00">14:00 - 18:00</option>
+                                            <option value="10:00:00|18:00:00">10:00 - 18:00</option>
+                                        </Input>
                                     </FormGroup>
 
                                     <FormGroup>
