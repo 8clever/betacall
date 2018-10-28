@@ -567,7 +567,11 @@ api.startCallByOrder =  async function(t, p) {
                         let unnavailableTimes = await ctx.api.order.getStats(t, {
                             query: {
                                 orderId,
-                                status: __.ORDER_STATUS.UNDER_CALL
+                                status: __.ORDER_STATUS.UNDER_CALL,
+                                _dt: {
+                                    $gte: moment().startOf("day").toDate(),
+                                    $lte: moment().endOf("day").toDate()
+                                }
                             },
                             fields: {
                                 _id: 1
