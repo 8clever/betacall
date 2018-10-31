@@ -557,7 +557,7 @@ api.startCallByOrder =  async function(t, p) {
         -- new: ${newOrders.length}
     `);
 
-    for (let order of newOrders || orders.list) {
+    for (let order of newOrders.length ? newOrders : orders.list) {
         if (listenersCount === 0) return;
         if (_.keys(callQueue.tasks).length >= (listenersCount + 1)) return;
 
