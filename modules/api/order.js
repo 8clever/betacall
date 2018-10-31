@@ -77,9 +77,9 @@ module.exports.init = async function(...args) {
         callQueue.tasks[name] = 1;
         let exit = false;
         let timeout = setTimeout(() => {
-            console.log("call queue not respond more than 50 seconds");
+            console.log("call queue not respond more than 3 minutes");
             callback();
-        }, 1000 * 50)
+        }, 1000 * 60 * 3)
 
         fn().then(response => {
             callback(null, response);
@@ -497,7 +497,7 @@ api.startCallByOrder =  async function(t, p) {
     let io = await ctx.api.socket.getIo();
     let serverIo = await ctx.api.socket.getServerIo();
     let currentDate = new Date();
-    let oneHourInPast = moment().add(-1, "hour").toDate();
+    let threeHoursInPast = moment().add(-3, "hour").toDate();
     let idOrders = _.map(orders.list, "orderIdentity.orderId");
 
     let [ oldOrdersMap, ordersManagedMap ] = await Promise.all([
@@ -517,7 +517,7 @@ api.startCallByOrder =  async function(t, p) {
                         __.ORDER_STATUS.DONE_PICKUP, 
                         __.ORDER_STATUS.SKIP 
                     ]}},
-                    { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: oneHourInPast }},
+                    { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: threeHoursInPast }},
                     { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
                 ]
             },
