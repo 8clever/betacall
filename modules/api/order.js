@@ -77,8 +77,9 @@ module.exports.init = async function(...args) {
         callQueue.tasks[name] = 1;
         let exit = false;
         let timeout = setTimeout(() => {
-            callback(new Error("Not respond more than 2 minutes"));
-        }, 1000 * 45)
+            console.log("call queue not respond more than 50 seconds");
+            callback();
+        }, 1000 * 50)
 
         fn().then(response => {
             callback(null, response);
