@@ -529,7 +529,24 @@ api.startCallByOrder =  async function(t, p) {
     
     ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
     oldOrdersMap = _.keyBy(oldOrdersMap.list, "orderId");
-    let newOrders = _.filter(orders.list, order => !oldOrdersMap[_.get(order, "orderIdentity.orderId")]);
+    let newOrders = _.filter(orders.list, order => {
+        let orderId = _.get(order, "orderIdentity.orderId");
+        let phone = _.get(order, "clientInfo.phone");
+        let blackPhone = false;
+        
+        _.each(ctx.cfg.ami.blackList, black => {
+            let regex = new RegExp(black);
+            if (regex.test(phone)) {
+                blackPhone = true;
+                return false;
+            }
+        });
+
+        if (blackPhone) return false;
+        if (oldOrdersMap[orderId]) return false;
+
+        return true;
+    });
     
     console.log(`
         log
