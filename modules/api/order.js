@@ -497,28 +497,48 @@ api.startCallByOrder =  async function(t, p) {
     let serverIo = await ctx.api.socket.getServerIo();
     let currentDate = new Date();
     let oneHourInPast = moment().add(-1, "hour").toDate();
-    let ordersManagedMap = await api.getStats(t, {
-        query: {
-            orderId: { $in: _.map(orders.list, "orderIdentity.orderId") },
-            $or: [
-                { status: { $in: [ 
-                    __.ORDER_STATUS.DENY, 
-                    __.ORDER_STATUS.DONE,
-                    __.ORDER_STATUS.DONE_PICKUP, 
-                    __.ORDER_STATUS.SKIP 
-                ]}},
-                { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: oneHourInPast }},
-                { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
-            ]
-        },
-        fields: {
-            orderId: 1
-        }
-    });
-    ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
-    console.log(`log -- queue: ${_.keys(callQueue.tasks).length} -- listeners: ${listenersCount} -- in queue: ${_.keys(callQueue.tasks)}`);
+    let idOrders = _.map(orders.list, "orderIdentity.orderId");
 
-    for (let order of orders.list) {
+    let [ oldOrdersMap, ordersManagedMap ] = await Promise.all([
+        api.getStats(t, {
+            query: { orderId: { $in: idOrders }},
+            fields: {
+                orderId: 1
+            }
+        }),
+        api.getStats(t, {
+            query: {
+                orderId: { $in: idOrders },
+                $or: [
+                    { status: { $in: [ 
+                        __.ORDER_STATUS.DENY, 
+                        __.ORDER_STATUS.DONE,
+                        __.ORDER_STATUS.DONE_PICKUP, 
+                        __.ORDER_STATUS.SKIP 
+                    ]}},
+                    { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: oneHourInPast }},
+                    { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
+                ]
+            },
+            fields: {
+                orderId: 1
+            }
+        })
+    ])
+    
+    ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
+    oldOrdersMap = _.keyBy(oldOrdersMap.list, "orderId");
+    let newOrders = _.filter(orders.list, order => !oldOrdersMap[_.get(order, "orderIdentity.orderId")]);
+    
+    console.log(`
+        log
+        -- queue: ${_.keys(callQueue.tasks).length} 
+        -- listeners: ${listenersCount} 
+        -- in queue: ${_.keys(callQueue.tasks)}
+        -- new: ${newOrders.length}
+    `);
+
+    for (let order of newOrders || orders.list) {
         if (listenersCount === 0) return;
         if (_.keys(callQueue.tasks).length >= (listenersCount + 1)) return;
 
