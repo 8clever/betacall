@@ -592,28 +592,7 @@ api.startCallByOrder =  async function(t, p) {
                 console.log(`end call --- ` + call.status);
 
                 if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
-                    let unnavailableTimes = await ctx.api.order.getStats(t, {
-                        query: {
-                            orderId,
-                            status: __.ORDER_STATUS.UNDER_CALL,
-                            _dt: {
-                                $gte: moment().startOf("day").toDate(),
-                                $lte: moment().endOf("day").toDate()
-                            }
-                        },
-                        fields: {
-                            _id: 1
-                        }
-                    });
-    
-                    if (unnavailableTimes.count >= 2) {
-                        await ctx.api.order.replaceCallDate(t, {
-                            order,
-                            replaceDate: moment().add(1, "day").toDate()
-                        })
-                    } else {
-                        await ctx.api.order.underCall(t, { order });
-                    }
+                    await ctx.api.order.underCall(t, { order });
                     return;
                 }
                 
