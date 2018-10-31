@@ -497,40 +497,24 @@ api.startCallByOrder =  async function(t, p) {
     let io = await ctx.api.socket.getIo();
     let serverIo = await ctx.api.socket.getServerIo();
     let currentDate = new Date();
-    let threeHoursInPast = moment().add(-3, "hour").toDate();
     let idOrders = _.map(orders.list, "orderIdentity.orderId");
     let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
     let newOrders = [];
     let oldOrders = [];
-    let [ oldOrdersMap, ordersManagedMap ] = await Promise.all([
-        api.getStats(t, {
-            query: { orderId: { $in: idOrders }},
-            fields: {
-                orderId: 1
-            }
-        }),
-        api.getStats(t, {
-            query: {
-                orderId: { $in: idOrders },
-                $or: [
-                    { status: { $in: [ 
-                        __.ORDER_STATUS.DENY, 
-                        __.ORDER_STATUS.DONE,
-                        __.ORDER_STATUS.DONE_PICKUP, 
-                        __.ORDER_STATUS.SKIP 
-                    ]}},
-                    { status: __.ORDER_STATUS.UNDER_CALL, _dt: { $gte: threeHoursInPast }},
-                    { status: __.ORDER_STATUS.REPLACE_DATE, _dtnextCall: { $gte: currentDate }}
-                ]
-            },
-            fields: {
-                orderId: 1
-            }
-        })
-    ])
+    let oldOrdersMap = await api.getStats(t, {
+        aggregate: [
+            { $match: { orderId: { $in: idOrders }}},
+            { $sort: { _dt: -1 }},
+            { $group: {
+                _id: "$orderId",
+                _dt: { $first: "$_dt" },
+                _dtnextCall: { $first: "$_dtnextCall" },
+                status: { $first: "$status" }
+            }}
+        ]
+    });
     
-    ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
-    oldOrdersMap = _.keyBy(oldOrdersMap.list, "orderId");
+    oldOrdersMap = _.keyBy(oldOrdersMap.list, "_id");
 
     _.each(orders.list, order => {
         let phone = _.get(order, "clientInfo.phone");
@@ -538,7 +522,6 @@ api.startCallByOrder =  async function(t, p) {
         let region = _.get(order, "deliveryAddress.region");
         let timeCall = callTimes[region] || callTimes.default;
         let allowedTimeToCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
-        let isManaged = ordersManagedMap[orderId];
         let isNew = !oldOrdersMap[orderId];
         let blackPhone = false;
 
@@ -558,7 +541,6 @@ api.startCallByOrder =  async function(t, p) {
 
         let weCanCall = (
             allowedTimeToCall &&
-            !isManaged &&
             !ORDERS_IN_OPERATORS[orderId] &&
             !callQueue.tasks[orderId] &&
             !blackPhone
@@ -566,9 +548,21 @@ api.startCallByOrder =  async function(t, p) {
 
         if (!weCanCall) return;
 
-        if (isNew) newOrders.push(order);
-        else oldOrders.push(order);
+        if (isNew) {
+            newOrders.push(order);
+            return;
+        }
+
+        let stat = oldOrdersMap[orderId];
+        order.timestamp = moment(stat._dt).valueOf();
+        if (stat.status === __.ORDER_STATUS.UNDER_CALL) oldOrders.push(order);
+        if (
+            stat.status === __.ORDER_STATUS.REPLACE_DATE &&
+            moment().isAfter(stat._dtnextCall)
+        ) oldOrders.push(order)
     });
+
+    oldOrders = _.sortBy(oldOrders, "timestamp");
     
     console.log(`
         log
