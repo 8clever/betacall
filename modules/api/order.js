@@ -500,7 +500,8 @@ api.startCallByOrder =  async function(t, p) {
     let threeHoursInPast = moment().add(-3, "hour").toDate();
     let idOrders = _.map(orders.list, "orderIdentity.orderId");
     let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
-
+    let newOrders = [];
+    let oldOrders = [];
     let [ oldOrdersMap, ordersManagedMap ] = await Promise.all([
         api.getStats(t, {
             query: { orderId: { $in: idOrders }},
@@ -531,45 +532,14 @@ api.startCallByOrder =  async function(t, p) {
     ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
     oldOrdersMap = _.keyBy(oldOrdersMap.list, "orderId");
 
-    let newOrders = _.filter(orders.list, order => {
-        let orderId = _.get(order, "orderIdentity.orderId");
-        let phone = _.get(order, "clientInfo.phone");
-        let blackPhone = false;
-        
-        _.each(ctx.cfg.ami.blackList, black => {
-            let regex = new RegExp(black);
-            if (regex.test(phone)) {
-                blackPhone = true;
-                return false;
-            }
-        });
-
-        if (blackPhone) return false;
-        if (oldOrdersMap[orderId]) return false;
-
-        return true;
-    });
-    
-    console.log(`
-        log
-        -- queue: ${_.keys(callQueue.tasks).length} 
-        -- listeners: ${listenersCount} 
-        -- in queue: ${_.keys(callQueue.tasks)}
-        -- new: ${newOrders.length}
-        -- old: ${orders.list.length}
-        -- isON: ${asteriskIsOn}
-    `);
-
-    for (let order of newOrders.length ? newOrders : orders.list) {
-        if (listenersCount === 0) return;
-        if (_.keys(callQueue.tasks).length >= (listenersCount + 1)) return;
-
+    _.each(orders.list, order => {
         let phone = _.get(order, "clientInfo.phone");
         let orderId = _.get(order, "orderIdentity.orderId");
         let region = _.get(order, "deliveryAddress.region");
         let timeCall = callTimes[region] || callTimes.default;
         let allowedTimeToCall = moment(currentDate).isBetween(timeCall.from, timeCall.to);
-        let orderIsManaged = ordersManagedMap[orderId];
+        let isManaged = ordersManagedMap[orderId];
+        let isNew = !oldOrdersMap[orderId];
         let blackPhone = false;
 
         _.each(ctx.cfg.ami.blackList, black => {
@@ -588,72 +558,93 @@ api.startCallByOrder =  async function(t, p) {
 
         let weCanCall = (
             allowedTimeToCall &&
-            !orderIsManaged &&
+            !isManaged &&
             !ORDERS_IN_OPERATORS[orderId] &&
             !callQueue.tasks[orderId] &&
             !blackPhone
         )
 
-        if (weCanCall) {
-            callQueue.tasks[orderId] = 1;
-            callQueue.push({
-                name: orderId,
-                fn: async () => {
-                    let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
-                    if (!asteriskIsOn) return;
+        if (!weCanCall) return;
 
-                    let call = await ctx.api.asterisk.__call(t, { phone });
-                    console.log(`end call --- ` + call.status);
+        if (isNew) newOrders.push(order);
+        else oldOrders.push(order);
+    });
+    
+    console.log(`
+        log
+        -- queue: ${_.keys(callQueue.tasks).length}
+        -- listeners: ${listenersCount} 
+        -- in queue: ${_.keys(callQueue.tasks)}
+        -- new: ${newOrders.length}
+        -- old: ${oldOrders.length}
+        -- isON: ${asteriskIsOn}
+    `);
 
-                    if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
-                        let unnavailableTimes = await ctx.api.order.getStats(t, {
-                            query: {
-                                orderId,
-                                status: __.ORDER_STATUS.UNDER_CALL,
-                                _dt: {
-                                    $gte: moment().startOf("day").toDate(),
-                                    $lte: moment().endOf("day").toDate()
-                                }
-                            },
-                            fields: {
-                                _id: 1
+    for (let order of newOrders.length ? newOrders : oldOrders) {
+        if (listenersCount === 0) return;
+        if (_.keys(callQueue.tasks).length >= (listenersCount + 1)) return;
+
+        let phone = _.get(order, "clientInfo.phone");
+        let orderId = _.get(order, "orderIdentity.orderId");
+        
+        callQueue.tasks[orderId] = 1;
+        callQueue.push({
+            name: orderId,
+            fn: async () => {
+                let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
+                if (!asteriskIsOn) return;
+
+                let call = await ctx.api.asterisk.__call(t, { phone });
+                console.log(`end call --- ` + call.status);
+
+                if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
+                    let unnavailableTimes = await ctx.api.order.getStats(t, {
+                        query: {
+                            orderId,
+                            status: __.ORDER_STATUS.UNDER_CALL,
+                            _dt: {
+                                $gte: moment().startOf("day").toDate(),
+                                $lte: moment().endOf("day").toDate()
                             }
-                        });
-        
-                        if (unnavailableTimes.count >= 2) {
-                            await ctx.api.order.replaceCallDate(t, {
-                                order,
-                                replaceDate: moment().add(1, "day").toDate()
-                            })
-                        } else {
-                            await ctx.api.order.underCall(t, { order });
+                        },
+                        fields: {
+                            _id: 1
                         }
-                        return;
+                    });
+    
+                    if (unnavailableTimes.count >= 2) {
+                        await ctx.api.order.replaceCallDate(t, {
+                            order,
+                            replaceDate: moment().add(1, "day").toDate()
+                        })
+                    } else {
+                        await ctx.api.order.underCall(t, { order });
                     }
-                    
-                    if (call.status === __.CALL_STATUS.DONE) {
-                        let user = await ctx.api.users.getUsers(t, {
-                            query: { login: call.exten }
-                        });
-                        user = user.list[0];
-                        if (!user) throw new Error("User not found. Exten: " + call.exten);
-                        
-                        ORDERS_IN_OPERATORS[orderId] = 1;
-                        serverIo.once(`${user._id}-${orderId}`, () => {
-                            delete ORDERS_IN_OPERATORS[orderId];
-                        });
-                        io.emit(user._id, {
-                            orderId
-                        });
-                        return;
-                    }
-
-                    if (call.status === __.CALL_STATUS.CONNECTING_PROBLEM) return;
-        
-                    throw new Error("Invalid call status: " + call.status);
+                    return;
                 }
-            })
-        }
+                
+                if (call.status === __.CALL_STATUS.DONE) {
+                    let user = await ctx.api.users.getUsers(t, {
+                        query: { login: call.exten }
+                    });
+                    user = user.list[0];
+                    if (!user) throw new Error("User not found. Exten: " + call.exten);
+                    
+                    ORDERS_IN_OPERATORS[orderId] = 1;
+                    serverIo.once(`${user._id}-${orderId}`, () => {
+                        delete ORDERS_IN_OPERATORS[orderId];
+                    });
+                    io.emit(user._id, {
+                        orderId
+                    });
+                    return;
+                }
+
+                if (call.status === __.CALL_STATUS.CONNECTING_PROBLEM) return;
+    
+                throw new Error("Invalid call status: " + call.status);
+            }
+        })
     }
 }
 
