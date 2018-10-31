@@ -634,8 +634,6 @@ api.startCallByOrder =  async function(t, p) {
             })
         }
     }
-
-    console.log("done without exists");
 }
 
 // permissions
