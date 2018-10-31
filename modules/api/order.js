@@ -556,6 +556,7 @@ api.startCallByOrder =  async function(t, p) {
         -- listeners: ${listenersCount} 
         -- in queue: ${_.keys(callQueue.tasks)}
         -- new: ${newOrders.length}
+        -- old: ${orders.list.length}
         -- isON: ${asteriskIsOn}
     `);
 
