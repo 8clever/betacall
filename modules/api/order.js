@@ -499,6 +499,7 @@ api.startCallByOrder =  async function(t, p) {
     let currentDate = new Date();
     let threeHoursInPast = moment().add(-3, "hour").toDate();
     let idOrders = _.map(orders.list, "orderIdentity.orderId");
+    let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
 
     let [ oldOrdersMap, ordersManagedMap ] = await Promise.all([
         api.getStats(t, {
@@ -555,6 +556,7 @@ api.startCallByOrder =  async function(t, p) {
         -- listeners: ${listenersCount} 
         -- in queue: ${_.keys(callQueue.tasks)}
         -- new: ${newOrders.length}
+        -- isON: ${asteriskIsOn}
     `);
 
     for (let order of newOrders.length ? newOrders : orders.list) {
