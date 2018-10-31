@@ -529,6 +529,7 @@ api.startCallByOrder =  async function(t, p) {
     
     ordersManagedMap = _.keyBy(ordersManagedMap.list, "orderId");
     oldOrdersMap = _.keyBy(oldOrdersMap.list, "orderId");
+    
     let newOrders = _.filter(orders.list, order => {
         let orderId = _.get(order, "orderIdentity.orderId");
         let phone = _.get(order, "clientInfo.phone");
