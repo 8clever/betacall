@@ -425,7 +425,7 @@ class OperatorPage extends Component {
                                         <Input
                                             readOnly
                                             value={this.get(order, "info.deliveryAddress.region", "")}
-                                            onChange={this.change("info.deliveryAddress.region")}
+                                            onChange={this.change("order.info.deliveryAddress.region")}
                                         />
                                     </FormGroup>
 
@@ -434,7 +434,7 @@ class OperatorPage extends Component {
                                         <Input
                                             readOnly
                                             value={this.get(order, "info.deliveryAddress.city", "")}
-                                            onChange={this.change("info.deliveryAddress.city")}
+                                            onChange={this.change("order.info.deliveryAddress.city")}
                                         />
                                     </FormGroup>
 
@@ -442,7 +442,7 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("Zip Code")}</Label>
                                         <Input
                                             value={this.get(order, "info.deliveryAddress.inCityAddress.zipcode", "")}
-                                            onChange={this.change("info.deliveryAddress.inCityAddress.zipcode")}
+                                            onChange={this.change("order.info.deliveryAddress.inCityAddress.zipcode")}
                                         />
                                     </FormGroup>
 
@@ -450,7 +450,7 @@ class OperatorPage extends Component {
                                         <Label>{i18n.t("Delivery Address")}</Label>
                                         <Input
                                             value={this.get(order, "info.deliveryAddress.inCityAddress.address", "")}
-                                            onChange={this.change("info.deliveryAddress.inCityAddress.address")}
+                                            onChange={this.change("order.info.deliveryAddress.inCityAddress.address")}
                                         />
                                     </FormGroup>
 
