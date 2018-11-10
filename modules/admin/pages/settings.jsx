@@ -46,6 +46,7 @@ class Settings extends Component {
             withError(async () => {
                 let { settings } = _.cloneDeep(this.state);
                 await api("settings.editSettings", token.get(), { data: settings });
+                global.router.reload();
             });
         }
     }
