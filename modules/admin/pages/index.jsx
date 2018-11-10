@@ -439,8 +439,8 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Zip Code")}</Label>
                                         <Input
-                                            value={this.get(order, "info.deliveryAddress.zipcode", "")}
-                                            onChange={this.change("info.deliveryAddress.zipcode")}
+                                            value={this.get(order, "info.deliveryAddress.inCityAddress.zipcode", "")}
+                                            onChange={this.change("info.deliveryAddress.inCityAddress.zipcode")}
                                         />
                                     </FormGroup>
 

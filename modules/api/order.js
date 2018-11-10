@@ -323,7 +323,7 @@ api.doneOrder = async function(t, { order }) {
     order.workStatus.id = 2;
     order.workStatus.name = "В работе";
     order.desireDateDelivery = order.desiredDateDelivery;
-    order.clientAddress = order.deliveryAddress;
+    order.clientAddress = order.deliveryAddress.inCityAddress;
 
     let [ response ] = await topDelivery.editOrdersAsync({
         auth: topDeliveryCfg.bodyAuth,

@@ -72,24 +72,12 @@ class Default extends Component {
                             <Form onKeyUp={this.onKeyUp()}>
                                 <Row form>
                                     <Col md={2}>
-                                        <Label>{i18n.t("User")}</Label>
-                                        <Input 
-                                            value={filter.user || ""}
-                                            onChange={this.change("filter.user")}
-                                            type="select">
-                                            <option value="">{i18n.t("Not Selected")}</option>
-                                            {
-                                                _.map(users.list, (user, idx) => {
-                                                    return (
-                                                        <option 
-                                                            value={user._id}
-                                                            key={idx}>
-                                                            {user.name}: {user.login}
-                                                        </option>
-                                                    )
-                                                })
-                                            }
-                                        </Input>
+                                        <Label>{i18n.t("Order ID")}</Label>
+                                        <Input
+                                            onChange={this.change("filter.orderId")}
+                                            placeholder={i18n.t("Number...")}
+                                            value={filter.orderId || ""}
+                                        />
                                     </Col>
                                     <Col md={2}>
                                         <Label>{i18n.t("Status")}</Label>
@@ -126,12 +114,24 @@ class Default extends Component {
                                         />
                                     </Col>
                                     <Col md={2}>
-                                        <Label>{i18n.t("Order ID")}</Label>
-                                        <Input
-                                            onChange={this.change("filter.orderId")}
-                                            placeholder={i18n.t("Number...")}
-                                            value={filter.orderId || ""}
-                                        />
+                                        <Label>{i18n.t("User")}</Label>
+                                        <Input 
+                                            value={filter.user || ""}
+                                            onChange={this.change("filter.user")}
+                                            type="select">
+                                            <option value="">{i18n.t("Not Selected")}</option>
+                                            {
+                                                _.map(users.list, (user, idx) => {
+                                                    return (
+                                                        <option 
+                                                            value={user._id}
+                                                            key={idx}>
+                                                            {user.name}: {user.login}
+                                                        </option>
+                                                    )
+                                                })
+                                            }
+                                        </Input>
                                     </Col>
                                     <Col md={2}>
                                         <Label>&nbsp;</Label>
