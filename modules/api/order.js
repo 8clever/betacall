@@ -123,8 +123,6 @@ api._getCallOrders = async function(t, p) {
         }
     });
 
-    console.log(callTimes)
-
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth
     });

@@ -55,7 +55,7 @@ class Settings extends Component {
         let i18n = new I18n(user);
         
         return (
-            <Layout title={ i18n.t("Default") } page="default" user={user}>
+            <Layout title={ i18n.t("Settings") } page="settings" user={user}>
                 <Scroll>
 
                     <Card>

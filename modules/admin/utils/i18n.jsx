@@ -1,4 +1,5 @@
 import __ from "../../api/__namespace";
+import _ from "lodash";
 
 export class I18n_source {
     constructor(user = {}) {
@@ -24,6 +25,11 @@ export class I18n extends I18n_source {
     constructor (props) {
         super(props);
         this.localization = require(`../dist/localization${this.path}.json`);
+
+        try {
+            let localizationCustom = require(`../dist/localization_custom${this.path}.json`);
+            this.localization = _.merge({}, this.localization, localizationCustom);
+        } catch (err) {console.log(err)}
     }
 }
 
