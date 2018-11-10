@@ -60,5 +60,6 @@ module.exports.ESSENCE = {
     EMAIL: "emails",
     USERS: "users",
     LINKS: "links",
-    STATS: "stats"
+    STATS: "stats",
+    STATS_ALL: "stats-all"
 };

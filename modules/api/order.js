@@ -28,9 +28,9 @@ module.exports.init = async function(...args) {
         topDeliveryCfg.basicAuth.user,
         topDeliveryCfg.basicAuth.password
     ));
-    
-    ctx.api.validate.register(COLLECTION.STATS, {
-		$set: {
+
+    const validateStat = {
+        $set: {
 			properties: {
 				_id: {
 					type: "mongoId"
@@ -56,14 +56,21 @@ module.exports.init = async function(...args) {
                 }
 			}
 		}
-	});
+    }
+    
+    ctx.api.validate.register(COLLECTION.STATS, validateStat);
+    ctx.api.validate.register(COLLECTION.STATS_ALL, validateStat);
 
 	let db = await ctx.api.mongo.getDb({});
+    
     cols[COLLECTION.STATS] = await db.collection(COLLECTION.STATS);
+    cols[COLLECTION.STATS_ALL] = await db.collection(COLLECTION.STATS_ALL);
+
     await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { orderId: 1 });
     await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { status: 1 });
     
     api.getStats = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS]);
+    api.getStatsAll = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS_ALL]);
     api.addStats = ctx.api.coreapi.initEditApiFunction({
         collection: cols[COLLECTION.STATS],
         validate: COLLECTION.STATS
@@ -161,6 +168,15 @@ api._getCallOrders = async function(t, p) {
     });
 
     __orders = orders.orderInfo;
+    let ordersIds = _.map(__orders, "orderIdentity.orderId");
+    let query = { orderId: { $nin: ordersIds }};
+    let expireOrders = await this.getStats(t, { query });
+    if (!expireOrders.count) return;
+
+    await Promise.all([
+        cols[COLLECTION.STATS_ALL].insert(expireOrders.list),
+        cols[COLLECTION.STATS].remove(query)
+    ]);
 }
 
 
@@ -307,6 +323,7 @@ api.doneOrder = async function(t, { order }) {
     order.workStatus.id = 2;
     order.workStatus.name = "В работе";
     order.desireDateDelivery = order.desiredDateDelivery;
+    order.clientAddress = order.deliveryAddress;
 
     let [ response ] = await topDelivery.editOrdersAsync({
         auth: topDeliveryCfg.bodyAuth,
@@ -315,7 +332,8 @@ api.doneOrder = async function(t, { order }) {
             "orderIdentity",
             "workStatus",
             "desireDateDelivery",
-            "clientInfo"
+            "clientInfo",
+            "clientAddress"
         ])
     });
 
@@ -605,7 +623,11 @@ api.startCallByOrder =  async function(t, p) {
                     
                     ORDERS_IN_OPERATORS[orderId] = 1;
                     serverIo.once(`${user._id}-${orderId}`, () => {
-                        delete ORDERS_IN_OPERATORS[orderId];
+                        
+                        // avoid add order to queue twice
+                        setTimeout(() => {
+                            delete ORDERS_IN_OPERATORS[orderId];
+                        }, 10000);
                     });
                     io.emit(user._id, {
                         orderId

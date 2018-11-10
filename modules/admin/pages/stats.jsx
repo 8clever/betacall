@@ -182,7 +182,11 @@ export default async (ctx) => {
     let query = {};
     let limit = 20;
     let filter = _.cloneDeep(ctx.req.query);
+    let ddFormat = "DD-MM-YYYY";
+
     filter.page = parseInt(filter.page || 0);
+    filter.from = filter.from || moment().format(ddFormat);
+    filter.to = filter.to || moment().format(ddFormat);
 
     if (filter.user) {
         query._iduser = filter.user
@@ -190,12 +194,12 @@ export default async (ctx) => {
 
     if (filter.from) {
         query._dt = query._dt || {};
-        query._dt.$gte = moment(filter.from, "DD-MM-YYYY").startOf("day").toDate()
+        query._dt.$gte = moment(filter.from, ddFormat).startOf("day").toDate()
     }
 
     if (filter.to) {
         query._dt = query._dt || {};
-        query._dt.$lte = moment(filter.to, "DD-MM-YYYY").endOf("day").toDate()
+        query._dt.$lte = moment(filter.to, ddFormat).endOf("day").toDate()
     }
 
     if (filter.orderId) {
@@ -203,7 +207,7 @@ export default async (ctx) => {
     }
 
     let [ stats, users ] = await Promise.all([
-        api("order.getStats", token.get(ctx), {
+        api("order.getStatsAll", token.get(ctx), {
             query,
             limit,
             skip: filter.page * limit,
