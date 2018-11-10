@@ -29,6 +29,8 @@ import {
 } from "reactstrap"
 import moment from "moment";
 
+const ddFormat = "DD-MM-YYYY";
+
 class Default extends Component {
     constructor (props) {
         super(props)
@@ -50,6 +52,12 @@ class Default extends Component {
         }
     }
 
+    onKeyUp () {
+        return (e) => {
+            if (e.key === "Enter") this.search()();
+        }
+    }
+
     render () {
         let { user, stats, limit, users } = this.props;
         let { filter } = this.state;
@@ -61,9 +69,9 @@ class Default extends Component {
                     
                     <Card>
                         <CardBody>
-                            <Form>
+                            <Form onKeyUp={this.onKeyUp()}>
                                 <Row form>
-                                    <Col md={3}>
+                                    <Col md={2}>
                                         <Label>{i18n.t("User")}</Label>
                                         <Input 
                                             value={filter.user || ""}
@@ -83,23 +91,41 @@ class Default extends Component {
                                             }
                                         </Input>
                                     </Col>
-                                    <Col md={3}>
+                                    <Col md={2}>
+                                        <Label>{i18n.t("Status")}</Label>
+                                        <Input
+                                            type="select"
+                                            onChange={this.change("filter.status")}
+                                            value={filter.status || ""}>
+                                            <option value="">{i18n.t("Not Selected")}</option>
+                                            {
+                                                _.map(__.ORDER_STATUS, (order, idx) => {
+                                                    return (
+                                                        <option value={order} key={idx}>
+                                                            {order}
+                                                        </option>
+                                                    )
+                                                })
+                                            }
+                                        </Input>
+                                    </Col>
+                                    <Col md={2}>
                                         <Label>{i18n.t("Date From")}</Label>
                                         <DatePicker 
                                             i18n={i18n}
-                                            value={filter.from ? moment(filter.from).format("DD-MM-YYYY") : ""}
+                                            value={filter.from || ""}
                                             onChange={this.change("filter.from")}
                                         />
                                     </Col>
-                                    <Col md={3}>
+                                    <Col md={2}>
                                         <Label>{i18n.t("Date To")}</Label>
                                         <DatePicker 
                                             i18n={i18n}
-                                            value={filter.from ? moment(filter.from).format("DD-MM-YYYY") : ""}
+                                            value={filter.to || ""}
                                             onChange={this.change("filter.to")}
                                         />
                                     </Col>
-                                    <Col md={3}>
+                                    <Col md={2}>
                                         <Label>{i18n.t("Order ID")}</Label>
                                         <Input
                                             onChange={this.change("filter.orderId")}
@@ -107,9 +133,7 @@ class Default extends Component {
                                             value={filter.orderId || ""}
                                         />
                                     </Col>
-                                </Row>
-                                <Row form>
-                                    <Col md={3}>
+                                    <Col md={2}>
                                         <Label>&nbsp;</Label>
                                         <br/>
                                         <Button 
@@ -182,7 +206,6 @@ export default async (ctx) => {
     let query = {};
     let limit = 20;
     let filter = _.cloneDeep(ctx.req.query);
-    let ddFormat = "DD-MM-YYYY";
 
     filter.page = parseInt(filter.page || 0);
     filter.from = filter.from || moment().format(ddFormat);
@@ -206,26 +229,36 @@ export default async (ctx) => {
         query.orderId = parseInt(filter.orderId);
     }
 
+    if (filter.status) {
+        query.status = filter.status;
+    }
+
     let [ stats, users ] = await Promise.all([
         api("order.getStatsAll", token.get(ctx), {
-            query,
-            limit,
-            skip: filter.page * limit,
-            sort: {
-                _dt: -1
-            },
-            fields: {
-                "_t_user.tokens": 0,
-                "_t_user.password": 0
-            },
-            lookups: [
-                {
+            aggregate: [
+                { $match: query },
+                { $lookup: {
                     as: "_t_user",
                     from: "users",
                     localField: "_iduser",
                     foreignField: "_id"
-                }
-            ]
+                }},
+                { $group: {
+                    _id: "$orderId",
+                    _dt: { $first: "$_dt" },
+                    _dtnextCall: { $first: "$_dtnextCall" },
+                    status: { $first: "$status" },
+                    _t_user: { $first: "$_t_user" }
+                }},
+                { $addFields: {
+                    orderId: "$_id"
+                }}
+            ],
+            limit,
+            skip: filter.page * limit,
+            sort: {
+                _dt: -1
+            }
         }),
         api("users.getUsers", token.get(ctx), {
             query: {},
@@ -234,7 +267,7 @@ export default async (ctx) => {
                 name: 1
             }
         })
-    ])
+    ]);
 
     return ctx.res._render(Default, {
         user,
