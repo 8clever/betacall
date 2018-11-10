@@ -77,5 +77,6 @@ module.exports.REGIONS = {
     OMSK: "Омская область",
     BASHKORKOSTAN: "Республика Башкортостан",
     PERM: "Пермский край",
-    TIUMEN: "Тюменская область"
+    TIUMEN: "Тюменская область",
+    VOLGOGRAD: "Волгоградская область"
 }
