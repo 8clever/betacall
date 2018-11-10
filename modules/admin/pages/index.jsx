@@ -423,6 +423,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery Region")}</Label>
                                         <Input
+                                            readOnly
                                             value={this.get(order, "info.deliveryAddress.region", "")}
                                             onChange={this.change("info.deliveryAddress.region")}
                                         />
@@ -431,6 +432,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("Delivery City")}</Label>
                                         <Input
+                                            readOnly
                                             value={this.get(order, "info.deliveryAddress.city", "")}
                                             onChange={this.change("info.deliveryAddress.city")}
                                         />
@@ -564,6 +566,7 @@ class OperatorPage extends Component {
                                     <FormGroup>
                                         <Label>{i18n.t("End of storage date")}</Label>
                                         <DatePicker
+                                            readOnly
                                             i18n={i18n}
                                             value={storageDate}
                                             onChange={e => {

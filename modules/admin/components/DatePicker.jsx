@@ -22,16 +22,19 @@ class DatePicker extends Component {
             format: PropTypes.string,
             mask: PropTypes.string,
             i18n: PropTypes.object,
-            isValidDate: PropTypes.func
+            isValidDate: PropTypes.func,
+            readOnly: PropTypes.bool
         }
     }
 
     render () {
-        let { value, onChange, format, mask, i18n, isValidDate } = this.props;
+        let { value, onChange, format, mask, i18n, isValidDate, readOnly } = this.props;
+
+        console.log(readOnly)
         return (
             <Datetime
                 locale={i18n.lang}
-                dateFormat={format}
+                dateFormat={readOnly ? false : format}
                 timeFormat={false}
                 defaultValue={value || ""}
                 onChange={date => {
@@ -49,6 +52,7 @@ class DatePicker extends Component {
                     return (
                         <InputGroup>
                             <InputMask
+                                readOnly={!!readOnly}
                                 value={props.value}
                                 onClick={props.onClick}
                                 onChange={props.onChange}
