@@ -18,7 +18,8 @@ export default async (context, permission, rules = []) => {
     // Header links
     let defRules = ([
         __.PERMISSION.USER.VIEW,
-        __.PERMISSION.STATS.VIEW
+        __.PERMISSION.STATS.VIEW,
+        __.PERMISSION.SETTINGS.VIEW
     ]).concat(rules);
 
     if (permission) defRules = defRules.concat([ permission ]);

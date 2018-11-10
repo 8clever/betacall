@@ -123,6 +123,12 @@ class Layout extends Reflux.Component {
                 value: "users",
                 permission: __.PERMISSION.USER.VIEW
             },
+            {
+                label: this.checkLeftItem("cog", i18n.t("Settings")),
+                onClick: () => { redirect(null, "settings") },
+                value: "settings",
+                permission: __.PERMISSION.SETTINGS.VIEW
+            },
             { 
                 label: this.checkLeftItem("power-off text-danger", i18n.t("Sign-Out")), 
                 onClick: this.signOut(),

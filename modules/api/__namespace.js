@@ -42,6 +42,10 @@ module.exports.PERMISSION = {
     },
     STATS: {
         VIEW: "stats.view"
+    },
+    SETTINGS: {
+        VIEW: "settings.view",
+        EDIT: "settings.edit"
     }
 }
 
@@ -61,5 +65,17 @@ module.exports.ESSENCE = {
     USERS: "users",
     LINKS: "links",
     STATS: "stats",
-    STATS_ALL: "stats-all"
+    STATS_ALL: "stats-all",
+    SETTINGS: "settings"
 };
+
+module.exports.REGIONS = {
+    DEFAULT: "default",
+    KRASNOYARSK: "Красноярский край",
+    NOVOSIBIRSK: "Новосибирская область",
+    KEMEROVO: "Кемеровская область",
+    OMSK: "Омская область",
+    BASHKORKOSTAN: "Республика Башкортостан",
+    PERM: "Пермский край",
+    TIUMEN: "Тюменская область"
+}

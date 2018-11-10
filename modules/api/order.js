@@ -18,7 +18,7 @@ let cols = {};
 let callQueue = null;
 let callTimes = {};
 
-module.exports.deps = ['mongo', 'obac'];
+module.exports.deps = ['mongo', 'obac', 'settings'];
 module.exports.init = async function(...args) {
     [ctx] = args;
 
@@ -76,7 +76,6 @@ module.exports.init = async function(...args) {
         validate: COLLECTION.STATS
     });
 
-    await api._getCallOrders().catch(console.log);
     if (!ctx.cfg.ami.maxQueue) return { api };
 
     callQueue = async.queue(function({ name, fn }, cb) {
@@ -116,42 +115,15 @@ module.exports.init = async function(...args) {
 api._getCallOrders = async function(t, p) {
 
     // set/update call times
-    callTimes[ "default" ] = {
-        from: moment().startOf("day").add(9, "hours").toDate(),
-        to: moment().startOf("day").add(21, "hours").toDate()
-    }
-    callTimes["Красноярский край"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(17, "hours").toDate()
-    }
-    callTimes["Томская область"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(17, "hours").toDate()
-    }
-    callTimes["Новосибирская область"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(17, "hours").toDate()
-    }
-    callTimes["Кемеровская область"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(17, "hours").toDate()
-    }
-    callTimes["Омская область"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(18, "hours").toDate()
-    }
-    callTimes["Республика Башкортостан"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(19, "hours").toDate()
-    }
-    callTimes["Пермский край"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(19, "hours").toDate()
-    }
-    callTimes["Тюменская область"] = {
-        from: callTimes.default.from,
-        to: moment().startOf("day").add(19, "hours").toDate()
-    }
+    let settings = await ctx.api.settings.getSettings(t, {});
+    _.each(settings.timeCalls, timeCall => {
+        callTimes[ timeCall.region ] = {
+            from: moment().startOf("day").add(timeCall._i_start, "hours").toDate(),
+            to: moment().startOf("day").add(timeCall._i_end, "hours").toDate()
+        }
+    });
+
+    console.log(callTimes)
 
     let [ orders ] = await topDelivery.getCallOrdersAsync({
         auth: topDeliveryCfg.bodyAuth

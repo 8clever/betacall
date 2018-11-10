@@ -30,7 +30,6 @@ class DatePicker extends Component {
     render () {
         let { value, onChange, format, mask, i18n, isValidDate, readOnly } = this.props;
 
-        console.log(readOnly)
         return (
             <Datetime
                 locale={i18n.lang}

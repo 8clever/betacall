@@ -14,6 +14,7 @@ module.exports = [
 	{name:"users",require: path.join(__dirname, "/modules/api/users.js")},
 	{name:"email",require: path.join(__dirname, "/modules/api/email.js")},
 	{name:"order",require: path.join(__dirname, "/modules/api/order.js")},
+	{name:"settings",require: path.join(__dirname, "/modules/api/settings.js")},
 	{name: "permission", require: path.join(__dirname, "/modules/api/permission.js") },
 	
 	{name:"scheduler",require: path.join(__dirname, "/modules/api/scheduler.js")},
