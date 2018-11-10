@@ -71,40 +71,42 @@ class Settings extends Component {
                     <Card>
                         <CardHeader>{i18n.t("Time Calls")}</CardHeader>
                         <CardBody>
-                            {
-                                _.map(settings.timeCalls, (timeCall, idx) => {
-                                    
-                                    return (
-                                        <div key={idx}>
-                                            <h2>{timeCall.region}</h2>
-                                            <Row form>
-                                                <Col md={6}>
-                                                    <FormGroup>
-                                                        <Label>{i18n.t("Start Calls")}</Label>
-                                                        <TimePicker
-                                                            onChange={this.change(`settings.timeCalls.${idx}._i_start`)}
-                                                            format="HH"
-                                                            mask="99"
-                                                            value={moment().startOf("day").add(timeCall._i_start, "hours").format("HH")}
-                                                        />
-                                                    </FormGroup>
-                                                </Col>
-                                                <Col md={6}>
-                                                    <FormGroup>
-                                                        <Label>{i18n.t("End Calls")}</Label>
-                                                        <TimePicker
-                                                            onChange={this.change(`settings.timeCalls.${idx}._i_end`)}
-                                                            format="HH"
-                                                            mask="99"
-                                                            value={moment().startOf("day").add(timeCall._i_end, "hours").format("HH")}
-                                                        />
-                                                    </FormGroup>
-                                                </Col>
-                                            </Row>
-                                        </div>
-                                    )
-                                })
-                            }
+                            <Row>
+                                {
+                                    _.map(settings.timeCalls, (timeCall, idx) => {
+                                        return (
+                                            <Col md={6} key={idx}>
+                                                <h2>{timeCall.region}</h2>
+                                                <Row form>
+                                                    <Col md={6}>
+                                                        <FormGroup>
+                                                            <Label>{i18n.t("Start Calls")}</Label>
+                                                            <TimePicker
+                                                                onChange={this.change(`settings.timeCalls.${idx}._i_start`)}
+                                                                format="HH"
+                                                                mask="99"
+                                                                value={moment().startOf("day").add(timeCall._i_start, "hours").format("HH")}
+                                                            />
+                                                        </FormGroup>
+                                                    </Col>
+                                                    <Col md={6}>
+                                                        <FormGroup>
+                                                            <Label>{i18n.t("End Calls")}</Label>
+                                                            <TimePicker
+                                                                onChange={this.change(`settings.timeCalls.${idx}._i_end`)}
+                                                                format="HH"
+                                                                mask="99"
+                                                                value={moment().startOf("day").add(timeCall._i_end, "hours").format("HH")}
+                                                            />
+                                                        </FormGroup>
+                                                    </Col>
+                                                </Row>
+                                            </Col>
+                                        )
+                                    })
+                                }
+                            </Row>
+                            
                         </CardBody>
                     </Card>
                     
