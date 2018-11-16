@@ -68,15 +68,3 @@ module.exports.ESSENCE = {
     STATS_ALL: "stats-all",
     SETTINGS: "settings"
 };
-
-module.exports.REGIONS = {
-    DEFAULT: "default",
-    KRASNOYARSK: "Красноярский край",
-    NOVOSIBIRSK: "Новосибирская область",
-    KEMEROVO: "Кемеровская область",
-    OMSK: "Омская область",
-    BASHKORKOSTAN: "Республика Башкортостан",
-    PERM: "Пермский край",
-    TIUMEN: "Тюменская область",
-    VOLGOGRAD: "Волгоградская область"
-}

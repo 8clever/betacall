@@ -24,7 +24,7 @@ module.exports.init = async function (...args) {
                             region: {
                                 type: "string",
                                 required: true,
-                                enum: _.values(__.REGIONS)
+                                minLength: 2
                             },
                             _i_start: {
                                 type: "number",
@@ -58,16 +58,18 @@ module.exports.init = async function (...args) {
 };
 
 api.getSettings = async (t, p) => {
+    const DEFAULT = "default";
     let settings = await ctx.api.settings._getSettings(t, {});
-    settings = settings.list[0] || {
-        timeCalls: _.map(__.REGIONS, region => {
-            return {
-                region,
-                _i_start: 9,
-                _i_end: 21
-            }
+    settings = settings.list[0] || { timeCalls: [] };
+
+    let defaultExists = _.find(settings.timeCalls, _.matches({ region: DEFAULT }));
+    if (!defaultExists) {
+        settings.timeCalls.push({ 
+            region: DEFAULT, 
+            _i_start: 9,
+            _i_end: 21
         })
-    };
+    }
 
     return settings;
 }
