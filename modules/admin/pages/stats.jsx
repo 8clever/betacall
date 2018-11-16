@@ -145,6 +145,21 @@ class Default extends Component {
                                         </Button>
                                     </Col>
                                 </Row>
+                                <div className="mb-2"></div>
+
+                                <Row form>
+                                    <Col md={2}>
+                                        <Label>{i18n.t("Type of stats")}</Label>
+
+                                        <Input
+                                            type="select"
+                                            onChange={this.change("filter.type")}
+                                            value={filter.type || ""}>
+                                            <option value="">{i18n.t("Completed")}</option>
+                                            <option value="progress">{i18n.t("In system process")}</option>
+                                        </Input>
+                                    </Col>
+                                </Row>
                             </Form>
                         </CardBody>
                     </Card>
@@ -206,6 +221,7 @@ export default async (ctx) => {
     let query = {};
     let limit = 20;
     let filter = _.cloneDeep(ctx.req.query);
+    let methodStats = "order.getStatsAll";
 
     filter.page = parseInt(filter.page || 0);
     filter.from = filter.from || moment().format(ddFormat);
@@ -233,8 +249,12 @@ export default async (ctx) => {
         query.status = filter.status;
     }
 
+    if (filter.type === "progress") {
+        methodStats = "order.getStats";
+    }
+
     let [ stats, users ] = await Promise.all([
-        api("order.getStatsAll", token.get(ctx), {
+        api(methodStats, token.get(ctx), {
             aggregate: [
                 { $match: query },
                 { $lookup: {
