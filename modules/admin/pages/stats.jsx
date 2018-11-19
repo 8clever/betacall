@@ -6,7 +6,8 @@ import {
     api, 
     token, 
     redirect, 
-    I18n
+    I18n,
+    withError
 } from "../utils/index.jsx";
 import {
     DatePicker,
@@ -25,11 +26,108 @@ import {
     Input,
     Row,
     Col,
-    Button
+    Button,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter
 } from "reactstrap"
 import moment from "moment";
+import PropTypes from "prop-types";
 
 const ddFormat = "DD-MM-YYYY";
+const DDMMYYYYHHmm = "DD.MM.YYYY HH:mm";
+
+class ViewStats extends Component {
+
+    constructor (props) {
+        super(props);
+        this.state = {
+            orders: {}
+        };
+    }
+
+    static propTypes () {
+        return {
+            i18n: PropTypes.object.isRequired,
+            visible: PropTypes.bool.isRequired,
+            toggle: PropTypes.func.isRequired,
+            idOrder: PropTypes.number.isRequired,
+            method: PropTypes.string.isRequired
+        }
+    }
+
+    componentDidUpdate (prevProps) {
+        if (this.props.visible && !prevProps.visible) {
+            withError(async () => {
+                console.log(this.props.method)
+                let orders = await api(this.props.method, token.get(), { 
+                    sort: { _dt: -1 },
+                    lookups: [
+                        {
+                            as: "_t_user",
+                            from: "users",
+                            localField: "_iduser",
+                            foreignField: "_id"
+                        }
+                    ],
+                    fields: {
+                        password: 0,
+                        tokens: 0
+                    },
+                    query: { orderId: this.props.orderId }
+                });
+                this.setState({
+                    orders
+                });
+            })
+        }
+    }
+
+    render () {
+        let { i18n, visible, toggle, orderId } = this.props;
+        let { orders } = this.state;
+
+        if (!visible) return <Modal isOpen={false} />
+
+        return (
+            <Modal isOpen={true}>
+                <ModalHeader>{i18n.t("Stats for order")} №{orderId}</ModalHeader>
+                <ModalBody>
+
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th>{i18n.t("Date")}</th>
+                                <th>{i18n.t("User")}</th>
+                                <th>{i18n.t("Status")}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                _.map(orders.list, (order, idx) => {
+                                    return (
+                                        <tr key={idx}>
+                                            <td>{moment(order._dt).format(DDMMYYYYHHmm)}</td>
+                                            <td>{_.get(order, "_t_user.0.name")}</td>
+                                            <td>{order.status}</td>
+                                        </tr>
+                                    )
+                                })
+                            }
+                        </tbody>
+                    </Table>
+                    
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="light" onClick={toggle}>
+                        {i18n.t("Close")}
+                    </Button>
+                </ModalFooter>
+            </Modal>
+        )
+    }
+}
 
 class Default extends Component {
     constructor (props) {
@@ -48,6 +146,7 @@ class Default extends Component {
     search () {
         return () => {
             let { filter } = _.cloneDeep(this.state);
+            filter.page = 0;
             redirect(null, "stats", filter);
         }
     }
@@ -175,23 +274,42 @@ class Default extends Component {
                                         <th>{i18n.t("User")}</th>
                                         <th>{i18n.t("Status")}</th>
                                         <th>{i18n.t("Next Call")}</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {
                                         _.map(stats.list, (stat, idx) => {
+                                            let stateViewStats = "state-view-stats-" + idx;
+
                                             return (
                                                 <tr key={idx}>
-                                                    <td>{moment(stat._dt).format("DD.MM.YYYY HH:mm")}</td>
+                                                    <td>{moment(stat._dt).format(DDMMYYYYHHmm)}</td>
                                                     <td>{stat.orderId}</td>
                                                     <td>{_.get(stat, "_t_user.0.name")}</td>
                                                     <td>{stat.status}</td>
                                                     <td>
                                                         {
                                                             stat._dtnextCall ?
-                                                            moment(stat._dtnextCall).format("DD.MM.YYYY HH:mm")
+                                                            moment(stat._dtnextCall).format(DDMMYYYYHHmm)
                                                             : null
                                                         }
+                                                    </td>
+                                                    <td className="text-right">
+                                                        <Button 
+                                                            onClick={this.toggle(stateViewStats)}
+                                                            outline
+                                                            size="sm"
+                                                            color="primary">
+                                                            <Fa fa="eye" />    
+                                                        </Button>
+                                                        <ViewStats 
+                                                            i18n={i18n}
+                                                            method={this.props.methodStats}
+                                                            orderId={stat.orderId}
+                                                            visible={!!this.state[stateViewStats]}
+                                                            toggle={this.toggle(stateViewStats)}
+                                                        />
                                                     </td>
                                                 </tr>
                                             )
@@ -266,9 +384,9 @@ export default async (ctx) => {
                 { $group: {
                     _id: "$orderId",
                     _dt: { $first: "$_dt" },
-                    _dtnextCall: { $first: "$_dtnextCall" },
-                    status: { $first: "$status" },
-                    _t_user: { $first: "$_t_user" }
+                    _dtnextCall: { $last: "$_dtnextCall" },
+                    status: { $last: "$status" },
+                    _t_user: { $last: "$_t_user" }
                 }},
                 { $addFields: {
                     orderId: "$_id"
@@ -290,6 +408,7 @@ export default async (ctx) => {
     ]);
 
     return ctx.res._render(Default, {
+        methodStats,
         user,
         users,
         stats,
