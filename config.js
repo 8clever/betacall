@@ -11,6 +11,7 @@ module.exports = {
 		context: "ringing",
 		exten: "333",
 		maxQueue: 1,
+		addQueue: 3,
 		sandbox: true,
 		phone: "89066482837",
 		blackList: [
