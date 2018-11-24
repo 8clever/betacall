@@ -17,6 +17,7 @@ module.exports.init = async function (ctx) {
     global._t_son = "out";
     global.api = api;
     global.isServer = true;
+    global.CFG = cfg;
 
     let Router = express();
 

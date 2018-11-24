@@ -48,6 +48,7 @@
     "qrcode.react": "^0.8.0",
     "querystring-es3": "^0.2.1",
     "react": "^16.5.0",
+    "react-color": "^2.14.1",
     "react-datetime": "^2.15.0",
     "react-dom": "^16.5.0",
     "react-express-middleware": "^3.1.3",

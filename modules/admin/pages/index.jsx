@@ -5,7 +5,8 @@ import {
     DatePicker,
     Panel,
     Pagination,
-    Fa
+    Fa,
+    Paint
 } from "../components/index.jsx"
 import { 
     Socket,
@@ -37,6 +38,7 @@ import {
 } from "reactstrap";
 import _ from "lodash";
 import moment from "moment";
+import { SketchPicker } from 'react-color';
 
 class AdminPage extends Component {
 
@@ -179,8 +181,19 @@ class OperatorPage extends Component {
     constructor (props) {
         super(props);
         this.state = {
-            order: props.order
+            order: props.order,
+            paint: {
+                style: {
+                    background: '#F2F2F8'
+                },
+                brushCol: 'black',
+                lineWidth: 10,
+                width: 800,
+                height: 600
+            }
         };
+
+        this.canvasBodyRef = React.createRef();
     }
 
     componentDidMount () {
@@ -194,6 +207,21 @@ class OperatorPage extends Component {
                 global.router.reload();
             });
         });
+
+        let setSize = () => {
+            let $bodyCanvas = document.querySelector(".body-canvas");
+            if (!$bodyCanvas) return;
+
+            let { paint } = _.cloneDeep(this.state);
+            let rect = $bodyCanvas.getBoundingClientRect();
+
+            paint.width = rect.width;
+            paint.height = rect.height;
+            this.setState({ paint });
+        }
+
+        setSize();
+        window.onresize = setSize;
     }
 
     componentWillUnmount () {
@@ -312,6 +340,12 @@ class OperatorPage extends Component {
         return _.isDate(date) && moment(date).format(format) || "";
     }
 
+    changeColor (path) {
+        return ({ hex }) => {
+            this.change(path)({ target: { value: hex }});
+        } 
+    }
+
     render() {
         let { user, orders, filter } = this.props;
         let { order } = this.state;
@@ -325,6 +359,48 @@ class OperatorPage extends Component {
 
         let timeStart = this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "");
         let timeEnd = this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "");
+
+
+        // render pain when user want to use paint and not have orders
+        if (!order && _.includes(CFG.paint.users, user.login)) {
+            return <Layout title={ i18n.t("Home") } page="home" user={user}>
+                <Scroll>
+                    <div className="body-canvas h-100">
+                        <Paint {...this.state.paint}                                       
+                            className='h-100 react-paint'
+                        />
+                    </div>
+                </Scroll>
+                <Scroll className="col-md-4">
+                        <FormGroup>
+                            <Label>{i18n.t("Brush size")}</Label>
+                                <Input
+                                    placeholder={"Number..."}
+                                    value={this.state.paint.lineWidth || ""}
+                                    onChange={this.change("paint.lineWidth", {
+                                        isNumber: true
+                                    })}
+                                />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <Label>{i18n.t("Brush")}</Label>
+                            <SketchPicker 
+                                color={ this.state.paint.brushCol }
+                                onChangeComplete={ this.changeColor("paint.brushCol") }
+                            />
+                        </FormGroup>
+
+                        <FormGroup>
+                            <Label>{i18n.t("Background")}</Label>
+                            <SketchPicker 
+                                color={ this.state.paint.style.background }
+                                onChangeComplete={ this.changeColor("paint.style.background") }
+                            />
+                        </FormGroup>
+                </Scroll>
+            </Layout>
+        }
 
         return (
             <Layout title={ i18n.t("Home") } page="home" user={user}>
@@ -518,20 +594,12 @@ class OperatorPage extends Component {
                             </Card>
                             <div className="mb-2"></div>
                         </div> : 
-                        <div>
-                            {
-                                _.includes(CFG.paint.users, user.login) ?
-                                <div>
-                                   
-                                </div> :
-                                <Alert color="warning">
-                                    <b>{i18n.t("Information")}</b>
-                                    <p>
-                                        {i18n.t("You not have available orders")}
-                                    </p>
-                                </Alert>
-                            }
-                        </div>
+                        <Alert color="warning">
+                            <b>{i18n.t("Information")}</b>
+                            <p>
+                                {i18n.t("You not have available orders")}
+                            </p>
+                        </Alert>
                     }
                 </Scroll>
 
