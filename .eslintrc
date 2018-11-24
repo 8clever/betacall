@@ -18,7 +18,8 @@
         "jsx": true
     },
   "globals": {
-      "requirejs": true
+      "requirejs": true,
+      "CFG": true
   },
   "extends": [
       "eslint:recommended",

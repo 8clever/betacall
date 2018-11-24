@@ -519,12 +519,18 @@ class OperatorPage extends Component {
                             <div className="mb-2"></div>
                         </div> : 
                         <div>
-                            <Alert color="warning">
-                                <b>{i18n.t("Information")}</b>
-                                <p>
-                                    {i18n.t("You not have available orders")}
-                                </p>
-                            </Alert>
+                            {
+                                _.includes(CFG.paint.users, user.login) ?
+                                <div>
+                                   
+                                </div> :
+                                <Alert color="warning">
+                                    <b>{i18n.t("Information")}</b>
+                                    <p>
+                                        {i18n.t("You not have available orders")}
+                                    </p>
+                                </Alert>
+                            }
                         </div>
                     }
                 </Scroll>

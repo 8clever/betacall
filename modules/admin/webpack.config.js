@@ -7,6 +7,16 @@ const __ = require("../api/__namespace");
 const WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
 const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
+const webpack = require("webpack");
+const _ = require("lodash");
+const cfg = _.merge(
+    {},
+    require("../../config"),
+    require("../../local-config"),
+);
+const pubConfig = _.pick(cfg, [
+    "paint"
+]);
 
 const jsxLoader = {
     test: /\.jsx$|__namespace\.js$/,
@@ -35,7 +45,10 @@ let config = {
         publicPath: __.PREFIX_ADMIN + "/"
     },
     plugins: [
-        new WebpackBundleSizeAnalyzerPlugin('../../../report-admin.txt')
+        new WebpackBundleSizeAnalyzerPlugin('../../../report-admin.txt'),
+        new webpack.DefinePlugin({
+            CFG: JSON.stringify(pubConfig)
+        })
     ]
 }
 

@@ -2,7 +2,10 @@ module.exports = {
 	env: "development",
 	app: {
 		wrapErrors: 1
-    },
+	},
+	paint: {
+		users: []
+	},
     ami: {
         port: 5038,
         host: "localhost",
