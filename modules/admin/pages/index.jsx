@@ -641,6 +641,16 @@ class OperatorPage extends Component {
                                         <b>{i18n.t("status")}:</b> {this.get(order, "info.status.name", "")}
                                         <br/>
                                         <b>{i18n.t("work status")}:</b> {this.get(order, "info.workStatus.name", "")}
+                                        <br/>
+                                        <b>{i18n.t("link")}: 
+                                            {" "}
+                                            <a 
+                                                href={"https://is.topdelivery.ru/pages/order.php?id=" + this.get(order, "info.orderIdentity.orderId", "")} 
+                                                rel="noopener noreferrer"
+                                                target="_blank">
+                                                TopDelivery
+                                            </a>
+                                        </b>
                                     </FormGroup>
 
                                     <FormGroup>
