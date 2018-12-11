@@ -32,7 +32,8 @@ module.exports = {
 		sandbox: true,
 		phone: "89066482837",
 		blackList: [
-			"8800"
+			"8800",
+			"89167766437"
 		]
     },
 	mongo: {
