@@ -80,7 +80,7 @@ module.exports.init = async function (...args) {
             stat = stat[0];
             if (!(stat && stat.filename)) throw new CustomError("Asterisk stat file not found", 404);
 
-            let filePath = path.join(ctx.cfg.api.dirRecords, stat.filename);
+            let filePath = path.join(ctx.cfg.ami.dirRecords, stat.filename);
             res.sendFile(filePath);
         }));
 
