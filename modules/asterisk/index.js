@@ -43,16 +43,23 @@ module.exports.init = async function (...args) {
                             evt.Cause === "21" ||
                             evt.Cause === "34"
                         ) {
-                            ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.UNNAVAILABLE });
+                            ami.emit(evt.Uniqueid, { 
+                                status: __.CALL_STATUS.UNNAVAILABLE,
+                                id: evt.Uniqueid
+                            });
                         } else {
                             console.log(evt.Cause, evt["Cause-txt"]);
-                            ami.emit(evt.Uniqueid, { status: __.CALL_STATUS.CONNECTING_PROBLEM });
+                            ami.emit(evt.Uniqueid, { 
+                                status: __.CALL_STATUS.CONNECTING_PROBLEM ,
+                                id: evt.Uniqueid
+                            });
                         }
                     }
                     
                     // connect with operator
                     if (evt.Event === 'DialEnd' && evt.DialStatus === 'ANSWER') {
-                        ami.emit(evt.Uniqueid, { 
+                        ami.emit(evt.Uniqueid, {
+                            id: evt.Uniqueid,
                             status: __.CALL_STATUS.DONE,
                             exten: evt.DestCallerIDNum
                         });

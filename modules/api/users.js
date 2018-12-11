@@ -137,6 +137,10 @@ module.exports.init = async function (...args) {
 							orderId: {
 								type: "number",
 								required: true
+							},
+							_s_callId: {
+								type: "string",
+								required: true
 							}
 						}
 					}

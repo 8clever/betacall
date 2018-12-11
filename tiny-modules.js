@@ -10,6 +10,8 @@ module.exports = [
 	{name: "obac", object: tinyback.obac()},
 	{name: "restapi", object: tinyback.restapi()},
 
+	{name:"mysql",require: path.join(__dirname, "/modules/mysql")},
+	{name:"topdelivery",require: path.join(__dirname, "/modules/topdelivery")},
 	{name:"coreapi",require: path.join(__dirname, "/modules/api/coreapi.js")},
 	{name:"users",require: path.join(__dirname, "/modules/api/users.js")},
 	{name:"email",require: path.join(__dirname, "/modules/api/email.js")},

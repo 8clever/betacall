@@ -6,7 +6,21 @@ module.exports = {
 	paint: {
 		users: []
 	},
+	mysql: {
+		main: {
+			host: "",
+			user: "",
+			password: "",
+			database: "db"
+		}
+	},
+	topdeliveryApi: {
+		apiKeys: [
+			"apikey"
+		]
+	},
     ami: {
+		dirRecords: "/var/www/html/caller/rec/",
         port: 5038,
         host: "localhost",
         username: "",

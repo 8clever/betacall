@@ -200,10 +200,8 @@ class OperatorPage extends Component {
         let { user } = this.props;
         this.socket = Socket.connect();
         this.socket.on(user._id, (evt) => {
-            let { orderId } = evt;
-
             withError(async () => {
-                await api("order.addToMyOrders", token.get(), { orderId });
+                await api("order.addToMyOrders", token.get(), evt);
                 global.router.reload();
             });
         });
@@ -249,6 +247,7 @@ class OperatorPage extends Component {
                 let { order } = _.cloneDeep(this.state);
                 await api("order.replaceCallDate", token.get(), {
                     order: order.info,
+                    metadata: order.metadata,
                     replaceDate: order.replaceDate
                 });
                 this.dropPhone()();
@@ -265,10 +264,14 @@ class OperatorPage extends Component {
                 if (order.info.deliveryType === __.DELIVERY_TYPE.PICKUP) {
                     await api("order.doneOrderPickup", token.get(), {
                         order: order.info,
+                        metadata: order.metadata,
                         pickupId
                     });
                 } else {
-                    await api("order.doneOrder", token.get(), { order: order.info });
+                    await api("order.doneOrder", token.get(), { 
+                        order: order.info,
+                        metadata: order.metadata
+                    });
                 }
                 this.dropPhone()();
                 global.router.reload();
@@ -282,7 +285,8 @@ class OperatorPage extends Component {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
                 await api("order.denyOrder",token.get(), {
-                    order: order.info
+                    order: order.info,
+                    metadata: order.metadata
                 });
                 this.dropPhone()();
                 global.router.reload();
@@ -309,7 +313,8 @@ class OperatorPage extends Component {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
                 await api("order.underCall",token.get(), {
-                    order: order.info
+                    order: order.info,
+                    metadata: order.metadata
                 });
                 this.dropPhone()();
                 global.router.reload();
@@ -323,7 +328,8 @@ class OperatorPage extends Component {
             let { order } = _.cloneDeep(this.state);
             withError(async () => {
                 await api("order.skipOrder",token.get(), {
-                    order: order.info
+                    order: order.info,
+                    metadata: order.metadata
                 });
                 this.dropPhone()();
                 global.router.reload();

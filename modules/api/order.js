@@ -53,6 +53,11 @@ module.exports.init = async function(...args) {
                 },
                 _dtnextCall: {
                     type: "date"
+                },
+                _s_callId: {
+                    type: "string",
+                    required: true,
+                    minLength: 2
                 }
 			}
 		}
@@ -205,17 +210,22 @@ api.getMyOrders = async function(t, p) {
     let u = await ctx.api.users.getCurrentUserPublic(t, {});
     let orders = [];
 
-    for (let { orderId } of u.orders || []) {
+    for (let { orderId, _s_callId } of u.orders || []) {
         try {
             let order = await this.getOrderByID(t, { orderId });
-            orders.push({ info: order });
+            orders.push({ 
+                info: order, 
+                metadata: {
+                    callId: _s_callId
+                }
+            });
         } catch(err) {/** empty */}
     }
 
     return orders;
 }
 
-api.addToMyOrders = async function(t, { orderId }) {
+api.addToMyOrders = async function(t, { orderId, callId }) {
     if (!orderId) throw new Error("Invalid order id");
     let u = await ctx.api.users.getCurrentUserPublic(t, {});
 
@@ -223,7 +233,10 @@ api.addToMyOrders = async function(t, { orderId }) {
     let orderAlreadyMy = _.find(u.orders, _.matchesProperty("orderId", orderId));
     if (orderAlreadyMy) return;
 
-    u.orders.push({ orderId: orderId });
+    u.orders.push({ 
+        orderId,
+        _s_callId: callId
+    });
 
     await ctx.api.users.editUser(t, { data: {
         _id: u._id,
@@ -242,7 +255,10 @@ api.unsetMyOrder = async function(t, { orderId }) {
     }});
 }
 
-api.doneOrderPickup = async function(t, { order, pickupId }) {
+/**
+ *  @param metadata.callId
+ */
+api.doneOrderPickup = async function(t, { order, pickupId, metadata }) {
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let orderId = _.get(order, "orderIdentity.orderId");
     let barcode = _.get(order, "orderIdentity.barcode");
@@ -271,6 +287,7 @@ api.doneOrderPickup = async function(t, { order, pickupId }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.DONE_PICKUP,
             orderId,
@@ -279,7 +296,7 @@ api.doneOrderPickup = async function(t, { order, pickupId }) {
     ]);
 }
 
-api.doneOrder = async function(t, { order }) {
+api.doneOrder = async function(t, { order, metadata }) {
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let deliveryDate = _.get(order, "desiredDateDelivery.date");
     let orderId = _.get(order, "orderIdentity.orderId");
@@ -311,6 +328,7 @@ api.doneOrder = async function(t, { order }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.DONE,
             orderId,
@@ -319,7 +337,7 @@ api.doneOrder = async function(t, { order }) {
     ]);
 }
 
-api.denyOrder = async function(t, { order }) {
+api.denyOrder = async function(t, { order, metadata }) {
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let orderId = _.get(order, "orderIdentity.orderId");
     let barcode = _.get(order, "orderIdentity.barcode");
@@ -365,6 +383,7 @@ api.denyOrder = async function(t, { order }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.DENY,
             orderId,
@@ -373,7 +392,7 @@ api.denyOrder = async function(t, { order }) {
     ]);
 }
 
-api.underCall = async function(t, { order }) {
+api.underCall = async function(t, { order, metadata }) {
     if (!( order )) throw new Error("Order is required");
 
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
@@ -405,6 +424,7 @@ api.underCall = async function(t, { order }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.UNDER_CALL,
             orderId,
@@ -413,7 +433,7 @@ api.underCall = async function(t, { order }) {
     ]);
 }
 
-api.replaceCallDate = async function(t, { order, replaceDate }) {
+api.replaceCallDate = async function(t, { order, replaceDate, metadata }) {
     if (!(
         order &&
         replaceDate
@@ -449,6 +469,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.REPLACE_DATE,
             orderId,
@@ -458,7 +479,7 @@ api.replaceCallDate = async function(t, { order, replaceDate }) {
     ]);
 }
 
-api.skipOrder = async function(t, { order }) {
+api.skipOrder = async function(t, { order, metadata }) {
     if (!order) throw new Error("Order not found!");
     
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
@@ -467,6 +488,7 @@ api.skipOrder = async function(t, { order }) {
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
         this.addStats(t, { data: {
+            _s_callId: metadata.callId,
             _iduser: user._id,
             status: __.ORDER_STATUS.SKIP,
             orderId,
@@ -580,7 +602,12 @@ api.startCallByOrder =  async function(t, p) {
                 console.log(`end call --- ` + call.status);
 
                 if (call.status === __.CALL_STATUS.UNNAVAILABLE) {
-                    await ctx.api.order.underCall(t, { order });
+                    await ctx.api.order.underCall(t, { 
+                        order,
+                        metadata: {
+                            callId: call.id
+                        }
+                    });
                     return;
                 }
                 
@@ -600,7 +627,8 @@ api.startCallByOrder =  async function(t, p) {
                         }, 10000);
                     });
                     io.emit(user._id, {
-                        orderId
+                        orderId,
+                        callId: call.id
                     });
                     return;
                 }
