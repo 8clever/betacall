@@ -55,7 +55,7 @@ module.exports.init = async function (...args) {
                 _dtcallEnd: asteriskData.end,
                 _dttalkStart: asteriskData.answer,
                 _id: order._id,
-                _s_phone: asteriskData.dst || asteriskData.src,
+                _s_phone: asteriskData.src || asteriskData.dst,
                 _s_urlTalkRecord: asteriskData.filename ? `${baseUrl}/topdelivery/file/${asteriskData.id}` : null,
                 _i_orderId: order.orderId
             }
