@@ -23,12 +23,12 @@ module.exports.init = async function (...args) {
 
         if (dtstart) {
             query._dt = query._dt || {};
-            query._dt.$gte = moment(dtstart, ddFormat).toDate();
+            query._dt.$gte = moment(dtstart, ddFormat).startOf("day").toDate();
         }
 
         if (dtend) {
             query._dt = query._dt || {};
-            query._dt.$lte = moment(dtend, ddFormat).toDate();
+            query._dt.$lte = moment(dtend, ddFormat).endOf("day").toDate();
         }
 
         let t = await ctx.api.scheduler._getRobotToken();
