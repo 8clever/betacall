@@ -119,6 +119,9 @@ api._getRobotToken = async function (t, notRequired) {
  */
 api.addJob = function(name, { cronTime }){
 	var job = new cronJob(cronTime, safe.sure(_appError, () => {
+		let existsInQueue = _.find(queue.tasks, _.matchesProperty("data.name", name));
+		if (existsInQueue) return;
+
 		queue.push({
 			cmd: cb => {
 				this._getRobotToken("", {}).then(token => {
@@ -131,5 +134,6 @@ api.addJob = function(name, { cronTime }){
 			name: name
 		});
 	}));
+
 	job.start();
 }
