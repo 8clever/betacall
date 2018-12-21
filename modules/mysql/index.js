@@ -1,22 +1,19 @@
 let api = {};
 let mysql = require("mysql");
-let connection = null;
+let pool = null;
 let ctx = null;
 
 module.exports.init = async function(...args) {
-    [ctx] = args;    
-    connection = mysql.createConnection(ctx.cfg.mysql.main);
-
-    await new Promise((resolve, reject) => {
-        connection.connect(err => {
-            if (err) reject(err);
-            resolve();
-        });
-    });
-    
+    [ctx] = args;
+    pool = mysql.createPool(ctx.cfg.mysql.main);
     return { api }
 }
 
 api.getConnection = async function(t, p) {
-    return connection;
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, connection) => {
+            if (err) return reject(err);
+            resolve(connection);
+        })
+    })
 }

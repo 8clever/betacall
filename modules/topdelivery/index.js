@@ -40,6 +40,8 @@ module.exports.init = async function (...args) {
                 "from cdr",
                 `where uniqueid in ('${callIds.join(`', '`)}');`
             ].join(" "), (err, response) => {
+                mysql.release();
+
                 if (err) return reject(err);
                 resolve(response);
             }) 
@@ -72,6 +74,8 @@ module.exports.init = async function (...args) {
                     "from cdr",
                     `where id = ${id}`
                 ].join(" "), (err, response) => {
+                    mysql.release();
+
                     if (err) return reject(err);
                     resolve(response);
                 }) 
