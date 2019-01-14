@@ -142,7 +142,7 @@ api._getCallOrders = async function(t, p) {
         order.pickupPoints = __pickups[partnerId];
     });
 
-    __orders = orders.orderInfo;
+    __orders = orders.orderInfo || [];
     let ordersIds = _.map(__orders, "orderIdentity.orderId");
     let query = { orderId: { $nin: ordersIds }};
     let expireOrders = await this.getStats(t, { query });
