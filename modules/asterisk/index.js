@@ -100,7 +100,7 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `SIP/${phone}@voip1`, 
+                Channel: `local/${phone}@voip1`, 
                 Context: ctx.cfg.ami.context, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
