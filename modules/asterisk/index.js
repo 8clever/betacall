@@ -26,7 +26,16 @@ module.exports.init = async function (...args) {
         ami.on('ready', function(){
             resolve();
 
+            ami.on("eventCoreShowChannelsComplete", evt => {
+                ami.emit(evt.Event + evt.ActionID, evt);
+            });
+
+            ami.on("eventCoreShowChannel", evt => {
+                ami.emit(evt.Event + evt.ActionID, evt);
+            });
+
             ami.on("eventAny", evt => {
+
                 if (evt.Event === "PeerStatus") {
                     asteriskON = evt.PeerStatus === "Registered";
                 }
@@ -72,13 +81,17 @@ module.exports.init = async function (...args) {
     return { api };
 }
 
+api.__generateID = function() {
+    return Math.random(new Date().getTime());
+}
+
 api.__isOn = async function(t, p) {
     return asteriskON;
 }
 
 api.__call = async function(t, { phone }) {
     return new Promise((resolve, reject) => {
-        let id = Math.random(new Date().getTime());
+        let id = api.__generateID();
 
         ami.once(id, response => {
             resolve(response);
@@ -96,7 +109,7 @@ api.__call = async function(t, { phone }) {
                 ActionID: "service_call",
                 ChannelId: id
             },
-            function(data){
+            data => {
                 if(data.Response === 'Error'){
                     reject(data);
                 }
@@ -104,4 +117,35 @@ api.__call = async function(t, { phone }) {
         );
     })
     
+}
+
+api.__getActiveSlots = async function (t, p) {
+    return new Promise((resolve, reject) => {
+        let slots = 0;
+
+        ami.action(
+            "CoreShowChannels",
+            {},
+            data => {
+                let id = data.ActionID;
+
+                if (data.Response === "Error") {
+                    reject(data);
+                    return
+                }
+
+                ami.on("CoreShowChannel" + id, coreShowChannel);
+                ami.once("CoreShowChannelsComplete" + id, evt => {
+                    ami.off("CoreShowChannel" + id, coreShowChannel);
+                    resolve(slots);
+                });
+
+                function coreShowChannel (evt) {
+                    if (/SIP\/voip1/.test(evt.Channel)) {
+                        slots++
+                    }
+                }
+            }
+        );
+    });
 }

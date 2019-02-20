@@ -19,11 +19,11 @@ module.exports = {
 			"apikey"
 		]
 	},
-    ami: {
+	ami: {
 		dirRecords: "/var/www/html/caller/rec/",
-        port: 5038,
-        host: "localhost",
-        username: "",
+		port: 5038,
+		host: "localhost",
+		username: "",
 		password: "",
 		context: "ringing",
 		exten: "333",
@@ -35,14 +35,14 @@ module.exports = {
 			"8800",
 			"89167766437"
 		]
-    },
+	},
 	mongo: {
 		main: {
 			db: "betacall",
 			host: "localhost",
 			port: 27017,
-			scfg: {auto_reconnect: true, poolSize: 100},
-			ccfg: {native_parser: true, w: 1}
+			scfg: { auto_reconnect: true, poolSize: 100 },
+			ccfg: { native_parser: true, w: 1 }
 		}
 	},
 	server: {
@@ -68,7 +68,7 @@ module.exports = {
 			protocol: "https",
 			host: "errbit.pushok.com",
 			id: "",
-			mode:"prod"
+			mode: "prod"
 		},
 		ga: {
 			enable: false,
@@ -83,7 +83,7 @@ module.exports = {
 			"png"
 		]
 	},
-	restapi:{},
+	restapi: {},
 	email: {
 		enable: true,
 		sandbox: true,
@@ -91,11 +91,11 @@ module.exports = {
 		apiKey: "",
 		fromEmail: "robot@betacall.ru",
 		fromName: "betacall",
-		smtp:{
-			host : "smtp.mandrillapp.com",
+		smtp: {
+			host: "smtp.mandrillapp.com",
 			auth: {
-				user : "",
-				pass : ""
+				user: "",
+				pass: ""
 			},
 			tls: {
 				rejectUnauthorized: false

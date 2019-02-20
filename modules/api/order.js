@@ -587,6 +587,9 @@ api.startCallByOrder =  async function(t, p) {
     for (let order of newOrders.length ? newOrders : oldOrders) {
         if (listenersCount === 0) return;
         if (_.keys(callQueue.tasks).length >= (listenersCount + ctx.cfg.ami.addQueue)) return;
+        
+        let activeSlots = await ctx.api.asterisk.__getActiveSlots(t, {});
+        if (activeSlots >= ctx.cfg.ami.maxQueue) return;
 
         let phone = _.get(order, "clientInfo.phone");
         let orderId = _.get(order, "orderIdentity.orderId");
