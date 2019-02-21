@@ -604,7 +604,7 @@ api.startCallByOrder =  async function(t, p) {
                 ]);
 
                 if (!asteriskIsOn) return;
-                if (activeSlots >= ctx.cfg.ami.maxQueue) return;
+                if (activeSlots >= ctx.cfg.ami.maxSim) return;
 
                 let call = await ctx.api.asterisk.__call(t, { phone });
                 console.log(`end call --- ` + call.status);

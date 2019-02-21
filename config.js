@@ -27,6 +27,7 @@ module.exports = {
 		password: "",
 		context: "ringing",
 		exten: "333",
+		maxSim: 7,
 		maxQueue: 1,
 		addQueue: 3,
 		sandbox: true,
