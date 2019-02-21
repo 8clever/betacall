@@ -41,7 +41,6 @@ module.exports.init = async function (...args) {
                 }
 
                 if (evt.Uniqueid) {
-                    console.log(evt)
 
                     // end dial
                     if (evt.Event === "Hangup") {
