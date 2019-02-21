@@ -41,6 +41,7 @@ module.exports.init = async function (...args) {
                 }
 
                 if (evt.Uniqueid) {
+                    console.log(evt)
 
                     // end dial
                     if (evt.Event === "Hangup") {
@@ -100,7 +101,7 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `local/${phone}@voip1/n`, 
+                Channel: `SIP/${phone}@voip1`, 
                 Context: ctx.cfg.ami.context, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
