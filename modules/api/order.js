@@ -588,9 +588,6 @@ api.startCallByOrder =  async function(t, p) {
         if (listenersCount === 0) return;
         if (_.keys(callQueue.tasks).length >= (listenersCount + ctx.cfg.ami.addQueue)) return;
         
-        let activeSlots = await ctx.api.asterisk.__getActiveSlots(t, {});
-        if (activeSlots >= ctx.cfg.ami.maxQueue) return;
-
         let phone = _.get(order, "clientInfo.phone");
         let orderId = _.get(order, "orderIdentity.orderId");
         
@@ -598,8 +595,16 @@ api.startCallByOrder =  async function(t, p) {
         callQueue.push({
             name: orderId,
             fn: async () => {
-                let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
+                let [
+                    asteriskIsOn,
+                    activeSlots
+                ] = await Promise.all([
+                    ctx.api.asterisk.__isOn(t, {}),
+                    ctx.api.asterisk.__getActiveSlots(t, {})
+                ]);
+
                 if (!asteriskIsOn) return;
+                if (activeSlots >= ctx.cfg.ami.maxQueue) return;
 
                 let call = await ctx.api.asterisk.__call(t, { phone });
                 console.log(`end call --- ` + call.status);
