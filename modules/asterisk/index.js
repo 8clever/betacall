@@ -57,6 +57,10 @@ module.exports.init = async function (...args) {
                                 id: evt.Uniqueid
                             });
                         } else {
+                            if (evt.Cause == 0) {
+                                console.log(evt);
+                            }
+
                             console.log(evt.Cause, evt["Cause-txt"]);
                             ami.emit(evt.Uniqueid, { 
                                 status: __.CALL_STATUS.CONNECTING_PROBLEM ,
@@ -100,7 +104,7 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `SIP/${phone}@voip1`, 
+                Channel: `local/${phone}@voip1/n`, 
                 Context: ctx.cfg.ami.context, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',

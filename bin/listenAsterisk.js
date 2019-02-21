@@ -16,7 +16,6 @@ if (!fs.existsSync(logPath)) {
 ami.on('ready', function(){
     ami.on("eventAny", evt => {
         writeLog(evt);
-
         // if (evt.Event === "PeerStatus") {
         //     writeLog(evt);
         // }
