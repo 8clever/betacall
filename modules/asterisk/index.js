@@ -34,46 +34,50 @@ module.exports.init = async function (...args) {
                 ami.emit(evt.Event + evt.ActionID, evt);
             });
 
-            ami.on("eventAny", evt => {
+            ami.on("eventPeerStatus", evt => {
+                asteriskON = evt.PeerStatus === "Registered";
+            });
 
-                if (evt.Event === "PeerStatus") {
-                    asteriskON = evt.PeerStatus === "Registered";
+            ami.on("eventHangup", evt => {
+                if (!(
+                    evt.Uniqueid &&
+                    evt.Context === ctx.cfg.ami.context
+                )) return;
+
+                if (
+                    evt.Cause === "1" ||
+                    evt.Cause === "16" ||
+                    evt.Cause === "17" ||
+                    evt.Cause === "20" ||
+                    evt.Cause === "21" ||
+                    evt.Cause === "34"
+                ) {
+                    ami.emit(evt.Uniqueid, { 
+                        status: __.CALL_STATUS.UNNAVAILABLE,
+                        id: evt.Uniqueid
+                    });
+                    return;
                 }
 
-                if (evt.Uniqueid) {
+                console.log(evt.Cause, evt["Cause-txt"]);
+                ami.emit(evt.Uniqueid, { 
+                    status: __.CALL_STATUS.CONNECTING_PROBLEM ,
+                    id: evt.Uniqueid
+                });
+            });
 
-                    // end dial
-                    if (evt.Event === "Hangup") {
-                        if (
-                            evt.Cause === "1" ||
-                            evt.Cause === "16" ||
-                            evt.Cause === "17" ||
-                            evt.Cause === "20" ||
-                            evt.Cause === "21" ||
-                            evt.Cause === "34"
-                        ) {
-                            ami.emit(evt.Uniqueid, { 
-                                status: __.CALL_STATUS.UNNAVAILABLE,
-                                id: evt.Uniqueid
-                            });
-                        } else {
-                            console.log(evt.Cause, evt["Cause-txt"]);
-                            ami.emit(evt.Uniqueid, { 
-                                status: __.CALL_STATUS.CONNECTING_PROBLEM ,
-                                id: evt.Uniqueid
-                            });
-                        }
-                    }
-                    
-                    // connect with operator
-                    if (evt.Event === 'DialEnd' && evt.DialStatus === 'ANSWER') {
-                        ami.emit(evt.Uniqueid, {
-                            id: evt.Uniqueid,
-                            status: __.CALL_STATUS.DONE,
-                            exten: evt.DestCallerIDNum
-                        });
-                    }
-                }
+            ami.on("eventDialEnd", evt => {
+                if (!(
+                    evt.Uniqueid &&
+                    evt.DialStatus === "ANSWER" &&
+                    evt.Context === ctx.cfg.ami.context
+                )) return;
+
+                ami.emit(evt.Uniqueid, {
+                    id: evt.Uniqueid,
+                    status: __.CALL_STATUS.DONE,
+                    exten: evt.DestCallerIDNum
+                });
             });
         });
     });
@@ -100,7 +104,7 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `SIP/${phone}@voip1`, 
+                Channel: `local/${phone}@voip1/n`, 
                 Context: ctx.cfg.ami.context, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
