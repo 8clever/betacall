@@ -24,7 +24,6 @@ module.exports.init = async function (...args) {
         });
 
         ami.on('ready', function(){
-            resolve();
 
             ami.on("eventCoreShowChannelsComplete", evt => {
                 ami.emit(evt.Event + evt.ActionID, evt);
@@ -79,6 +78,8 @@ module.exports.init = async function (...args) {
                     exten: evt.DestCallerIDNum
                 });
             });
+
+            resolve();
         });
     });
 
