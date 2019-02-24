@@ -14,12 +14,8 @@ if (!fs.existsSync(logPath)) {
 }
 
 ami.on('ready', function(){
-    ami.on("eventAny", evt => {
-        writeLog(evt);
-        // if (evt.Event === "PeerStatus") {
-        //     writeLog(evt);
-        // }
-    });
+    ami.on("eventHangup", writeLog);
+    ami.on("eventDialEnd", writeLog);
 });
 
 function writeLog (evt) {

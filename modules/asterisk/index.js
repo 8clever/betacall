@@ -39,7 +39,8 @@ module.exports.init = async function (...args) {
 
             ami.on("eventHangup", evt => {
                 if (!(
-                    evt.Uniqueid
+                    evt.Uniqueid &&
+                    /SIP\/voip1/.test(evt.Channel)
                 )) return;
 
                 if (
