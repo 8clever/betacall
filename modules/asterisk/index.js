@@ -1,5 +1,7 @@
 const aio = require("asterisk.io");
 const __ = require("../api/__namespace");
+const RosReestr = require("./RosReestr");
+const rosreestr = new RosReestr();
 
 let api = {};
 let ami = null;
@@ -103,8 +105,8 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `local/${phone}@voip1`, 
-                Context: ctx.cfg.ami.context, 
+                Channel: getChannelByInfo(), 
+                Context: "ringing", 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
                 Async: true,
@@ -118,8 +120,16 @@ api.__call = async function(t, { phone }) {
                 }
             }
         );
-    })
-    
+
+        function getChannelByInfo () {
+            let info = rosreestr.getInfoByPhone(phone);
+
+            // place additional channels here as Билайн MТС Мегафон Ростелеком
+            if (info.operator === "Билайн") return `SIP/${phone}@beeline`;
+
+            return `SIP/${phone}@voip1`
+        }
+    });
 }
 
 api.__getActiveSlots = async function (t, p) {
