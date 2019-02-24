@@ -39,8 +39,7 @@ module.exports.init = async function (...args) {
 
             ami.on("eventHangup", evt => {
                 if (!(
-                    evt.Uniqueid &&
-                    evt.Context === ctx.cfg.ami.context
+                    evt.Uniqueid
                 )) return;
 
                 if (
@@ -68,8 +67,7 @@ module.exports.init = async function (...args) {
             ami.on("eventDialEnd", evt => {
                 if (!(
                     evt.Uniqueid &&
-                    evt.DialStatus === "ANSWER" &&
-                    evt.Context === ctx.cfg.ami.context
+                    evt.DialStatus === "ANSWER"
                 )) return;
 
                 ami.emit(evt.Uniqueid, {
@@ -105,7 +103,7 @@ api.__call = async function(t, { phone }) {
         ami.action(
             'Originate',
             { 
-                Channel: `local/${phone}@voip1/n`, 
+                Channel: `SIP/${phone}@voip1`, 
                 Context: ctx.cfg.ami.context, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
