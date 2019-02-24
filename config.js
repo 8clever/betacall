@@ -25,7 +25,7 @@ module.exports = {
 		host: "localhost",
 		username: "",
 		password: "",
-		context: "ringing",
+		context: "voip1",
 		exten: "333",
 		maxSim: 7,
 		maxQueue: 1,
