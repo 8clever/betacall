@@ -22,6 +22,8 @@ class RosReestr {
 
 module.exports = RosReestr;
 
+
+// TEST BLOCK node RosReestr.js --test
 if (argv.test) {
     let rosreestr = new RosReestr();
     let info = rosreestr.getInfoByPhone("89066482837");
