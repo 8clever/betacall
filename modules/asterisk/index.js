@@ -125,7 +125,7 @@ api.__call = async function(t, { phone }) {
             let info = rosreestr.getInfoByPhone(phone);
 
             // place additional channels here as Билайн MТС Мегафон Ростелеком
-            if (info.operator === "Билайн") return `SIP/${phone}@beeline`;
+            if (info && info.operator === "Билайн") return `SIP/${phone}@beeline`;
 
             return `SIP/${phone}@voip1`
         }
