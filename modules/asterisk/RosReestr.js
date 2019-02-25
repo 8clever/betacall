@@ -8,6 +8,11 @@ const _ = require("lodash");
 class RosReestr {
     constructor () {
         let csv = fs.readFileSync(__dirname + "/rosreestr.csv").toString();
+
+        /** 
+         * @member {Object}
+         * @property {RosReestrInfo[]} RosReestrInfo.code - infos mapped by code
+         * */
         this.memo = csv.split("\n").reduce((memo, string) => {
             let [ code, from, to, value, operator, region ] = string.split(";");
             
