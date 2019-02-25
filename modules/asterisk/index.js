@@ -118,7 +118,7 @@ api.__call = async function(t, { phone }) {
      * @property {String} channel
      * @property {Regex} regex
      */
-    let gateaway = _.cloneDeep(ctx.cfg.ami.gateaway[ info.operator ] || ctx.cfg.ami.gateaway.default);
+    let gateaway = _.cloneDeep(ctx.cfg.ami.gateaway[ info && info.operator ] || ctx.cfg.ami.gateaway.default);
     let isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
     if (!isAvailable) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
