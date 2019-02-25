@@ -595,18 +595,10 @@ api.startCallByOrder =  async function(t, p) {
         callQueue.push({
             name: orderId,
             fn: async () => {
-                let [
-                    asteriskIsOn,
-                    activeSlots
-                ] = await Promise.all([
-                    ctx.api.asterisk.__isOn(t, {}),
-                    ctx.api.asterisk.__getActiveSlots(t, {})
-                ]);
-
-                if (!asteriskIsOn) return;
-                if (activeSlots >= ctx.cfg.ami.maxSim) return;
 
                 let call = await ctx.api.asterisk.__call(t, { phone });
+                if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
+
                 console.log(`end call --- ` + call.status);
 
                 if (call.status === __.CALL_STATUS.UNNAVAILABLE) {

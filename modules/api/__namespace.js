@@ -17,7 +17,8 @@ module.exports.LANGS = {
 module.exports.CALL_STATUS = {
     DONE: "done",
     UNNAVAILABLE: "unnavailable",
-    CONNECTING_PROBLEM: "connecting-problem"
+    CONNECTING_PROBLEM: "connecting-problem",
+    ASTERISK_BUSY: "asterisk-busy"
 }
 
 module.exports.ORDER_STATUS = {

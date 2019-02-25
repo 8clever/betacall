@@ -26,7 +26,13 @@ module.exports = {
 		username: "",
 		password: "",
 		exten: "333",
-		maxSim: 7,
+		gateaway: {
+			default: {
+				slots: 7,
+				channel: "SIP/<phone>@voip1",
+				regex: /SIP\/voip1/
+			}
+		},
 		maxQueue: 1,
 		addQueue: 3,
 		sandbox: true,

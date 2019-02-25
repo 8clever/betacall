@@ -2,6 +2,7 @@ const aio = require("asterisk.io");
 const __ = require("../api/__namespace");
 const RosReestr = require("./RosReestr");
 const rosreestr = new RosReestr();
+const _ = require("lodash");
 
 let api = {};
 let ami = null;
@@ -94,18 +95,44 @@ api.__isOn = async function(t, p) {
     return asteriskON;
 }
 
+/** 
+ *  @namespace {Object} CallResponse
+ *  @property {Number} id
+ *  @property {String} status - look at __namespace.js
+ */
+
+ /**
+  * @param {{ phone: String }}
+  * @return {CallResponse}
+  */
 api.__call = async function(t, { phone }) {
+    let id = api.__generateID();
+    let isOn = await api.__isOn(t, {});
+    if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
+
+    let info = rosreestr.getInfoByPhone(phone);
+
+    /**
+     * @namespace {Object} GateAway
+     * @property {Number} slots
+     * @property {String} channel
+     * @property {Regex} regex
+     */
+    let gateaway = _.cloneDeep(ctx.cfg.ami.gateaway[ info.operator ] || ctx.cfg.ami.gateaway.default);
+    let isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
+    if (!isAvailable) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
+
     return new Promise((resolve, reject) => {
-        let id = api.__generateID();
+        let channel = gateaway.channel.replace(/<phone>/, phone);
 
         ami.once(id, response => {
             resolve(response);
         });
-    
+
         ami.action(
             'Originate',
             { 
-                Channel: getChannelByInfo(), 
+                Channel: channel, 
                 Context: "ringing", 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
@@ -120,27 +147,27 @@ api.__call = async function(t, { phone }) {
                 }
             }
         );
-
-        function getChannelByInfo () {
-            let info = rosreestr.getInfoByPhone(phone);
-
-            // place additional channels here as Билайн MТС Мегафон Ростелеком
-            //if (info && info.operator === "Билайн") return `SIP/${phone}@beeline`;
-
-            return `SIP/${phone}@voip1`
-        }
     });
 }
 
-api.__getActiveSlots = async function (t, p) {
+/**
+ * @param {{ gateaway: GateAway }}
+ * @return {Boolean}
+ */
+api.__gateawayIsAvailable = async function(t, { gateaway }) {
+    if (!(
+        gateaway &&
+        gateaway.regex
+    )) throw new Error("GateAway is required!");
+
     return new Promise((resolve, reject) => {
-        let slots = 0;
 
         ami.action(
             "CoreShowChannels",
             {},
             data => {
                 let id = data.ActionID;
+                let usedSlots = 0;
 
                 if (data.Response === "Error") {
                     reject(data);
@@ -150,12 +177,14 @@ api.__getActiveSlots = async function (t, p) {
                 ami.on("CoreShowChannel" + id, coreShowChannel);
                 ami.once("CoreShowChannelsComplete" + id, evt => {
                     ami.off("CoreShowChannel" + id, coreShowChannel);
-                    resolve(slots);
+
+                    let isActive = usedSlots < gateaway.slots;
+                    resolve(isActive);
                 });
 
                 function coreShowChannel (evt) {
-                    if (/SIP\/voip1/.test(evt.Channel)) {
-                        slots++
+                    if (gateaway.regex.test(evt.Channel)) {
+                        usedSlots++
                     }
                 }
             }
