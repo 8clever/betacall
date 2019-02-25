@@ -544,7 +544,7 @@ api.startCallByOrder =  async function(t, p) {
         });
 
         if (ctx.cfg.ami.sandbox) {
-            phone = ctx.cfg.ami.phone;
+            order.clientInfo.phone = ctx.cfg.ami.phone;
             allowedTimeToCall = true;
             blackPhone = false;
         }
