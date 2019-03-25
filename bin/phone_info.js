@@ -2,14 +2,13 @@ const argv = require("yargs").argv
 const RosReestr = require("../modules/asterisk/RosReestr");
 const rosreestr = new RosReestr();
 
-getInfo();
+let info = getInfo();
+console.dir(info, { depth: null });
 
 function getInfo () {
     if (!argv.phone) {
-        console.log("--phone=NUMBER is required")
-        return;
+        return "--phone=NUMBER is required";
     }
     
-    let info = rosreestr.getInfoByPhone(argv.phone.toString());
-    console.dir(info, { depth: null });
+    return rosreestr.getInfoByPhone(argv.phone.toString());
 }
