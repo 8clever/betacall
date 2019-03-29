@@ -9,7 +9,7 @@ let ami = null;
 let ctx = null;
 let asteriskON = 1;
 
-module.exports.deps = [ "socket", "order" ]
+module.exports.deps = [];
 module.exports.init = async function (...args) {
     [ ctx ] = args;
     let config = ctx.cfg;
@@ -110,17 +110,15 @@ api.__call = async function(t, { phone }) {
     let isOn = await api.__isOn(t, {});
     if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
-    let info = rosreestr.getInfoByPhone(phone);
+    let gateaway = await api.__getGateawayByPhone(t, { phone });
+    let isAvailable = false;
 
-    /**
-     * @namespace {Object} GateAway
-     * @property {Number} slots
-     * @property {String} channel
-     * @property {Regex} regex
-     */
-    let gateaway = _.cloneDeep(ctx.cfg.ami.gateaway[ info && info.operator ] || ctx.cfg.ami.gateaway.default);
-    let isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
-    if (!isAvailable) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
+    while (gateaway && !isAvailable) {
+        isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
+        if (!isAvailable) gateaway = gateaway.next();
+    }
+
+    if (!(gateaway && isAvailable)) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
     return new Promise((resolve, reject) => {
         let channel = gateaway.channel.replace(/<phone>/, phone);
@@ -148,6 +146,47 @@ api.__call = async function(t, { phone }) {
             }
         );
     });
+}
+
+/**
+ * @namespace {Object} GateAway
+ * @property {Number} slots
+ * @property {String} channel
+ * @property {Regex} regex
+ * @property {Function} next - return next gateaway by order 1.2.3 etc or null
+ */
+
+/**
+ * @param {Number} phone
+ * @return {GateAway}
+ */
+api.__getGateawayByPhone = async function(t, { phone }) {
+    if (!phone) throw new Error("Phone number is required @__getGateawayByPhone");
+
+    let defaultGateaway = _.cloneDeep(ctx.cfg.ami.gateaway.default);
+    let info = rosreestr.getInfoByPhone(phone);
+
+    defaultGateaway.next = () => null;
+    if (!info) return defaultGateaway;
+
+    let gateawayNum = 1;
+    let gateaway = getGateaway();
+
+    return gateaway || defaultGateaway;
+
+    function getGateaway () {
+        let name = `${info.operator}${gateawayNum}`;
+        let gateaway = ctx.cfg.ami.gateaway[ name ];
+        if (!gateaway) return null;
+
+        gateaway = _.cloneDeep(gateaway);
+        gateaway.next = () => {
+            gateawayNum += 1;
+            return getGateaway();
+        }
+
+        return gateaway;
+    }
 }
 
 /**
