@@ -61,7 +61,6 @@
     "react-sidemenu": "0.0.14",
     "react-sticky": "^6.0.3",
     "reactstrap": "^6.4.0",
-    "reflux": "^6.4.1",
     "request-promise-native": "^1.0.7",
     "safe": "^0.4.6",
     "serve-static": "^1.13.2",

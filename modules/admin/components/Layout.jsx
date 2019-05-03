@@ -20,7 +20,7 @@ import {
 } from "reactstrap";
 import Fa from "./Fa.jsx";
 import * as __menu from "../store/Menu.jsx";
-import Actions from "../store/actions.jsx";
+import * as __redirect from "../store/Redirect.jsx";
 import { observer } from "mobx-react-lite";
 
 const Layout = observer(props => {
@@ -215,6 +215,8 @@ const Layout = observer(props => {
                     </CardBody>
                 </Card>
 
+                <ModalLeavePage i18n={i18n} />
+
                 <div className="d-flex ml-2 mt-2" style={{ position: "absolute" }}>
                     <ClientInfo />
                 </div>
@@ -227,26 +229,26 @@ const Layout = observer(props => {
     )
 });
 
-const ModalLeavePage = props => {
+const ModalLeavePage = observer(props => {
     const { i18n } = props;
     
-    return <Modal isOpen={!!this.state.stateAlertRedirect}>
+    return <Modal isOpen={!!__redirect.store.stateAlertRedirect}>
         <ModalHeader>{i18n.t("Attention!")}</ModalHeader>
         <ModalBody>{i18n.t("Are you sure leave the page?")}</ModalBody>
         <ModalFooter>
             <Button 
-                onClick={Actions.redirectFromAlert}
+                onClick={__redirect.actions.redirectFromAlert}
                 color="warning">
                 {i18n.t("Confirm")}
             </Button>
             <Button 
-                onClick={Actions.hideRedirectAlert}
+                onClick={__redirect.actions.hideRedirectAlert}
                 color="light">
                 {i18n.t("Cancel")}
             </Button>
         </ModalFooter>
     </Modal>
-}
+});
 
 const Document = props => {
     const { children, empty } = props;
