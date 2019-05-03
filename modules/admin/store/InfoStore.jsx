@@ -1,43 +1,38 @@
 
-import Reflux from 'reflux'
-import Actions from './actions.jsx'
+import { observable } from "mobx";
 
-export default class InfoStore extends Reflux.Store {
-    constructor () {
-        super()
-        this.state = {
-            infos: []
-        }
-        this._n = 0;
-        this.listenTo(Actions.addInfo, this.addInfo)
-        this.listenTo(Actions.hideInfo, this.hideInfo)
-    }
+let _id = 0;
 
-    addInfo (info) {
-        this._n ++;
+export const store = observable({
+    infos: []
+});
+
+export const actions = {
+    addInfo: info => {
+        _id ++;
         info.visible = true;
-        info.id = this._n; 
-        let infos = this.state.infos.concat([]);
+        info.id = _id; 
+        let infos = store.infos.concat([]);
         infos.push(info);
-        this.setState({ infos });
+        store.infos = infos;
 
         setTimeout(() => {
-            this.hideInfoById(info.id);
+            actions.hideInfoById(info.id);
         }, 10000);
-    }
+    },
 
-    hideInfoById (id) {
-        let infos = this.state.infos.concat([]);
-        infos.forEach((i,idx) => {
+    hideInfoById: id => {
+        let infos = store.infos.concat([]);
+        infos.forEach((i, idx) => {
             if (id === i.id) {
-                this.hideInfo(idx);
+                actions.hideInfo(idx);
             }
         });
-    }
-    
-    hideInfo (idx) {
-        let infos = this.state.infos.concat([]);
+    },
+
+    hideInfo: idx => {
+        let infos = store.infos.concat([]);
         infos[idx].visible = false;
-        this.setState({ infos })
+        store.infos = infos;
     }
 }

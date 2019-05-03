@@ -1,49 +1,44 @@
-import ProgressStore from "../store/Progress.jsx"
-import Actions from "../store/actions.jsx"
-import Reflux from "reflux"
+import * as __progress from "../store/Progress.jsx"
 import React from "react"
+import { observer } from "mobx-react-lite";
 
-class Progress extends Reflux.Component {
-    constructor(props) {
-        super(props);
-        this.store = ProgressStore
-    }
+const Progress = observer(props => {
+    const { color = "red", height = 5 } = props;
+    const [ percent, setPercent ] = React.useState(0);
 
-    render() {
-        let { color = "red", height = 5 } = this.props;
-        let { progress, isLoading } = this.state;
+    React.useEffect(() => {
+        const timeout = setTimeout(() => {
+            if (!__progress.store.isLoading) return;
+            let tt = ((100 - percent) / 100) * 3;
+            let newPercent = tt + percent;
+            setPercent(newPercent);
+        }, 10);
+       
+        return () => clearTimeout(timeout);
+    }, [__progress.store.isLoading, percent]);
 
-        if (isLoading) {
-            setTimeout(() => {
-                let tt = (100 - progress) * 0.95;
-                let nowProgress = 100 - tt;
-                Actions.progress({ progress: nowProgress });
-            }, 10);
-        }
+    React.useEffect(() => {
+        if (__progress.store.isLoading) return;
 
-        if (!isLoading && progress !== 0 && progress !== 100) {
-            setImmediate(() => {
-                Actions.progress({ progress: 100 });
-                setTimeout(() => {
-                    Actions.progress({ progress: 0 });
-                }, 500);
-            });
-        }
+        const timeout = setTimeout(() => {
+            setPercent(0);
+        }, 1000);
+        setPercent(100);
 
-        return (
-            <div style={{
-                width: "100%",
-                position: "absolute",
-                zIndex: 10000
-            }}>
-                <div style={{
-                    width: `${progress}%`,
-                    backgroundColor: color,
-                    height: `${height}px`
-                }}></div>
-            </div>
-        )
-    }
-}
+        return () => clearTimeout(timeout);
+    }, [__progress.store.isLoading]);
+
+    return <div style={{
+        width: "100%",
+        position: "absolute",
+        zIndex: 10000
+    }}>
+        <div style={{
+            width: `${percent}%`,
+            backgroundColor: color,
+            height: `${height}px`
+        }} />
+    </div>
+})
 
 export default Progress;

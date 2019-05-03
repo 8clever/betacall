@@ -1,59 +1,37 @@
 import { Alert } from "reactstrap";
-import { Component } from "reflux";
-import React from "react";
-import InfoStore from "../store/InfoStore.jsx";
-import Actions from "../store/actions.jsx";
+import * as __info from "../store/InfoStore.jsx";
+import * as React from "react";
+import { observer } from "mobx-react-lite";
 
-class Info extends Component {
-    constructor(props, context) {
-        super(props);
-        this.onDismiss = this.onDismiss.bind(this);
+const Info = props => {
+    let { message = {}, idx } = props;
+
+    function onDismiss () {
+        __info.actions.hideInfo(idx);
     }
 
-    onDismiss() {
-        Actions.hideInfo(this.props.idx);
-    }
-
-    render() {
-        let { message = {}} = this.props;
-
-        return (
-            <Alert color={ message.color || "danger" } isOpen={ message.visible } toggle={ this.onDismiss }>
-                { 
-                    message.subject ? 
-                    <span>
-                        <b>
-                            { message.subject }
-                        </b>
-                        <br/>
-                    </span>
-                    :
-                    "" 
-                }
-                { message.message }
-            </Alert>
-        );
-    }
+    return <Alert color={ message.color || "danger" } isOpen={ message.visible } toggle={ onDismiss }>
+        { 
+            message.subject ? 
+            <span>
+                <b>
+                    { message.subject }
+                </b>
+                <br/>
+            </span>
+            :
+            "" 
+        }
+        { message.message }
+    </Alert>
 }
 
-class InfoBody extends Component {
-    constructor() {
-        super()
-        this.store = InfoStore;
+const InfoBody = observer(() => <div style={{ zIndex: 10000 }}>
+    { 
+        __info.store.infos.map((info, idx) => (
+            <Info key={ idx } idx={ idx } message={ info } />
+        ))
     }
-
-    render () {
-        let { infos } = this.state
-        return (
-            <div style={{ zIndex: 10000 }}>
-                { 
-                    infos.map((info, idx) => (
-                        <Info key={ idx } idx={ idx } message={ info } />
-                    ))
-                }
-            </div>
-        )
-    }
-}
+</div>)
 
 export default InfoBody;

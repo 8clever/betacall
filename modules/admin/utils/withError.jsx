@@ -1,12 +1,13 @@
-import Actions from "../store/actions.jsx"
+import * as __progress from "../store/Progress.jsx";
+import * as __info from "../store/InfoStore.jsx";
 
 export default async (fn) => {
     try {
-        Actions.loading();
+        __progress.actions.loading();
         await fn()
-        Actions.stopLoading();
+        __progress.actions.stopLoading();
     } catch(err) {
-        Actions.stopLoading();
-        Actions.addInfo(err);
+        __progress.actions.stopLoading();
+        __info.actions.addInfo(err);
     }
 }

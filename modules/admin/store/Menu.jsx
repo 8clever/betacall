@@ -1,17 +1,10 @@
 
-import Reflux from 'reflux'
-import Actions from './actions.jsx'
+import { observable } from "mobx";
 
-export default class MenuStore extends Reflux.Store {
-    constructor() {
-        super()
-        this.state = {}
-        this.listenTo(Actions.toggleMenu, this.toggleMenu);
-    }
+export const store = observable({});
 
-    toggleMenu(name) {
-        this.setState({
-            [name]: !this.state[name]
-        });
+export const actions = {
+    toggleMenu: name => {
+        store[name] = !store[name];
     }
 }
