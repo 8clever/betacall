@@ -22,6 +22,7 @@ import Fa from "./Fa.jsx";
 import * as __menu from "../store/Menu.jsx";
 import * as __redirect from "../store/Redirect.jsx";
 import { observer } from "mobx-react-lite";
+import DevTools from "mobx-react-devtools";
 
 const Layout = observer(props => {
     const { children, title, page, user } = props;
@@ -264,6 +265,10 @@ const Document = props => {
             <Layout {...props}>
                 {children}
             </Layout>
+        }
+        {
+            CFG.env === "development" ?
+            <DevTools /> : null
         }
     </div>
 }

@@ -26,7 +26,6 @@ module.exports.init = async function (ctx) {
     Router.set('views', webpackConfig.output.path);
 
     if (env === DEV) {
-        webpackConfig.mode = DEV;
         webpackConfig.plugins = webpackConfig.plugins || [];
         webpackConfig.plugins.push(
             new webpack.HotModuleReplacementPlugin(),

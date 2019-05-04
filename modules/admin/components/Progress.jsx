@@ -9,7 +9,7 @@ const Progress = observer(props => {
     React.useEffect(() => {
         const timeout = setTimeout(() => {
             if (!__progress.store.isLoading) return;
-            let tt = ((100 - percent) / 100) * 3;
+            let tt = ((100 - percent) / 100) * 1.5;
             let newPercent = tt + percent;
             setPercent(newPercent);
         }, 10);
@@ -22,7 +22,7 @@ const Progress = observer(props => {
 
         const timeout = setTimeout(() => {
             setPercent(0);
-        }, 1000);
+        }, 600);
         setPercent(100);
 
         return () => clearTimeout(timeout);
@@ -36,7 +36,9 @@ const Progress = observer(props => {
         <div style={{
             width: `${percent}%`,
             backgroundColor: color,
-            height: `${height}px`
+            opacity: percent ? 0.3 : 1,
+            height: `${height}px`,
+            transition: "opacity 3s"
         }} />
     </div>
 })
