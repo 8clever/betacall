@@ -3,6 +3,7 @@ const Router = express();
 const moment = require("moment");
 const parser = require("cookie");
 const _ = require("lodash");
+const xlsx = require("node-xlsx");
 
 let ctx = null
 
@@ -37,7 +38,7 @@ function generateName (name) {
     return `${name}_${time.format("YYYY_MM_DD_HH_mm")}.xlsx`
 }
 
-function xlsx (file_name) {
+function setXlsx (file_name) {
     return async (req, res) => {
         res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.set('Content-Disposition', `attachment; filename="${generateName(file_name)}"`);
@@ -55,14 +56,14 @@ function token () {
     }
 }
 
-get("/getCurrentCalls", token(), xlsx("current_calls"), async (req, res) => {
+get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
     const query = {};
 
     if (req.query.orderId) query["orderIdentity.orderId"] = req.query.orderId;
     if (req.query.phone) query["clientInfo.phone"] = req.query.phone;
 
     const orders = await ctx.api.order.getOrders(res.locals.token, { query });
-    let data = ["OrderID, Phone, Client, End of Storage Date, Full Price"];
+    let data = [["OrderID", "Phone", "Client", "End of Storage Date", "Full Price"]];
 
     orders.list.forEach(order => {
         const orderId = _.get(order, "orderIdentity.orderId");
@@ -74,8 +75,18 @@ get("/getCurrentCalls", token(), xlsx("current_calls"), async (req, res) => {
             endOfStorageDate = moment(endOfStorageDate.v).format("YYYY-MM-DD");
         }
 
-        data.push(`${orderId}, ${phone}, ${client}, ${endOfStorageDate}, ${price}`);
+        data.push([
+            orderId,
+            phone,
+            client,
+            endOfStorageDate,
+            price
+        ]);
     });
 
-    res.send(data.join("\n"));
+    let buff = xlsx.build([
+        { name: "Current Orderds", data }
+    ]);
+
+    res.send(buff);
 });
