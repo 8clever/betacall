@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Layout,
     Scroll,
@@ -39,142 +39,133 @@ import {
 import _ from "lodash";
 import moment from "moment";
 import { SketchPicker } from 'react-color';
+import url from "url";
 
-class AdminPage extends Component {
+const AdminPage = props => {
+    const { user, orders, limit  } = props;
+    const i18n = new I18n(user);
+    const [ stateFilter, setFilter ] = useState(props.filter);
+    let filter = Object.assign({}, stateFilter);
 
-    constructor (props) {
-        super(props);
-        this.state = { filter: props.filter };
-    }
+    React.useEffect(() => {
+        let timeout = setTimeout(() => {
+            global.router.reload();
+        }, 30000);
 
-    UNSAFE_componentWillReceiveProps (props) {
-        this.setState({
-            filter: props.filter
+        return () => clearTimeout(timeout);
+    });
+
+    const search = () => redirect(null, "index", filter);
+
+    const downloadExcel = () => {
+        window.location = url.format({
+            pathname: "/excel/getCurrentCalls",
+            query: stateFilter
         });
     }
 
-    componentDidMount () {
-        this.refreshInterval = setInterval(() => {
-            global.router.reload();
-        }, 30000);
-    }
+    return (
+        <Layout title={ i18n.t("Home") } page="home" user={user}>
+            <Scroll>
 
-    componentWillUnmount () {
-        clearInterval(this.refreshInterval);
-    }
+                <Card>
+                    <CardBody>
+                        <Row form>
+                            <Col md={4}>
+                                <Label>{i18n.t("Phone Number")}</Label>
+                                <Input 
+                                    value={filter.phone || ""}
+                                    placeholder={i18n.t("Number...")}
+                                    onChange={e => {
+                                        filter.phone = e.target.value;
+                                        setFilter(filter);
+                                    }}
+                                />
+                            </Col>
+                            <Col md={4}>
+                                <Label>{i18n.t("Order ID")}</Label>
+                                <Input 
+                                    value={filter.orderId || ""}
+                                    placeholder={i18n.t("Number...")}
+                                    onChange={e => {
+                                        filter.orderId = e.target.value;
+                                        setFilter(filter);
+                                    }}
+                                />
+                            </Col>
+                            <Col md={4} className="text-right">
+                                <Label>&nbsp;</Label>
+                                <br/>
+                                <Button
+                                    onClick={search}
+                                    color="primary">
+                                    <Fa fa="refresh"/> {i18n.t("Search")}
+                                </Button>{" "}
 
-    resetSystem () {
-        return () => {
-            withError(async () => {
-                await api("asterisk.restart", token.get(), {});
-                global.router.reload();
-            })
-        }
-    }
+                                <Button
+                                    color="light"
+                                    onClick={downloadExcel}>
+                                    <Fa fa="file-o" /> {"Excel"}
+                                </Button>
+                            </Col>
+                        </Row>
+                    </CardBody>
+                </Card>
 
-    search () {
-        return () => {
-            let { filter } = _.cloneDeep(this.state);
-            redirect(null, "index", filter);
-        }
-    }
+                <div className="mb-2"></div>
 
-    render() {
-        let { user, orders, limit  } = this.props;
-        let { filter } = this.state;
-        const i18n = new I18n(user);
+                <Card>
+                    <CardBody>
+                        <CardTitle>{i18n.t("Call Orders")}</CardTitle>
+                        
+                        {
+                            orders.list.length ?
+                            null :
+                            <Alert>
+                                <b>{i18n.t("Information")}</b>
+                                <p>{i18n.t("You not have active orders.")}</p>
+                            </Alert>
+                        }
 
-        return (
-            <Layout title={ i18n.t("Home") } page="home" user={user}>
-                <Scroll>
+                        <Table>
+                            <thead>
+                                <tr>
+                                    <th>{i18n.t("Order ID")}</th>
+                                    <th>{i18n.t("Phone")}</th>
+                                    <th>{i18n.t("Client")}</th>
+                                    <th>{i18n.t("Delivery Type")}</th>
+                                    <th>{i18n.t("Full Price")}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    _.map(orders.list, (order, key) => {
+                                        return (
+                                            <tr key={key}>
+                                                <td>{_.get(order, "orderIdentity.orderId")}</td>
+                                                <td>{_.get(order, "clientInfo.phone")}</td>
+                                                <td>{_.get(order, "clientInfo.fio")}</td>
+                                                <td>{_.get(order, "deliveryType")}</td>
+                                                <td>{_.get(order, "clientFullCost")} p.</td>
+                                            </tr>
+                                        )
+                                    })
+                                }
+                            </tbody>
+                        </Table>
+                    </CardBody>
+                </Card>
 
-                    <Card>
-                        <CardBody>
-                            <Row form>
-                                <Col md={4}>
-                                    <Label>{i18n.t("Phone Number")}</Label>
-                                    <Input 
-                                        value={filter.phone || ""}
-                                        placeholder={i18n.t("Number...")}
-                                        onChange={this.change("filter.phone")}
-                                    />
-                                </Col>
-                                <Col md={4}>
-                                    <Label>{i18n.t("Order ID")}</Label>
-                                    <Input 
-                                        value={filter.orderId || ""}
-                                        placeholder={i18n.t("Number...")}
-                                        onChange={this.change("filter.orderId")}
-                                    />
-                                </Col>
-                                <Col md={4} className="text-right">
-                                    <Label>&nbsp;</Label>
-                                    <br/>
-                                    <Button
-                                        onClick={this.search()}
-                                        color="primary">
-                                        <Fa fa="refresh"/> {i18n.t("Search")}
-                                    </Button>
-                                </Col>
-                            </Row>
-                        </CardBody>
-                    </Card>
+                <div className="mb-2"></div>
 
-                    <div className="mb-2"></div>
-
-                    <Card>
-                        <CardBody>
-                            <CardTitle>{i18n.t("Call Orders")}</CardTitle>
-                            
-                            {
-                                orders.list.length ?
-                                null :
-                                <Alert>
-                                    <b>{i18n.t("Information")}</b>
-                                    <p>{i18n.t("You not have active orders.")}</p>
-                                </Alert>
-                            }
-
-                            <Table>
-                                <thead>
-                                    <tr>
-                                        <th>{i18n.t("Order ID")}</th>
-                                        <th>{i18n.t("Phone")}</th>
-                                        <th>{i18n.t("Client")}</th>
-                                        <th>{i18n.t("Delivery Type")}</th>
-                                        <th>{i18n.t("Full Price")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        _.map(orders.list, (order, key) => {
-                                            return (
-                                                <tr key={key}>
-                                                    <td>{_.get(order, "orderIdentity.orderId")}</td>
-                                                    <td>{_.get(order, "clientInfo.phone")}</td>
-                                                    <td>{_.get(order, "clientInfo.fio")}</td>
-                                                    <td>{_.get(order, "deliveryType")}</td>
-                                                    <td>{_.get(order, "clientFullCost")} p.</td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-
-                    <div className="mb-2"></div>
-
-                    <Pagination 
-                        limit={limit}
-                        count={orders.count}
-                        filter={filter}
-                    />
-                </Scroll>
-            </Layout>
-        );
-    }
+                <Pagination 
+                    limit={limit}
+                    count={orders.count}
+                    filter={filter}
+                />
+            </Scroll>
+        </Layout>
+    )
 }
 
 class OperatorPage extends Component {
