@@ -34,6 +34,7 @@ import {
 } from "reactstrap"
 import moment from "moment";
 import PropTypes from "prop-types";
+import url from "url";
 
 const ddFormat = "DD-MM-YYYY";
 const DDMMYYYYHHmm = "DD.MM.YYYY HH:mm";
@@ -60,7 +61,6 @@ class ViewStats extends Component {
     componentDidUpdate (prevProps) {
         if (this.props.visible && !prevProps.visible) {
             withError(async () => {
-                console.log(this.props.method)
                 let orders = await api(this.props.method, token.get(), { 
                     sort: { _dt: -1 },
                     lookups: [
@@ -129,209 +129,227 @@ class ViewStats extends Component {
     }
 }
 
-class Default extends Component {
-    constructor (props) {
-        super(props)
-        this.state = {
-            filter: props.filter
-        };
+const Stats = props => {
+    const { user, stats, limit, users } = props;
+    const i18n = new I18n(user);
+    const [ stateFilter, setFilter ] = React.useState(props.filter);
+    const [ stateToggle, setToggle ] = React.useState({});
+    
+    let filter = Object.assign({}, stateFilter);
+    let toggle = Object.assign({}, stateToggle);
+
+    React.useEffect(() => {
+        setFilter(props.filter)
+    }, [props.filter]);
+
+    const search = () => {
+        filter.page = 0;
+        redirect(null, "stats", filter);
     }
 
-    UNSAFE_componentWillReceiveProps (props) {
-        this.setState({
-            filter: props.filter
+    const onKeyUp = e => {
+        if (e.key === "Enter") search();
+    }
+
+    const downloadXlsx = () => {
+        window.location = url.format({
+            pathname: "/excel/getStats",
+            query: stateFilter
         });
     }
 
-    search () {
-        return () => {
-            let { filter } = _.cloneDeep(this.state);
-            filter.page = 0;
-            redirect(null, "stats", filter);
-        }
-    }
+    return (
+        <Layout title={ i18n.t("Stats") } page="stats" user={user}>
+            <Scroll>
+                <Card>
+                    <CardBody>
+                        <Form onKeyUp={onKeyUp}>
+                            <Row form>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Order ID")}</Label>
+                                    <Input
+                                        onChange={e => {
+                                            filter.orderId = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                        placeholder={i18n.t("Number...")}
+                                        value={filter.orderId || ""}
+                                    />
+                                </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Status")}</Label>
+                                    <Input
+                                        type="select"
+                                        onChange={e => {
+                                            filter.status = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                        value={filter.status || ""}>
+                                        <option value="">{i18n.t("Not Selected")}</option>
+                                        {
+                                            _.map(__.ORDER_STATUS, (order, idx) => {
+                                                return (
+                                                    <option value={order} key={idx}>
+                                                        {order}
+                                                    </option>
+                                                )
+                                            })
+                                        }
+                                    </Input>
+                                </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Date From")}</Label>
+                                    <DatePicker 
+                                        i18n={i18n}
+                                        value={filter.from || ""}
+                                        onChange={e => {
+                                            filter.from = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                    />
+                                </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Date To")}</Label>
+                                    <DatePicker 
+                                        i18n={i18n}
+                                        value={filter.to || ""}
+                                        onChange={e => {
+                                            filter.to = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                    />
+                                </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("User")}</Label>
+                                    <Input 
+                                        value={filter.user || ""}
+                                        onChange={e => {
+                                            filter.user = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                        type="select">
+                                        <option value="">{i18n.t("Not Selected")}</option>
+                                        {
+                                            _.map(users.list, (user, idx) => {
+                                                return (
+                                                    <option 
+                                                        value={user._id}
+                                                        key={idx}>
+                                                        {user.name}: {user.login}
+                                                    </option>
+                                                )
+                                            })
+                                        }
+                                    </Input>
+                                </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Type of stats")}</Label>
+                                    <Input
+                                        type="select"
+                                        onChange={e => {
+                                            filter.type = e.target.value;
+                                            setFilter(filter);
+                                        }}
+                                        value={filter.type || ""}>
+                                        <option value="">{i18n.t("Completed")}</option>
+                                        <option value="progress">{i18n.t("In system process")}</option>
+                                    </Input>
+                                </Col>
+                                <Col md={4}>
+                                    <Label>&nbsp;</Label>
+                                    <br/>
+                                    <Button 
+                                        onClick={search}
+                                        color="primary">
+                                        <Fa fa="refresh" />
+                                        {" "}
+                                        {i18n.t("Search")}
+                                    </Button>{" "}
+                                    <Button 
+                                        onClick={downloadXlsx}
+                                        color="light">
+                                        <Fa fa="file-o"/> {"Excel"}
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </CardBody>
+                </Card>
+                <div className="mb-2"></div>
 
-    onKeyUp () {
-        return (e) => {
-            if (e.key === "Enter") this.search()();
-        }
-    }
+                <Card>
+                    <CardBody>
+                        <Table>
+                            <thead>
+                                <tr>
+                                    <th>{i18n.t("Date")}</th>
+                                    <th>{i18n.t("Order ID")}</th>
+                                    <th>{i18n.t("User")}</th>
+                                    <th>{i18n.t("Status")}</th>
+                                    <th>{i18n.t("Next Call")}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    _.map(stats.list, (stat, idx) => {
+                                        let stateViewStats = "state-view-stats-" + idx;
 
-    render () {
-        let { user, stats, limit, users } = this.props;
-        let { filter } = this.state;
-        let i18n = new I18n(user);
-        
-        return (
-            <Layout title={ i18n.t("Stats") } page="stats" user={user}>
-                <Scroll>
-                    
-                    <Card>
-                        <CardBody>
-                            <Form onKeyUp={this.onKeyUp()}>
-                                <Row form>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("Order ID")}</Label>
-                                        <Input
-                                            onChange={this.change("filter.orderId")}
-                                            placeholder={i18n.t("Number...")}
-                                            value={filter.orderId || ""}
-                                        />
-                                    </Col>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("Status")}</Label>
-                                        <Input
-                                            type="select"
-                                            onChange={this.change("filter.status")}
-                                            value={filter.status || ""}>
-                                            <option value="">{i18n.t("Not Selected")}</option>
-                                            {
-                                                _.map(__.ORDER_STATUS, (order, idx) => {
-                                                    return (
-                                                        <option value={order} key={idx}>
-                                                            {order}
-                                                        </option>
-                                                    )
-                                                })
-                                            }
-                                        </Input>
-                                    </Col>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("Date From")}</Label>
-                                        <DatePicker 
-                                            i18n={i18n}
-                                            value={filter.from || ""}
-                                            onChange={this.change("filter.from")}
-                                        />
-                                    </Col>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("Date To")}</Label>
-                                        <DatePicker 
-                                            i18n={i18n}
-                                            value={filter.to || ""}
-                                            onChange={this.change("filter.to")}
-                                        />
-                                    </Col>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("User")}</Label>
-                                        <Input 
-                                            value={filter.user || ""}
-                                            onChange={this.change("filter.user")}
-                                            type="select">
-                                            <option value="">{i18n.t("Not Selected")}</option>
-                                            {
-                                                _.map(users.list, (user, idx) => {
-                                                    return (
-                                                        <option 
-                                                            value={user._id}
-                                                            key={idx}>
-                                                            {user.name}: {user.login}
-                                                        </option>
-                                                    )
-                                                })
-                                            }
-                                        </Input>
-                                    </Col>
-                                    <Col md={2}>
-                                        <Label>&nbsp;</Label>
-                                        <br/>
-                                        <Button 
-                                            onClick={this.search()}
-                                            color="primary">
-                                            <Fa fa="refresh" />
-                                            {" "}
-                                            {i18n.t("Search")}
-                                        </Button>
-                                    </Col>
-                                </Row>
-                                <div className="mb-2"></div>
+                                        return (
+                                            <tr key={idx}>
+                                                <td>{moment(stat._dt).format(DDMMYYYYHHmm)}</td>
+                                                <td>{stat.orderId}</td>
+                                                <td>{_.get(stat, "_t_user.0.name")}</td>
+                                                <td>{stat.status}</td>
+                                                <td>
+                                                    {
+                                                        stat._dtnextCall ?
+                                                        moment(stat._dtnextCall).format(DDMMYYYYHHmm)
+                                                        : null
+                                                    }
+                                                </td>
+                                                <td className="text-right">
+                                                    <Button 
+                                                        onClick={() => {
+                                                            toggle[stateViewStats] = !toggle[stateViewStats];
+                                                            setToggle(toggle);
+                                                        }}
+                                                        outline
+                                                        size="sm"
+                                                        color="primary">
+                                                        <Fa fa="eye" />    
+                                                    </Button>
+                                                    <ViewStats 
+                                                        i18n={i18n}
+                                                        method={props.methodStats}
+                                                        orderId={stat.orderId}
+                                                        visible={!!toggle[stateViewStats]}
+                                                        toggle={() => {
+                                                          toggle[stateViewStats] = !toggle[stateViewStats];
+                                                          setToggle(toggle);  
+                                                        }}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
+                                }
+                            </tbody>
+                        </Table>
+                    </CardBody>
+                </Card>
 
-                                <Row form>
-                                    <Col md={2}>
-                                        <Label>{i18n.t("Type of stats")}</Label>
-
-                                        <Input
-                                            type="select"
-                                            onChange={this.change("filter.type")}
-                                            value={filter.type || ""}>
-                                            <option value="">{i18n.t("Completed")}</option>
-                                            <option value="progress">{i18n.t("In system process")}</option>
-                                        </Input>
-                                    </Col>
-                                </Row>
-                            </Form>
-                        </CardBody>
-                    </Card>
-                    <div className="mb-2"></div>
-
-                    <Card>
-                        <CardBody>
-                            <Table>
-                                <thead>
-                                    <tr>
-                                        <th>{i18n.t("Date")}</th>
-                                        <th>{i18n.t("Order ID")}</th>
-                                        <th>{i18n.t("User")}</th>
-                                        <th>{i18n.t("Status")}</th>
-                                        <th>{i18n.t("Next Call")}</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {
-                                        _.map(stats.list, (stat, idx) => {
-                                            let stateViewStats = "state-view-stats-" + idx;
-
-                                            return (
-                                                <tr key={idx}>
-                                                    <td>{moment(stat._dt).format(DDMMYYYYHHmm)}</td>
-                                                    <td>{stat.orderId}</td>
-                                                    <td>{_.get(stat, "_t_user.0.name")}</td>
-                                                    <td>{stat.status}</td>
-                                                    <td>
-                                                        {
-                                                            stat._dtnextCall ?
-                                                            moment(stat._dtnextCall).format(DDMMYYYYHHmm)
-                                                            : null
-                                                        }
-                                                    </td>
-                                                    <td className="text-right">
-                                                        <Button 
-                                                            onClick={this.toggle(stateViewStats)}
-                                                            outline
-                                                            size="sm"
-                                                            color="primary">
-                                                            <Fa fa="eye" />    
-                                                        </Button>
-                                                        <ViewStats 
-                                                            i18n={i18n}
-                                                            method={this.props.methodStats}
-                                                            orderId={stat.orderId}
-                                                            visible={!!this.state[stateViewStats]}
-                                                            toggle={this.toggle(stateViewStats)}
-                                                        />
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })
-                                    }
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
-
-                    <div className="mb-2"></div>
-                    
-                    <Pagination 
-                        limit={limit}
-                        location="stats"
-                        count={ stats.count }
-                        filter={ filter }
-                    />
-                </Scroll>
-            </Layout>
-        )
-    }
+                <div className="mb-2"></div>
+                
+                <Pagination 
+                    limit={limit}
+                    location="stats"
+                    count={ stats.count }
+                    filter={ filter }
+                />
+            </Scroll>
+        </Layout>
+    )
 }
 
 export default async (ctx) => {
@@ -407,7 +425,7 @@ export default async (ctx) => {
         })
     ]);
 
-    return ctx.res._render(Default, {
+    return ctx.res._render(Stats, {
         methodStats,
         user,
         users,
