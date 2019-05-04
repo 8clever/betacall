@@ -128,8 +128,6 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
             { $match: query },
             { $group: {
                 _id: "$orderId",
-                _dtfirst: { $first: "$_dt" },
-                _dtlast: { $last: "$_dt" },
                 _dtendOfStorage: { $last: "$_dtendOfStorage" },
                 _s_fullName: { $last: "$_s_fullName" },
                 _s_phone: { $last: "$_s_phone" },
@@ -157,7 +155,9 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
                             status: "$status",
                             _dt: "$_dt"
                         }
-                    }
+                    },
+                    _dtfirst: { $first: "$_dt" },
+                    _dtlast: { $last: "$_dt" }
                 }
             }
         ],
@@ -166,7 +166,7 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         }
     });
     const roundsMap = rounds.list.reduce((memo, round) => {
-        memo[round._id] = round.rounds;
+        memo[round._id] = round;
         return memo;
     }, {});
 
@@ -176,7 +176,11 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     let data = [header];
 
     _.each(stats.list, stat => {
-        stat.rounds = roundsMap[stat._id] || [];
+        let map = roundsMap[stat._id] || { rounds: []};
+        stat.rounds = map.rounds;
+        stat._dtfirst = map._dtfirst;
+        stat._dtlast = map._dtlast;
+
         let row = [
             stat._id,
             stat._s_fullName,
