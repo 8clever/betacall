@@ -62,15 +62,19 @@ get("/getCurrentCalls", token(), xlsx("current_calls"), async (req, res) => {
     if (req.query.phone) query["clientInfo.phone"] = req.query.phone;
 
     const orders = await ctx.api.order.getOrders(res.locals.token, { query });
-    let data = ["OrderID, Phone, Client, Delivery Type, Full Price"];
+    let data = ["OrderID, Phone, Client, End of Storage Date, Full Price"];
 
     orders.list.forEach(order => {
         const orderId = _.get(order, "orderIdentity.orderId");
         const phone = _.get(order, "clientInfo.phone");
         const client = _.get(order, "clientInfo.fio");
-        const deliveryType = _.get(order, "deliveryType");
         const price = _.get(order, "clientFullCost");
-        data.push(`${orderId}, ${phone}, ${client}, ${deliveryType}, ${price}`);
+        let endOfStorageDate = _.get(order, "endOfStorageDate");
+        if (endOfStorageDate) {
+            endOfStorageDate = moment(endOfStorageDate.v).format("YYYY-MM-DD");
+        }
+
+        data.push(`${orderId}, ${phone}, ${client}, ${endOfStorageDate}, ${price}`);
     });
 
     res.send(data.join("\n"));

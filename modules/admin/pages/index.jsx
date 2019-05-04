@@ -48,6 +48,10 @@ const AdminPage = props => {
     let filter = Object.assign({}, stateFilter);
 
     React.useEffect(() => {
+        setFilter(props.filter);
+    }, [props.filter])
+
+    React.useEffect(() => {
         let timeout = setTimeout(() => {
             global.router.reload();
         }, 30000);
@@ -133,19 +137,24 @@ const AdminPage = props => {
                                     <th>{i18n.t("Order ID")}</th>
                                     <th>{i18n.t("Phone")}</th>
                                     <th>{i18n.t("Client")}</th>
-                                    <th>{i18n.t("Delivery Type")}</th>
+                                    <th>{i18n.t("End of Storage Date")}</th>
                                     <th>{i18n.t("Full Price")}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {
                                     _.map(orders.list, (order, key) => {
+                                        let endOfStorageDate = _.get(order, "endOfStorageDate");
+                                        if (endOfStorageDate) {
+                                            endOfStorageDate = moment(endOfStorageDate).format("YYYY-MM-DD");
+                                        }
+
                                         return (
                                             <tr key={key}>
                                                 <td>{_.get(order, "orderIdentity.orderId")}</td>
                                                 <td>{_.get(order, "clientInfo.phone")}</td>
                                                 <td>{_.get(order, "clientInfo.fio")}</td>
-                                                <td>{_.get(order, "deliveryType")}</td>
+                                                <td>{endOfStorageDate}</td>
                                                 <td>{_.get(order, "clientFullCost")} p.</td>
                                             </tr>
                                         )
