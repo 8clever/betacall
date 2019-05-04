@@ -133,11 +133,7 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
                 _dtendOfStorage: { $last: "$_dtendOfStorage" },
                 _s_fullName: { $last: "$_s_fullName" },
                 _s_phone: { $last: "$_s_phone" },
-                _s_region: { $last: "$_s_region" },
-                rounds: { $push: { 
-                    status: "$status",
-                    _dt: "$_dt"
-                 }}
+                _s_region: { $last: "$_s_region" }
             }},
             { $addFields: {
                 orderId: "$_id"
@@ -148,12 +144,39 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         }
     });
 
+    const rounds = await ctx.api.order[methodStats](res.locals.token, {
+        aggregate: [
+            { $match: {
+                orderId: { $in: _.map(stats.list, "_id") }
+            }},
+            {
+                $group: {
+                    _id: "$orderId",
+                    rounds: {
+                        $push: {
+                            status: "$status",
+                            _dt: "$_dt"
+                        }
+                    }
+                }
+            }
+        ],
+        sort: {
+            _dt: -1
+        }
+    });
+    const roundsMap = rounds.list.reduce((memo, round) => {
+        memo[round._id] = round.rounds;
+        return memo;
+    }, {});
+
     let roundCount = 0;
     let header = [ "OrderID", "Full Name", "First Date", "Last Date", "End Of Storage", "Region" ];
     let defaultHeaderLength = header.length;
     let data = [header];
 
     _.each(stats.list, stat => {
+        stat.rounds = roundsMap[stat._id] || [];
         let row = [
             stat._id,
             stat._s_fullName,
