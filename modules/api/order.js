@@ -130,6 +130,7 @@ module.exports.init = async function(...args) {
  * 
  * */
 api._getCallOrders = async function(t, p) {
+    let user = await ctx.api.users.getCurrentUserPublic(t, {});
 
     // set/update call times
     let settings = await ctx.api.settings.getSettings(t, {});
@@ -158,6 +159,34 @@ api._getCallOrders = async function(t, p) {
     let ordersIds = _.map(__orders, "orderIdentity.orderId");
     let query = { orderId: { $nin: ordersIds }};
     let expireOrders = await this.getStats(t, { query });
+
+    for (let order of __orders) {
+        const orderId = _.get(order, "orderIdentity.orderId");
+        const searchPrms = [
+            t,
+            {
+                query: { orderId },
+                limit: 1,
+                fields: { _id: 1 }
+            }
+        ];
+
+        let [ inProcess, inStats ] = await Promise.all([
+            this.getStats(...searchPrms),
+            this.getStatsAll(...searchPrms)
+        ]);
+
+        if (!inProcess.count && !inStats.count) {
+            let data = _.assign({
+                _s_callId: "NOT CALLED YET",
+                _iduser: user._id,
+                status: __.ORDER_STATUS.NOT_PROCESSED
+            }, api.getOrderMeta(order));
+
+            await this.addStats(t, { data });
+        }
+    }
+
     if (!expireOrders.count) return;
 
     await Promise.all([
@@ -526,7 +555,10 @@ api.startCallByOrder =  async function(t, p) {
     let oldOrders = [];
     let oldOrdersMap = await api.getStats(t, {
         aggregate: [
-            { $match: { orderId: { $in: idOrders }}},
+            { $match: { 
+                orderId: { $in: idOrders },
+                status: { $ne: __.ORDER_STATUS.NOT_PROCESSED }
+            }},
             { $sort: { _dt: -1 }},
             { $group: {
                 _id: "$orderId",
