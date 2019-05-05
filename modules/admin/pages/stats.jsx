@@ -355,6 +355,7 @@ const Stats = props => {
 export default async (ctx) => {
     let user = await checkAuth(ctx, __.PERMISSION.STATS.VIEW);
     let query = {};
+    let query2 = {};
     let limit = 20;
     let filter = _.cloneDeep(ctx.req.query);
     let methodStats = "order.getStatsAll";
@@ -363,6 +364,7 @@ export default async (ctx) => {
     filter.from = filter.from || moment().format(ddFormat);
     filter.to = filter.to || moment().format(ddFormat);
 
+    // query 1
     if (filter.user) {
         query._iduser = filter.user
     }
@@ -381,12 +383,13 @@ export default async (ctx) => {
         query.orderId = parseInt(filter.orderId);
     }
 
-    if (filter.status) {
-        query.status = filter.status;
-    }
-
     if (filter.type === "progress") {
         methodStats = "order.getStats";
+    }
+
+    // query 2
+    if (filter.status) {
+        query2.status = filter.status;
     }
 
     let [ stats, users ] = await Promise.all([
@@ -406,6 +409,7 @@ export default async (ctx) => {
                     status: { $last: "$status" },
                     _t_user: { $last: "$_t_user" }
                 }},
+                { $match: query2 },
                 { $addFields: {
                     orderId: "$_id"
                 }}

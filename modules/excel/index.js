@@ -93,10 +93,12 @@ get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
 
 get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     const query = {};
+    const query2 = {};
     const filter = req.query;
     const ddFormat = "DD-MM-YYYY";
     let methodStats = "getStatsAll";
 
+    // query 1
     if (filter.user) {
         query._iduser = filter.user
     }
@@ -115,12 +117,14 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         query.orderId = parseInt(filter.orderId);
     }
 
-    if (filter.status) {
-        query.status = filter.status;
-    }
 
     if (filter.type === "progress") {
         methodStats = "getStats";
+    }
+
+    // query 2
+    if (filter.status) {
+        query2.status = filter.status;
     }
 
     const stats = await ctx.api.order[methodStats](res.locals.token, {
@@ -128,11 +132,13 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
             { $match: query },
             { $group: {
                 _id: "$orderId",
+                status: { $last: "$status" },
                 _dtendOfStorage: { $last: "$_dtendOfStorage" },
                 _s_fullName: { $last: "$_s_fullName" },
                 _s_phone: { $last: "$_s_phone" },
                 _s_region: { $last: "$_s_region" }
             }},
+            { $match: query2 },
             { $addFields: {
                 orderId: "$_id"
             }}
