@@ -127,25 +127,30 @@ module.exports.init = async function(...args) {
  * used by scheduller each 15 minutes
  */
 api._insertNotProcessedOrders = async function(t, p) {
-    let user = await ctx.api.users.getCurrentUserPublic(t, {});
+    const user = await ctx.api.users.getCurrentUserPublic(t, {});
+    const orderIds = _.map(__orders, "orderIdentity.orderId");
+    const searchPrms = [
+        t,
+        {
+            aggregate: [
+                { $match: { orderId: { $in: orderIds }}},
+                { $group: {
+                    _id: "$orderId"
+                }}
+            ]
+        }
+    ];
+    let [ inProcess, inStats ] = await Promise.all([
+        this.getStats(...searchPrms),
+        this.getStatsAll(...searchPrms)
+    ]);
+    inProcess = _.keyBy(inProcess.list, "_id");
+    inStats = _.keyBy(inStats.list, "_id");
 
     for (let order of __orders) {
         const orderId = _.get(order, "orderIdentity.orderId");
-        const searchPrms = [
-            t,
-            {
-                query: { orderId },
-                limit: 1,
-                fields: { _id: 1 }
-            }
-        ];
-
-        let [ inProcess, inStats ] = await Promise.all([
-            this.getStats(...searchPrms),
-            this.getStatsAll(...searchPrms)
-        ]);
-
-        if (!inProcess.count && !inStats.count) {
+        
+        if (!inProcess[orderId] && !inStats[orderId]) {
             let data = _.assign({
                 _s_callId: "NOT CALLED YET",
                 _iduser: user._id,
