@@ -72,7 +72,7 @@ get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
         const price = _.get(order, "clientFullCost");
         let endOfStorageDate = _.get(order, "endOfStorageDate");
         if (endOfStorageDate) {
-            endOfStorageDate = moment(endOfStorageDate.v).format("YYYY-MM-DD");
+            endOfStorageDate = moment(endOfStorageDate.v || endOfStorageDate).format("YYYY-MM-DD");
         }
 
         data.push([
@@ -80,7 +80,7 @@ get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
             phone,
             client,
             endOfStorageDate,
-            price
+            price   
         ]);
     });
 
