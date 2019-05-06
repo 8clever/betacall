@@ -1,51 +1,34 @@
 
-import Reflux from 'reflux'
-import Actions from './actions.jsx'
+import { observable } from "mobx";
 
-export default class Redirect extends Reflux.Store {
-    constructor () {
-        super()
-        this.state = {
-            stateAlertRedirect: false
-        };
+export const store = observable({
+    stateAlertRedirect: false
+});
 
-        [
-            "redirectFromAlert",
-            "disableRedirect",
-            "enableRedirect",
-            "showRedirectAlert",
-            "hideRedirectAlert"
-        ].forEach(evt => {
-            this.listenTo(Actions[evt], this[evt]);
-        });
-    }
+export const actions = {
 
-    disableRedirect () {
+    disableRedirect: () => {
         global.disableRedirects = true;
-    }
+    },
 
-    enableRedirect () {
+    enableRedirect: () => {
         global.disableRedirects = false;
-        this.setState({ 
-            disableRedirects: false,
-            stateRedirectFn: false
-        });
-    }
+        store.disableRedirects = false;
+        store.stateRedirectFn = false;
+    },
 
-    showRedirectAlert (redirect) {
-        this.setState({ 
-            stateAlertRedirect: true,
-            stateRedirectFn: redirect
-        });
-    }
+    showRedirectAlert: redirect => {
+        store.stateAlertRedirect = true;
+        store.stateRedirectFn = redirect;
+    },
 
-    redirectFromAlert () {
-        this.hideRedirectAlert();
-        this.state.stateRedirectFn();
-        this.enableRedirect();
-    }
+    redirectFromAlert: () => {
+        actions.hideRedirectAlert();
+        store.stateRedirectFn();
+        actions.enableRedirect();
+    },
 
-    hideRedirectAlert () {
-        this.setState({ stateAlertRedirect: false });
+    hideRedirectAlert: () => {
+        store.stateAlertRedirect = false;
     }
 }

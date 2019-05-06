@@ -15,7 +15,8 @@ const cfg = _.merge(
     require("../../local-config"),
 );
 const pubConfig = _.pick(cfg, [
-    "paint"
+    "paint",
+    "env"
 ]);
 
 const jsxLoader = {
@@ -30,7 +31,7 @@ const jsxLoader = {
 
 let config = {
     context: __dirname,
-    mode: "production",
+    mode: cfg.env,
     module: {
         rules: [
             jsxLoader

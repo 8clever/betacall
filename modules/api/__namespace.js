@@ -22,6 +22,7 @@ module.exports.CALL_STATUS = {
 }
 
 module.exports.ORDER_STATUS = {
+    NOT_PROCESSED: "not_processed",
     DONE: "done",
     DONE_PICKUP: "done_pickup",
     DENY: "deny",

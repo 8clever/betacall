@@ -16,6 +16,7 @@ module.exports.init = async function (_ctx) {
 	await ctx.api.order._getCallOrders(t, {});
 	
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
+	api.addJob("order._insertNotProcessedOrders", { cronTime: "0 */15 * * * *" });
 	api.addJob("order.startCallByOrder", { cronTime: "*/5 * * * * *" });
 
 	return { api };

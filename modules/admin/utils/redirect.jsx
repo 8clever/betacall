@@ -1,6 +1,6 @@
 import queryString from "querystring-es3"
-import Actions from "../store/actions.jsx";
 import __ from "../../api/__namespace";
+import * as __redirect from "../store/Redirect.jsx";
 
 export function redirect (prefix, context, target, prm) {
 	let _target = prefix + "/" + (target === "index" ? "" : target);
@@ -18,7 +18,7 @@ export function redirect (prefix, context, target, prm) {
 
 export default (context, target, prm) => {
 	if (global.disableRedirects) {
-		Actions.showRedirectAlert(_redirect);
+		__redirect.actions.showRedirectAlert(_redirect);
 		return;
 	}
 	

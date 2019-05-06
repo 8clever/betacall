@@ -58,6 +58,18 @@ module.exports.init = async function(...args) {
                     type: "string",
                     required: true,
                     minLength: 2
+                },
+                _s_fullName: {
+                    type: "string"
+                },
+                _s_phone: {
+                    type: "string"
+                },
+                _s_region: {
+                    type: "string"
+                },
+                _dtendOfStorage: {
+                    type: [ "date", "null" ]
                 }
 			}
 		}
@@ -109,6 +121,45 @@ module.exports.init = async function(...args) {
     callQueue.tasks = {};
 
     return { api }
+}
+
+/**
+ * used by scheduller each 15 minutes
+ */
+api._insertNotProcessedOrders = async function(t, p) {
+    const user = await ctx.api.users.getCurrentUserPublic(t, {});
+    const orderIds = _.map(__orders, "orderIdentity.orderId");
+    const searchPrms = [
+        t,
+        {
+            aggregate: [
+                { $match: { orderId: { $in: orderIds }}},
+                { $group: {
+                    _id: "$orderId"
+                }}
+            ]
+        }
+    ];
+    let [ inProcess, inStats ] = await Promise.all([
+        this.getStats(...searchPrms),
+        this.getStatsAll(...searchPrms)
+    ]);
+    inProcess = _.keyBy(inProcess.list, "_id");
+    inStats = _.keyBy(inStats.list, "_id");
+
+    for (let order of __orders) {
+        const orderId = _.get(order, "orderIdentity.orderId");
+        
+        if (!inProcess[orderId] && !inStats[orderId]) {
+            let data = _.assign({
+                _s_callId: "NOT CALLED YET",
+                _iduser: user._id,
+                status: __.ORDER_STATUS.NOT_PROCESSED
+            }, api.getOrderMeta(order));
+
+            await this.addStats(t, { data });
+        }
+    }
 }
 
 /** 
@@ -284,15 +335,16 @@ api.doneOrderPickup = async function(t, { order, pickupId, metadata }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
+
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        status: __.ORDER_STATUS.DONE_PICKUP
+    }, api.getOrderMeta(order));
+
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.DONE_PICKUP,
-            orderId,
-            _dt: new Date()
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -325,15 +377,16 @@ api.doneOrder = async function(t, { order, metadata }) {
     });
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
+
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        status: __.ORDER_STATUS.DONE
+    }, api.getOrderMeta(order));
+
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.DONE,
-            orderId,
-            _dt: new Date()
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -380,15 +433,15 @@ api.denyOrder = async function(t, { order, metadata }) {
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        status: __.ORDER_STATUS.DENY
+    }, api.getOrderMeta(order));
+
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.DENY,
-            orderId,
-            _dt: new Date()
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -421,15 +474,15 @@ api.underCall = async function(t, { order, metadata }) {
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        status: __.ORDER_STATUS.UNDER_CALL
+    }, api.getOrderMeta(order));
+
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.UNDER_CALL,
-            orderId,
-            _dt: new Date()
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -466,16 +519,16 @@ api.replaceCallDate = async function(t, { order, replaceDate, metadata }) {
 
     if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
 
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        _dtnextCall: replaceDate,
+        status: __.ORDER_STATUS.REPLACE_DATE
+    }, api.getOrderMeta(order));
+    
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.REPLACE_DATE,
-            orderId,
-            _dt: new Date(),
-            _dtnextCall: replaceDate
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -484,16 +537,15 @@ api.skipOrder = async function(t, { order, metadata }) {
     
     let user = await ctx.api.users.getCurrentUserPublic(t, {});
     let orderId = _.get(order, "orderIdentity.orderId");
+    let data = _.assign({
+        _s_callId: metadata.callId,
+        _iduser: user._id,
+        status: __.ORDER_STATUS.SKIP
+    }, api.getOrderMeta(order));
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
-        this.addStats(t, { data: {
-            _s_callId: metadata.callId,
-            _iduser: user._id,
-            status: __.ORDER_STATUS.SKIP,
-            orderId,
-            _dt: new Date()
-        }})
+        this.addStats(t, { data })
     ]);
 }
 
@@ -513,7 +565,10 @@ api.startCallByOrder =  async function(t, p) {
     let oldOrders = [];
     let oldOrdersMap = await api.getStats(t, {
         aggregate: [
-            { $match: { orderId: { $in: idOrders }}},
+            { $match: { 
+                orderId: { $in: idOrders },
+                status: { $ne: __.ORDER_STATUS.NOT_PROCESSED }
+            }},
             { $sort: { _dt: -1 }},
             { $group: {
                 _id: "$orderId",
@@ -639,6 +694,19 @@ api.startCallByOrder =  async function(t, p) {
             }
         })
     }
+}
+
+api.getOrderMeta = order => {
+    if (!order) throw new Error("Order is required");
+
+    return {
+        _s_fullName: _.get(order, "clientInfo.fio", ""),
+        _s_phone: _.get(order, "clientInfo.phone", ""),
+        _s_region: _.get(order, "deliveryAddress.region", ""),
+        _dtendOfStorage: _.get(order, "endOfStorageDate", null),
+        _dt: new Date(),
+        orderId: _.get(order, "orderIdentity.orderId")
+    };
 }
 
 // permissions

@@ -20,8 +20,9 @@ module.exports = function (router) {
 
 function promiseRouter(module) {
     return async function(req, res, next) {
-        var Actions = require("./store/actions.jsx");
-        Actions.default.loading();
+        const { actions } = require("./store/Progress.jsx");
+
+        actions.loading();
         res.locals.prefix = __.PREFIX_ADMIN;
         res.locals.prefixWidget = __.PREFIX_WIDGET;
         res._render = async function(Component, store) {
@@ -30,7 +31,7 @@ function promiseRouter(module) {
             });
             res.send(txt);
             res.end();
-            Actions.default.stopLoading();
+            actions.stopLoading();
         }
 
         try {
