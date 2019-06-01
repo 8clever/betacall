@@ -214,6 +214,19 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         --roundCount;
     }
 
+    header.push("last status");
+    _.each(data, (row, idx) => {
+        if (idx === 0) return;
+
+        const lastStatus = row[row.length - 1];
+
+        while (row.length < header.length - 1) {
+            row.push("");
+        }
+
+        row.push(lastStatus);
+    });
+
     const buff = xlsx.build([
         { name: "Stats", data }
     ])
