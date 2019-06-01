@@ -122,6 +122,10 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         methodStats = "getStats";
     }
 
+    if (filter.marketName) {
+        query._s_marketName = { $regex: filter.marketName, $options: "gmi" }
+    }
+
     // query 2
     if (filter.status) {
         query2.status = filter.status;
@@ -136,7 +140,8 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
                 _dtendOfStorage: { $last: "$_dtendOfStorage" },
                 _s_fullName: { $last: "$_s_fullName" },
                 _s_phone: { $last: "$_s_phone" },
-                _s_region: { $last: "$_s_region" }
+                _s_region: { $last: "$_s_region" },
+                _s_marketName: { $last: "$_s_marketName" }
             }},
             { $match: query2 },
             { $addFields: {
@@ -177,7 +182,7 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     }, {});
 
     let roundCount = 0;
-    let header = [ "OrderID", "Full Name", "First Date", "Last Date", "End Of Storage", "Region" ];
+    let header = [ "OrderID", "Full Name", "First Date", "Last Date", "End Of Storage", "Region", "Market Name" ];
     let defaultHeaderLength = header.length;
     let data = [header];
 
@@ -193,7 +198,8 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
             moment(stat._dtfirst).format(ddFormat),
             moment(stat._dtlast).format(ddFormat),
             moment(stat._dtendOfStorage).format(ddFormat),
-            stat._s_region
+            stat._s_region,
+            stat._s_marketName
         ]
 
         if (stat.rounds.length > roundCount) roundCount = stat.rounds.length;

@@ -255,6 +255,17 @@ const Stats = props => {
                                         <option value="progress">{i18n.t("In system process")}</option>
                                     </Input>
                                 </Col>
+                                <Col md={2}>
+                                    <Label>{i18n.t("Market Name")}</Label>
+                                    <Input 
+                                        placeholder="Text..."
+                                        onChange={e => {
+                                            filter.marketName = e.target.value;
+                                            setFilter(filter)
+                                        }}
+                                        value={filter.marketName || ""}
+                                    />
+                                </Col>
                                 <Col md={4}>
                                     <Label>&nbsp;</Label>
                                     <br/>
@@ -285,6 +296,7 @@ const Stats = props => {
                                     <th>{i18n.t("Date")}</th>
                                     <th>{i18n.t("Order ID")}</th>
                                     <th>{i18n.t("User")}</th>
+                                    <th>{i18n.t("Market Name")}</th>
                                     <th>{i18n.t("Status")}</th>
                                     <th>{i18n.t("Next Call")}</th>
                                     <th></th>
@@ -300,6 +312,7 @@ const Stats = props => {
                                                 <td>{moment(stat._dt).format(DDMMYYYYHHmm)}</td>
                                                 <td>{stat.orderId}</td>
                                                 <td>{_.get(stat, "_t_user.0.name")}</td>
+                                                <td>{_.get(stat, "_s_marketName")}</td>
                                                 <td>{stat.status}</td>
                                                 <td>
                                                     {
@@ -387,6 +400,10 @@ export default async (ctx) => {
         methodStats = "order.getStats";
     }
 
+    if (filter.marketName) {
+        query._s_marketName = { $regex: filter.marketName, $options: "gmi" }
+    }
+
     // query 2
     if (filter.status) {
         query2.status = filter.status;
@@ -407,7 +424,8 @@ export default async (ctx) => {
                     _dt: { $first: "$_dt" },
                     _dtnextCall: { $last: "$_dtnextCall" },
                     status: { $last: "$status" },
-                    _t_user: { $last: "$_t_user" }
+                    _t_user: { $last: "$_t_user" },
+                    _s_marketName: { $last: "$_s_marketName" }
                 }},
                 { $match: query2 },
                 { $addFields: {

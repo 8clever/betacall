@@ -70,6 +70,9 @@ module.exports.init = async function(...args) {
                 },
                 _dtendOfStorage: {
                     type: [ "date", "null" ]
+                },
+                _s_marketName: {
+                    type: "string"
                 }
 			}
 		}
@@ -705,7 +708,8 @@ api.getOrderMeta = order => {
         _s_region: _.get(order, "deliveryAddress.region", ""),
         _dtendOfStorage: _.get(order, "endOfStorageDate", null),
         _dt: new Date(),
-        orderId: _.get(order, "orderIdentity.orderId")
+        orderId: _.get(order, "orderIdentity.orderId"),
+        _s_marketName: _.get(order, "orderUrl", "")
     };
 }
 
