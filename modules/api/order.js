@@ -100,9 +100,6 @@ module.exports.init = async function(...args) {
         validate: COLLECTION.STATS
     });
 
-    const oneJoinStatsItem = await cols[COLLECTION.__JOIN_STATS].findOne({});
-    if (!oneJoinStatsItem) await cols[COLLECTION.__JOIN_STATS].insert({});
-
     if (!ctx.cfg.ami.maxQueue) return { api };
 
     callQueue = async.queue(function({ name, fn }, cb) {
@@ -141,6 +138,9 @@ api.prepareJoinStats = async function(t, p) {
 
     const qf = ctx.api.prefixify.query;
     const query = qf(p.query);
+
+    const count = await cols[COLLECTION.__JOIN_STATS].count({});
+    if (!count) await cols[COLLECTION.__JOIN_STATS].insert({});
 
     await cols[COLLECTION.__JOIN_STATS].aggregate([
         { $limit: 1 },
