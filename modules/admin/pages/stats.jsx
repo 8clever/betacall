@@ -53,15 +53,16 @@ class ViewStats extends Component {
             i18n: PropTypes.object.isRequired,
             visible: PropTypes.bool.isRequired,
             toggle: PropTypes.func.isRequired,
-            idOrder: PropTypes.number.isRequired,
-            method: PropTypes.string.isRequired
+            idOrder: PropTypes.number.isRequired
         }
     }
 
     componentDidUpdate (prevProps) {
         if (this.props.visible && !prevProps.visible) {
             withError(async () => {
-                let orders = await api(this.props.method, token.get(), { 
+                const query = { orderId: this.props.orderId };
+                await api("order.prepareJoinStats", token.get(), { query });
+                let orders = await api("order.getJoinStats", token.get(), { 
                     sort: { _dt: -1 },
                     lookups: [
                         {
@@ -75,7 +76,7 @@ class ViewStats extends Component {
                         password: 0,
                         tokens: 0
                     },
-                    query: { orderId: this.props.orderId }
+                    query
                 });
                 this.setState({
                     orders
@@ -243,19 +244,6 @@ const Stats = props => {
                                     </Input>
                                 </Col>
                                 <Col md={2}>
-                                    <Label>{i18n.t("Type of stats")}</Label>
-                                    <Input
-                                        type="select"
-                                        onChange={e => {
-                                            filter.type = e.target.value;
-                                            setFilter(filter);
-                                        }}
-                                        value={filter.type || ""}>
-                                        <option value="">{i18n.t("Completed")}</option>
-                                        <option value="progress">{i18n.t("In system process")}</option>
-                                    </Input>
-                                </Col>
-                                <Col md={2}>
                                     <Label>{i18n.t("Market Name")}</Label>
                                     <Input 
                                         placeholder="Text..."
@@ -334,7 +322,6 @@ const Stats = props => {
                                                     </Button>
                                                     <ViewStats 
                                                         i18n={i18n}
-                                                        method={props.methodStats}
                                                         orderId={stat.orderId}
                                                         visible={!!toggle[stateViewStats]}
                                                         toggle={() => {
@@ -371,7 +358,6 @@ export default async (ctx) => {
     let query2 = {};
     let limit = 20;
     let filter = _.cloneDeep(ctx.req.query);
-    let methodStats = "order.getStatsAll";
 
     filter.page = parseInt(filter.page || 0);
     filter.from = filter.from || moment().format(ddFormat);
@@ -396,10 +382,6 @@ export default async (ctx) => {
         query.orderId = parseInt(filter.orderId);
     }
 
-    if (filter.type === "progress") {
-        methodStats = "order.getStats";
-    }
-
     if (filter.marketName) {
         query._s_marketName = { $regex: filter.marketName, $options: "gmi" }
     }
@@ -409,8 +391,9 @@ export default async (ctx) => {
         query2.status = filter.status;
     }
 
+    await api("order.prepareJoinStats", token.get(ctx), { query });
     let [ stats, users ] = await Promise.all([
-        api(methodStats, token.get(ctx), {
+        api("order.getJoinStats", token.get(ctx), {
             aggregate: [
                 { $match: query },
                 { $lookup: {
@@ -448,7 +431,6 @@ export default async (ctx) => {
     ]);
 
     return ctx.res._render(Stats, {
-        methodStats,
         user,
         users,
         stats,

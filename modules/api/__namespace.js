@@ -68,5 +68,6 @@ module.exports.ESSENCE = {
     LINKS: "links",
     STATS: "stats",
     STATS_ALL: "stats-all",
-    SETTINGS: "settings"
+    SETTINGS: "settings",
+    __JOIN_STATS: "__join-stats"
 };

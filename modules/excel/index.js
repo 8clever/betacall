@@ -96,7 +96,6 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     const query2 = {};
     const filter = req.query;
     const ddFormat = "DD-MM-YYYY";
-    let methodStats = "getStatsAll";
 
     // query 1
     if (filter.user) {
@@ -118,10 +117,6 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     }
 
 
-    if (filter.type === "progress") {
-        methodStats = "getStats";
-    }
-
     if (filter.marketName) {
         query._s_marketName = { $regex: filter.marketName, $options: "gmi" }
     }
@@ -131,7 +126,9 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         query2.status = filter.status;
     }
 
-    const stats = await ctx.api.order[methodStats](res.locals.token, {
+    await ctx.api.order.prepareJoinStats(res.locals.token, { query });
+
+    const stats = await ctx.api.order.getJoinStats(res.locals.token, {
         aggregate: [
             { $match: query },
             { $group: {
@@ -153,7 +150,7 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
         }
     });
 
-    const rounds = await ctx.api.order[methodStats](res.locals.token, {
+    const rounds = await ctx.api.order.getJoinStats(res.locals.token, {
         aggregate: [
             { $match: {
                 orderId: { $in: _.map(stats.list, "_id") }

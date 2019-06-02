@@ -80,21 +80,28 @@ module.exports.init = async function(...args) {
     
     ctx.api.validate.register(COLLECTION.STATS, validateStat);
     ctx.api.validate.register(COLLECTION.STATS_ALL, validateStat);
+    ctx.api.validate.register(COLLECTION.__JOIN_STATS, validateStat);
 
 	let db = await ctx.api.mongo.getDb({});
     
     cols[COLLECTION.STATS] = await db.collection(COLLECTION.STATS);
     cols[COLLECTION.STATS_ALL] = await db.collection(COLLECTION.STATS_ALL);
+    cols[COLLECTION.__JOIN_STATS] = await db.collection(COLLECTION.__JOIN_STATS);
 
     await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { orderId: 1 });
     await ctx.api.mongo.ensureIndex(cols[COLLECTION.STATS], { status: 1 });
     
     api.getStats = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS]);
     api.getStatsAll = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.STATS_ALL]);
+    api.getJoinStats = ctx.api.coreapi.initSearchApiFunction(cols[COLLECTION.__JOIN_STATS]);
+
     api.addStats = ctx.api.coreapi.initEditApiFunction({
         collection: cols[COLLECTION.STATS],
         validate: COLLECTION.STATS
     });
+
+    const oneJoinStatsItem = await cols[COLLECTION.__JOIN_STATS].findOne({});
+    if (!oneJoinStatsItem) await cols[COLLECTION.__JOIN_STATS].insert({});
 
     if (!ctx.cfg.ami.maxQueue) return { api };
 
@@ -124,6 +131,30 @@ module.exports.init = async function(...args) {
     callQueue.tasks = {};
 
     return { api }
+}
+
+/**
+ * p.query
+ */
+api.prepareJoinStats = async function(t, p) {
+    if (!p.query) throw new Error("Query for join stats is required");
+
+    const qf = ctx.api.prefixify.query;
+    const query = qf(p.query);
+
+    await cols[COLLECTION.__JOIN_STATS].aggregate([
+        { $limit: 1 },
+        { $project: { _id: '$$REMOVE' } }, 
+
+        { $lookup: { from: COLLECTION.STATS, pipeline: [{ $match: query }], as: COLLECTION.STATS }},
+        { $lookup: { from: COLLECTION.STATS_ALL, pipeline: [{ $match: query }], as: COLLECTION.STATS_ALL }},
+
+        { $project: { union: { $concatArrays: ["$" + COLLECTION.STATS, "$" + COLLECTION.STATS_ALL] }}},
+
+        { $unwind: '$union' },
+        { $replaceRoot: { newRoot: '$union' }},
+        { $out: COLLECTION.__JOIN_STATS }
+    ]).toArray();
 }
 
 /**
