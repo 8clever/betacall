@@ -152,6 +152,13 @@ const Stats = props => {
         if (e.key === "Enter") search();
     }
 
+    const downloadXlsxByRegion = (pathName) => {
+        window.location = url.format({
+            pathname: "/excel/getStatsByRegion",
+            query: stateFilter
+        });
+    }
+
     const downloadXlsx = () => {
         window.location = url.format({
             pathname: "/excel/getStats",
@@ -268,6 +275,11 @@ const Stats = props => {
                                         onClick={downloadXlsx}
                                         color="light">
                                         <Fa fa="file-o"/> {"Excel"}
+                                    </Button>{" "}
+                                    <Button 
+                                        onClick={downloadXlsxByRegion}
+                                        color="light">
+                                        <Fa fa="file-o"/> {"Excel by Region"}
                                     </Button>
                                 </Col>
                             </Row>
