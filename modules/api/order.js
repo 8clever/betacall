@@ -142,19 +142,16 @@ api.prepareJoinStats = async function(t, p) {
     const count = await cols[COLLECTION.__JOIN_STATS].count({});
     if (!count) await cols[COLLECTION.__JOIN_STATS].insert({});
 
-    await cols[COLLECTION.__JOIN_STATS].aggregate([
-        { $limit: 1 },
-        { $project: { _id: '$$REMOVE' } }, 
+    const [remove, stats, statsAll] = await Promise.all([
+        cols[COLLECTION.__JOIN_STATS].remove(),
+        cols[COLLECTION.STATS].find(query).toArray(),
+        cols[COLLECTION.STATS_ALL].find(query).toArray()
+    ]);
 
-        { $lookup: { from: COLLECTION.STATS, pipeline: [{ $match: query }], as: COLLECTION.STATS }},
-        { $lookup: { from: COLLECTION.STATS_ALL, pipeline: [{ $match: query }], as: COLLECTION.STATS_ALL }},
-
-        { $project: { union: { $concatArrays: ["$" + COLLECTION.STATS, "$" + COLLECTION.STATS_ALL] }}},
-
-        { $unwind: '$union' },
-        { $replaceRoot: { newRoot: '$union' }},
-        { $out: COLLECTION.__JOIN_STATS }
-    ]).toArray();
+    await Promise.all([
+        cols[COLLECTION.__JOIN_STATS].insert(stats),
+        cols[COLLECTION.__JOIN_STATS].insert(statsAll)
+    ]);
 }
 
 /**
