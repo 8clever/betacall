@@ -139,9 +139,6 @@ api.prepareJoinStats = async function(t, p) {
     const qf = ctx.api.prefixify.query;
     const query = qf(p.query);
 
-    const count = await cols[COLLECTION.__JOIN_STATS].count({});
-    if (!count) await cols[COLLECTION.__JOIN_STATS].insert({});
-
     const [remove, stats, statsAll] = await Promise.all([
         cols[COLLECTION.__JOIN_STATS].remove(),
         cols[COLLECTION.STATS].find(query).toArray(),
