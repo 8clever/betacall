@@ -146,8 +146,14 @@ api.prepareJoinStats = async function(t, p) {
     ]);
 
     await Promise.all([
-        cols[COLLECTION.__JOIN_STATS].insert(stats),
-        cols[COLLECTION.__JOIN_STATS].insert(statsAll)
+        (async () => {
+            if (!stats.length) return;
+            await cols[COLLECTION.__JOIN_STATS].insert(stats)
+        })(),
+        (async () => {
+            if (!statsAll.length) return;
+            await cols[COLLECTION.__JOIN_STATS].insert(statsAll)
+        })()
     ]);
 }
 

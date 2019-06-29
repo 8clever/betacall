@@ -298,6 +298,7 @@ const Stats = props => {
                                     <th>{i18n.t("User")}</th>
                                     <th>{i18n.t("Market Name")}</th>
                                     <th>{i18n.t("Status")}</th>
+                                    <th>{i18n.t("Region")}</th>
                                     <th>{i18n.t("Next Call")}</th>
                                     <th></th>
                                 </tr>
@@ -314,6 +315,7 @@ const Stats = props => {
                                                 <td>{_.get(stat, "_t_user.0.name")}</td>
                                                 <td>{_.get(stat, "_s_marketName")}</td>
                                                 <td>{stat.status}</td>
+                                                <td>{stat._s_region}</td>
                                                 <td>
                                                     {
                                                         stat._dtnextCall ?
@@ -420,7 +422,8 @@ export default async (ctx) => {
                     _dtnextCall: { $last: "$_dtnextCall" },
                     status: { $last: "$status" },
                     _t_user: { $last: "$_t_user" },
-                    _s_marketName: { $last: "$_s_marketName" }
+                    _s_marketName: { $last: "$_s_marketName" },
+                    _s_region: { $last: "$_s_region" }
                 }},
                 { $match: query2 },
                 { $addFields: {
