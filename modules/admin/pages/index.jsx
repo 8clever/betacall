@@ -642,6 +642,8 @@ class OperatorPage extends Component {
                                         <br/>
                                         <b>{i18n.t("work status")}:</b> {this.get(order, "info.workStatus.name", "")}
                                         <br/>
+                                        <b>{i18n.t("market name")}:</b> {this.get(order, "info.orderUrl", "")}
+                                        <br/>
                                         <b>{i18n.t("link")}: 
                                             {" "}
                                             <a 
