@@ -431,13 +431,14 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                 if (round !== TOTAL) return;
 
                 const notProcessed = _.filter(currDayStats.rounds, _.matches({ status: __.ORDER_STATUS.NOT_PROCESSED }));
+                let underCallCurrent = 0;
                 _.each(notProcessed, stat => {
-                    const underCallCurrent = _.filter(currDayStats.rounds, _.matches({ 
+                    underCallCurrent += _.filter(currDayStats.rounds, _.matches({ 
                         status: __.ORDER_STATUS.UNDER_CALL,
                         orderId: stat.orderId
                     })).length;
-                    xlsxRegionData.underCallCurrent.push(underCallCurrent);
                 });
+                xlsxRegionData.underCallCurrent.push(underCallCurrent);
             });
 
             xlsxData.push(xlsxRegionData.month);
