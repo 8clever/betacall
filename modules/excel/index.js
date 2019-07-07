@@ -427,6 +427,9 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                     total += currDayStats[status];
                 });
 
+                xlsxRegionData.total.push(total)
+                if (round !== TOTAL) return;
+
                 const notProcessed = _.filter(currDayStats.rounds, _.matches({ status: __.ORDER_STATUS.NOT_PROCESSED }));
                 _.each(notProcessed, stat => {
                     const underCallCurrent = _.filter(currDayStats.rounds, _.matches({ 
@@ -435,8 +438,6 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                     })).length;
                     xlsxRegionData.underCallCurrent.push(underCallCurrent);
                 });
-    
-                xlsxRegionData.total.push(total)
             });
 
             xlsxData.push(xlsxRegionData.month);
@@ -445,9 +446,16 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
 
             _.each(__.ORDER_STATUS, status => {
                 xlsxData.push(xlsxRegionData[status]);
+            
+                if (!(
+                    status === __.ORDER_STATUS.UNDER_CALL &&
+                    round === TOTAL
+                )) return;
+
+                xlsxData.push(xlsxRegionData.underCallCurrent);
             });
 
-            xlsxData.push(xlsxRegionData.underCallCurrent);
+
 
             fillEmptyRow();
             xlsxData.push(xlsxRegionData.total);
