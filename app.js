@@ -41,25 +41,7 @@ async function startApp () {
 	let db = await app.api.mongo.getDb({});
 	await app.api.mongo.dropUnusedIndexes(db);
 
-	if (argv.resetDataentry) {
-		let colls = await db.listCollections().toArray();
-		for (let coll of colls) {
-			if (coll.name.indexOf("system.") !== 0) {
-				let collection = await db.collection(coll.name);
-				await collection.remove({});
-			}
-		}
-			
-		let basePath = __dirname + "/dataentry";
-		let files = fs.readdirSync(basePath);
-		let prefixify = app.api.prefixify.datafix;
-		for (let file of files) {
-			let collName = path.basename(file, ".json");
-			let data = require(path.resolve(basePath, file));
-			let coll = await db.collection(collName);
-			await coll.insert(prefixify(data));
-		}
-	} else if (argv.resetCollection) {
+	if (argv.resetCollection) {
 		let collName = argv.resetCollection;
 		let coll = await db.collection(collName);
 		await coll.drop();
@@ -71,20 +53,6 @@ async function startApp () {
 
 	tinyPromise(app, newrelic);
 	console.timeEnd("Live !");
-	if (cfg.config.server.ssl_port) {
-		try {
-			var options = {
-				key: fs.readFileSync(path.resolve(__dirname + '/privatekey.pem'), 'utf8'),
-				cert: fs.readFileSync(path.resolve(__dirname + '/certificate.pem'), 'utf8'),
-				ssl: true,
-				plain: false
-			};
-
-			var httpsServer = https.createServer(options, app.express);
-
-			httpsServer.listen(cfg.config.server.ssl_port);
-		} catch (e) { /* */ }
-	}
 
 	var httpServer = http.Server(app.express);
 	if (app.api.socket && app.api.socket.init) await app.api.socket.init("", httpServer);

@@ -110,6 +110,7 @@
     "listen": "node bin/listenAsterisk.js",
     "test": "node app --env=test",
     "start": "node app.js",
+    "reset": "node bin/reset_dataentry.js",
     "build": "npm run translate && npm run builds",
     "builds": "npm run build-admin",
     "translate": "npm run translate-admin",
