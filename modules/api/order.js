@@ -598,7 +598,8 @@ api.startCallByOrder =  async function(t, p) {
         this.getOrders(t, {}),
         ctx.api.socket.getListenersCount(),
         ctx.api.socket.getIo(),
-        ctx.api.asterisk.__isOn(t, {})
+        ctx.api.socket.getServerIo(),
+        ctx.api.asterisk.__isOn(t, {}),
     ]);
     const currentDate = new Date();
     const idOrders = _.map(orders.list, "orderIdentity.orderId");
