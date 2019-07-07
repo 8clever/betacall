@@ -588,32 +588,63 @@ let ORDERS_IN_OPERATORS = {};
 api.startCallByOrder =  async function(t, p) {
     if (!ctx.cfg.ami.maxQueue) return;
 
-    let orders = await this.getOrders(t, {});
-    let listenersCount = await ctx.api.socket.getListenersCount();
-    let io = await ctx.api.socket.getIo();
-    let serverIo = await ctx.api.socket.getServerIo();
-    let currentDate = new Date();
-    let idOrders = _.map(orders.list, "orderIdentity.orderId");
-    let asteriskIsOn = await ctx.api.asterisk.__isOn(t, {});
-    let newOrders = [];
-    let oldOrders = [];
-    let oldOrdersMap = await api.getStats(t, {
-        aggregate: [
-            { $match: { 
-                orderId: { $in: idOrders },
-                status: { $ne: __.ORDER_STATUS.NOT_PROCESSED }
-            }},
-            { $sort: { _dt: -1 }},
-            { $group: {
-                _id: "$orderId",
-                _dt: { $first: "$_dt" },
-                _dtnextCall: { $first: "$_dtnextCall" },
-                status: { $first: "$status" }
-            }}
-        ]
-    });
+    const [
+        orders,
+        listenersCount,
+        io,
+        serverIo,
+        asteriskIsOn
+    ] = await Promise.all([
+        this.getOrders(t, {}),
+        ctx.api.socket.getListenersCount(),
+        ctx.api.socket.getIo(),
+        ctx.api.asterisk.__isOn(t, {})
+    ]);
+    const currentDate = new Date();
+    const idOrders = _.map(orders.list, "orderIdentity.orderId");
+    const newOrders = [];
+    const oldOrders = [];
+    let [
+        oldOrdersMap,
+        ordersRoundMap
+    ] = await Promise.all([
+        api.getStats(t, {
+            aggregate: [
+                { $match: { 
+                    orderId: { $in: idOrders },
+                    status: { $ne: __.ORDER_STATUS.NOT_PROCESSED }
+                }},
+                { $sort: { _dt: -1 }},
+                { $group: {
+                    _id: "$orderId",
+                    _dt: { $first: "$_dt" },
+                    _dtnextCall: { $first: "$_dtnextCall" },
+                    status: { $first: "$status" }
+                }}
+            ]
+        }),
+        api.getStats(t, {
+            aggregate: [
+                {
+                    $match: {
+                        _dt: {
+                            $gte: moment().startOf("day").toDate(),
+                            $lte: moment().endOf("day").toDate()
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$orderId",
+                        count: { $sum: 1 }
+                    }
+                }
+            ]
+        })
+    ]);
     
     oldOrdersMap = _.keyBy(oldOrdersMap.list, "_id");
+    ordersRoundMap = _.keyBy(ordersRoundMap.list, "_id");
 
     _.each(orders.list, order => {
         let phone = _.get(order, "clientInfo.phone");
@@ -685,7 +716,9 @@ api.startCallByOrder =  async function(t, p) {
             name: orderId,
             fn: async () => {
 
-                let call = await ctx.api.asterisk.__call(t, { phone });
+                const n = _.get(ordersRoundMap, `${orderId}.count`, 0) % 2;
+                const gateawayName = n === 0 ? "default" : "mango1";
+                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
 
                 console.log(`end call --- ` + call.status);

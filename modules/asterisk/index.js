@@ -102,16 +102,22 @@ api.__isOn = async function(t, p) {
  */
 
  /**
-  * @param {{ phone: String }}
+  * @param {{ 
+  *     phone: String,
+  *     gateawayName?: String 
+  * }}
   * @return {CallResponse}
   */
-api.__call = async function(t, { phone }) {
+api.__call = async function(t, { phone, gateawayName }) {
     let id = api.__generateID();
     let isOn = await api.__isOn(t, {});
     if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
+    let gateawayDefault = await api.__getGateawayByDefault(t, { gateawayName });
     let gateaway = await api.__getGateawayByPhone(t, { phone });
     let isAvailable = false;
+
+    gateaway = gateaway || gateawayDefault;
 
     while (gateaway && !isAvailable) {
         isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
@@ -149,6 +155,18 @@ api.__call = async function(t, { phone }) {
 }
 
 /**
+ * @param {{ gateawayName: String }}
+ * @return {GateAway}
+ */
+api.__getGateawayByDefault = async function(t, { gateawayName = "default" }) {
+    const gateaway = _.cloneDeep(ctx.cfg.ami.gateaway[gateawayName]);
+    if (!gateaway) throw new Error("Alarm! Default GateAway not found " + gateawayName);
+
+    gateaway.next = () => null;
+    return gateaway;
+}
+
+/**
  * @namespace {Object} GateAway
  * @property {Number} slots
  * @property {String} channel
@@ -158,16 +176,13 @@ api.__call = async function(t, { phone }) {
 
 /**
  * @param {Number} phone
- * @return {GateAway}
+ * @return {GateAway|null}
  */
 api.__getGateawayByPhone = async function(t, { phone }) {
     if (!phone) throw new Error("Phone number is required @__getGateawayByPhone");
 
-    let defaultGateaway = _.cloneDeep(ctx.cfg.ami.gateaway.default);
     let info = rosreestr.getInfoByPhone(phone);
-
-    defaultGateaway.next = () => null;
-    if (!info) return defaultGateaway;
+    if (!info) return null;
 
     let gateawayNum = 1;
     let gateaway = getGateaway();
