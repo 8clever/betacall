@@ -604,7 +604,7 @@ api.startCallByOrder =  async function(t, p) {
     const currentDate = new Date();
     const idOrders = _.map(orders.list, "orderIdentity.orderId");
     const newOrders = [];
-    const oldOrders = [];
+    let oldOrders = [];
     let [
         oldOrdersMap,
         ordersRoundMap
