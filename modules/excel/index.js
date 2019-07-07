@@ -433,7 +433,7 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                         status: __.ORDER_STATUS.UNDER_CALL,
                         orderId: stat.orderId
                     })).length;
-                    xlsxRegionData.underCallCurrent += underCallCurrent;
+                    xlsxRegionData.underCallCurrent.push(underCallCurrent);
                 });
     
                 xlsxRegionData.total.push(total)
