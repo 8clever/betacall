@@ -7,7 +7,7 @@ const xlsx = require("node-xlsx");
 const ddFormat = "DD-MM-YYYY";
 const { ORDER_STATUS } = require("../api/__namespace");
 const __ = {
-    ORDER_STATUS: _.omit(ORDER_STATUS, ["SKIP", "REPLACE_DATE"])
+    ORDER_STATUS: _.omit(ORDER_STATUS, ["SKIP"])
 }
 let ctx = null
 
@@ -91,6 +91,15 @@ function getQuery (filter) {
     if (filter.status) {
         query2.status = filter.status;
     }
+
+    query.$and = query.$and || [];
+    query.$and.push({
+        _s_phone: {
+            $nin: _.map(ctx.cfg.ami.blackList, black => {
+                return { $regex: black, $options: "gmi" };
+            })
+        }
+    });
 
     return {
         query,
@@ -310,7 +319,12 @@ const HUMANIZE_STATUS = {
     [__.ORDER_STATUS.DONE]: "Согласован",
     [__.ORDER_STATUS.DONE_PICKUP]: "ПВЗ",
     [__.ORDER_STATUS.DENY]: "отказ",
-    [__.ORDER_STATUS.UNDER_CALL]: "недозвон"
+    [__.ORDER_STATUS.UNDER_CALL]: "недозвон",
+    [__.ORDER_STATUS.REPLACE_DATE]: "Перенос звонка"
+}
+
+const IGNORED_STATUSES_IN_TT_CALC = {
+    [__.ORDER_STATUS.NOT_PROCESSED]: 1
 }
 
 get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, res) => {
@@ -393,7 +407,8 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                     if (roundMap[round]) {
                         const count = _(roundMap[round]).values().filter(s => s === status).value().length;
                         xlsxRegionData[status].push(count)
-                        total += count;
+
+                        if (!IGNORED_STATUSES_IN_TT_CALC[status]) total += count;
                         return;
                     } 
                     
@@ -403,7 +418,7 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                         const countR3 = (currDayStats[status] || 0) - countR1 - countR2;
 
                         xlsxRegionData[status].push(countR3);
-                        total += countR3;
+                        if (!IGNORED_STATUSES_IN_TT_CALC[status]) total += countR3;
                         return;
                     } 
                         
