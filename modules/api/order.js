@@ -716,8 +716,8 @@ api.startCallByOrder =  async function(t, p) {
             name: orderId,
             fn: async () => {
 
-                const n = _.get(ordersRoundMap, `${orderId}.count`, 0) % 2;
-                const gateawayName = n === 0 ? "default" : "mango1";
+                const n = _.get(ordersRoundMap, `${orderId}.count`, 0);
+                const gateawayName = n === 1 ? "mango1" : "default";
                 let call = await ctx.api.asterisk.__call(t, { phone, gateawayName });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
 
