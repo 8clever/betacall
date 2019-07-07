@@ -364,6 +364,7 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                 month: [""],
                 date: [ "Регионы" ],
                 nameOfWeek: [`${region} ${round}`],
+                underCallCurrent: ["under_call (недозвон) по заказам за сег день"],
                 total: ["итого"]
             });
 
@@ -420,12 +421,21 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
                         xlsxRegionData[status].push(countR3);
                         if (!IGNORED_STATUSES_IN_TT_CALC[status]) total += countR3;
                         return;
-                    } 
+                    }
                         
                     xlsxRegionData[status].push(currDayStats[status] || 0)
                     total += currDayStats[status];
                 });
 
+                const notProcessed = _.filter(currDayStats.rounds, _.matches({ status: __.ORDER_STATUS.NOT_PROCESSED }));
+                _.each(notProcessed, stat => {
+                    const underCallCurrent = _.filter(currDayStats.rounds, _.matches({ 
+                        status: __.ORDER_STATUS.UNDER_CALL,
+                        orderId: stat.orderId
+                    })).length;
+                    xlsxRegionData.underCallCurrent += underCallCurrent;
+                });
+    
                 xlsxRegionData.total.push(total)
             });
 
@@ -436,6 +446,8 @@ get("/getStatsByRegion", token(), setXlsx("call_stats_by_region"), async (req, r
             _.each(__.ORDER_STATUS, status => {
                 xlsxData.push(xlsxRegionData[status]);
             });
+
+            xlsxData.push(xlsxRegionData.underCallCurrent);
 
             fillEmptyRow();
             xlsxData.push(xlsxRegionData.total);
