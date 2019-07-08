@@ -49,6 +49,7 @@ module.exports.init = async function (...args) {
                     evt.Cause === "1" ||
                     evt.Cause === "16" ||
                     evt.Cause === "17" ||
+                    evt.Cause === "19" ||
                     evt.Cause === "20" ||
                     evt.Cause === "21" ||
                     evt.Cause === "34"
