@@ -111,7 +111,6 @@ api.__isOn = async function(t, p) {
 api.__call = async function(t, { phone, gateawayName }) {
     let id = api.__generateID();
     let isOn = await api.__isOn(t, {});
-    console.log(isOn)
     if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
     let gateawayDefault = await api.__getGateawayByDefault(t, { gateawayName });
