@@ -119,14 +119,12 @@ api.__call = async function(t, { phone, gateawayName }) {
     let isAvailable = false;
 
     gateaway = gateaway || gateawayDefault;
-    console.log(gateaway)
 
     while (gateaway && !isAvailable) {
         isAvailable = await api.__gateawayIsAvailable(t, { gateaway });
         if (!isAvailable) gateaway = gateaway.next();
     }
 
-    console.log("isAvailable", isAvailable);
     if (!(gateaway && isAvailable)) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
     return new Promise((resolve, reject) => {
@@ -190,7 +188,7 @@ api.__getGateawayByPhone = async function(t, { phone }) {
     let gateawayNum = 1;
     let gateaway = getGateaway();
 
-    return gateaway || defaultGateaway;
+    return gateaway || null;
 
     function getGateaway () {
         let name = `${info.operator}${gateawayNum}`;
