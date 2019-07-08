@@ -719,7 +719,7 @@ api.startCallByOrder =  async function(t, p) {
 
                 const n = _.get(ordersRoundMap, `${orderId}.count`, 0);
                 const gateawayName = n === 1 ? "mango1" : "default";
-                console.log("gateaway",gateawayName)
+                console.log("gateaway",gateawayName, n);
 
                 let call = await ctx.api.asterisk.__call(t, { phone, gateawayName });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
