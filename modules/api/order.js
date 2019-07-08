@@ -114,6 +114,7 @@ module.exports.init = async function(...args) {
         fn().then(response => {
             callback(null, response);
         }).catch(err => {
+            console.log(err);
             callback(err);
         });
 
