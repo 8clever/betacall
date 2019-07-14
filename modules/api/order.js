@@ -47,6 +47,9 @@ module.exports.init = async function(...args) {
                     type: "string",
                     required: true
                 },
+                _i_operatorTimeUsage: {
+                    type: "number"
+                },
                 _dt: {
                     type: "date",
                     required: true
@@ -321,7 +324,8 @@ api.addToMyOrders = async function(t, { orderId, callId }) {
 
     u.orders.push({ 
         orderId,
-        _s_callId: callId
+        _s_callId: callId,
+        _dt: new Date()
     });
 
     await ctx.api.users.editUser(t, { data: {
@@ -375,7 +379,10 @@ api.doneOrderPickup = async function(t, { order, pickupId, metadata }) {
         _s_callId: metadata.callId,
         _iduser: user._id,
         status: __.ORDER_STATUS.DONE_PICKUP
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -417,7 +424,10 @@ api.doneOrder = async function(t, { order, metadata }) {
         _s_callId: metadata.callId,
         _iduser: user._id,
         status: __.ORDER_STATUS.DONE
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -472,7 +482,10 @@ api.denyOrder = async function(t, { order, metadata }) {
         _s_callId: metadata.callId,
         _iduser: user._id,
         status: __.ORDER_STATUS.DENY
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -513,7 +526,10 @@ api.underCall = async function(t, { order, metadata }) {
         _s_callId: metadata.callId,
         _iduser: user._id,
         status: __.ORDER_STATUS.UNDER_CALL
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -559,7 +575,10 @@ api.replaceCallDate = async function(t, { order, replaceDate, metadata }) {
         _iduser: user._id,
         _dtnextCall: replaceDate,
         status: __.ORDER_STATUS.REPLACE_DATE
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
     
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -576,7 +595,10 @@ api.skipOrder = async function(t, { order, metadata }) {
         _s_callId: metadata.callId,
         _iduser: user._id,
         status: __.ORDER_STATUS.SKIP
-    }, api.getOrderMeta(order));
+    }, 
+        api.getOrderMeta(order),
+        api.getProcessedTime(user, orderId)
+    );
 
     await Promise.all([
         this.unsetMyOrder(t, { orderId }),
@@ -779,6 +801,21 @@ api.getOrderMeta = order => {
         orderId: _.get(order, "orderIdentity.orderId"),
         _s_marketName: _.get(order, "orderUrl", "")
     };
+}
+
+/**
+ * @param user - Userr
+ * @param orderId - ID of order
+ */
+api.getProcessedTime = (user, orderId) => {
+    if (!user) throw new Error("User is required");
+    
+    const order = _.find(user.orders, _.matches({ orderId }));
+    if (!(order && order._dt)) throw new Error("Order not found");
+
+    return {
+        _i_operatorTimeUsage: moment().diff(order._dt)
+    }
 }
 
 // permissions

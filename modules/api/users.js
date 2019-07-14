@@ -141,6 +141,9 @@ module.exports.init = async function (...args) {
 							_s_callId: {
 								type: "string",
 								required: true
+							},
+							_dt: {
+								type: "date"
 							}
 						}
 					}
