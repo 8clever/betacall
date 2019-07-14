@@ -654,6 +654,9 @@ api.startCallByOrder =  async function(t, p) {
                         _dt: {
                             $gte: moment().startOf("day").toDate(),
                             $lte: moment().endOf("day").toDate()
+                        },
+                        status: {
+                            $ne: __.ORDER_STATUS.NOT_PROCESSED
                         }
                     }
                 },
