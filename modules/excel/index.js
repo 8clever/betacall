@@ -585,7 +585,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
            _dt: 1
        },
        sort: {
-           _dt: -1
+           _dt: 1
        }
     });
 
