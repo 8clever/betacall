@@ -152,9 +152,16 @@ const Stats = props => {
         if (e.key === "Enter") search();
     }
 
-    const downloadXlsxByRegion = (pathName) => {
+    const downloadXlsxByRegion = () => {
         window.location = url.format({
             pathname: "/excel/getStatsByRegion",
+            query: stateFilter
+        });
+    }
+
+    const downloadXlsxByDays = () => {
+        window.location = url.format({
+            pathname: "/excel/getStatsByDay",
             query: stateFilter
         });
     }
@@ -280,6 +287,11 @@ const Stats = props => {
                                         onClick={downloadXlsxByRegion}
                                         color="light">
                                         <Fa fa="file-o"/> {"Excel by Region"}
+                                    </Button>{" "}
+                                    <Button 
+                                        onClick={downloadXlsxByDays}
+                                        color="light">
+                                        <Fa fa="file-o"/> {"Excel by Days"}
                                     </Button>
                                 </Col>
                             </Row>

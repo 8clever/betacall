@@ -274,6 +274,11 @@ function getDays (from, to) {
     return days;
 }
 
+function getPercent (n1, n2) {
+    return (n2/100)*n1;
+}
+
+
 get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
     const query = {};
 
@@ -540,5 +545,346 @@ get("/getStats", token(), setXlsx("call_stats"), async (req, res) => {
     const buff = xlsx.build([
         { name: "Stats", data }
     ])
+    res.send(buff);
+});
+
+get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) => {
+    const filter = req.query;
+    const t = res.locals.token;
+
+    if (!(
+        filter.from &&
+        filter.to
+    )) {
+        return res.send("Error: You_should_have_filter.from_and_filter.to")
+    }
+
+    const { query, query2 } = getQuery(filter);
+    const mainQuery = Object.assign(query, query2);
+
+    await ctx.api.order.prepareJoinStats(t, { query });
+    const orders = await ctx.api.order.getJoinStats(t, {
+       query: mainQuery,
+       fields: {
+           _id: 1,
+           orderId: 1,
+           status: 1,
+           _i_operatorTimeUsage: 1
+       },
+       sort: {
+           _dt: -1
+       }
+    });
+
+    const stats = _.reduce(orders.list, (memo, stat) => {
+        const dd = moment(stat._dt).format("DD.MM.YYYY");
+        memo[dd] = memo[dd] || [];
+        const orderIdx = _.findIndex(memo[dd], _.matches({ orderId: stat.orderId }));
+        const order = orderIdx === -1 ? stat : memo[dd][orderIdx];
+
+        order.rounds = order.rounds || [];
+        order.isNew = order.isNew || order.status === __.ORDER_STATUS.NOT_PROCESSED;
+        order.count = order.count || 0;
+        order.count++;
+        order.status = stat.status;
+
+        if (stat._i_operatorTimeUsage) {
+            order.c = order._i_operatorTimeUsage || stat._i_operatorTimeUsage;
+            order._i_operatorTimeUsage = (stat._i_operatorTimeUsage + order._i_operatorTimeUsage) / 2;
+        }
+
+        if (order.status !== __.ORDER_STATUS.NOT_PROCESSED) {
+            order.rounds.push(order.status);
+        }
+
+        if (orderIdx === -1) memo[dd].push(order);
+
+        return memo;
+    }, {});
+
+    const header = [
+        "Показатели",
+        "Итого"
+    ]
+    const endOnLastDay = [
+        "Остаток на тек. период",
+        0    
+    ]
+    const forwarded = [
+        "Передано заказов",
+        0
+    ]
+    const ttOrders = [
+        "Итого заказов в работе",
+        0
+    ]
+    const done = [
+        "Согласованная дата доставки",
+        0
+    ]
+    const doneNew = [
+        "из них новых",
+        0
+    ]
+    const round1 = [
+        "1й круг",
+        0
+    ]
+    const round1New = [
+        "из них новых",
+        0
+    ]
+    const round2 = [
+        "2й круг",
+        0
+    ]
+    const round2New = [
+        "из них новых",
+        0
+    ]
+    const round3 = [
+        "3й круг",
+        0
+    ]
+    const round3New = [
+        "из них новых",
+        0
+    ]
+    const selfPickUp = [
+        "Самовывоз",
+        0
+    ]
+    const selfPickUpNew = [
+        "из них новых",
+        0
+    ]
+    const deny = [
+        "Отказ",
+        0
+    ]
+    const denyNew = [
+        "из них новых",
+        0
+    ]
+    const undercall = [
+        "Перенос звонка - Недоступен",
+        0
+    ]
+    const undercallNew = [
+        "из них новых",
+        0
+    ]
+    const replaceDate = [
+        "Перенос звонка - Просит перезвонить позднее",
+        0
+    ]
+    const replaceDateNew = [
+        "из них новых",
+        0
+    ]
+    const newOrders = [
+        "Новое, без попыток дозвона",
+        0
+    ]
+    const operatorTimeAvg = [
+        "Средняя длительность обработки заказа оператором",
+        0
+    ]
+    const donePercent = [
+        "% Согласованных",
+        0
+    ]
+    const donePercentNew = [
+        "% новых",
+        0
+    ]
+    const denyPercent = [
+        "% Отказов",
+        0
+    ]
+    const denyPercentNew = [
+        "% новых",
+        0
+    ]
+    const replaceDatePercent = [
+        "% Переносов",
+        0
+    ]
+    const replaceDatePercentNew = [
+        "% новых",
+        0
+    ]
+    const undercallPercent = [
+        "% Недозвонов",
+        0
+    ]
+    const undercallPercentNew = [
+        "% новых",
+        0
+    ]
+
+    _.each(stats, (stats, dd) => {
+        header.push(dd);
+
+        const _forwardedCount = _.filter(stats, s => 
+            s.status === __.ORDER_STATUS.DENE || 
+            s.status === __.ORDER_STATUS.DONE_PICKUP || 
+            s.status === __.ORDER_STATUS.DENY || 
+            s.status === __.ORDER_STATUS.REPLACE_DATE
+        ).length;
+        const _endOnLastDayCount = stats.length - _forwardedCount;
+        const _ttOrders = stats.length;
+        const _done = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE })).length;
+        const _doneNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE && s.isNew).length;
+        const _round1 = _.filter(stats, s => s.rounds[0]).length;
+        const _round1New = _.filter(stats, s => s.rounds[0] && s.isNew).length;
+        const _round2 = _.filter(stats, s => s.rounds[1]).length;
+        const _round2New = _.filter(stats, s => s.rounds[1] && s.isNew).length;
+        const _round3 = _.filter(stats, s => s.rounds[2]).length;
+        const _round3New = _.filter(stats, s => s.rounds[2] && s.isNew).length;
+        const _selfPickUp = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE_PICKUP })).length;
+        const _selfPickUpNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE_PICKUP && s.isNew).length;
+        const _deny = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY).length;
+        const _denyNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY && s.isNew).length;
+        const _undercall = _.filter(stats, s => s.status === __.ORDER_STATUS.UNDER_CALL).length;
+        const _undercallNew = _.filter(stats, s => s.status === __.ORDER_STATUS.UNDER_CALL && s.isNew).length;
+        const _replaceDate = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE).length;
+        const _replaceDateNew = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE && s.isNew).length;
+        const _newOrders = _.filter(stats, s => s.isNew).length;
+        const _operatorTimeAvg = _.sumBy(stats, "_i_operatorTimeUsage") / _.filter(stats, s => s._i_operatorTimeUsage).length || null;
+        const _donePercent = getPercent(_done + _selfPickUp, stats.length);
+        const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, stats.length);
+        const _denyPercent = getPercent(_deny, stats.length);
+        const _denyPercentNew = getPercent(_denyNew, stats.length);
+        const _replaceDatePercent = getPercent(_replaceDate, stats.length);
+        const _replaceDatePercentNew = getPercent(_replaceDateNew, stats.length);
+        const _undercallPercent = getPercent(_undercall, stats.length);
+        const _undercallPercentNew = getPercent(_undercallNew, stats.length);
+
+        endOnLastDay.push(_endOnLastDayCount);
+        endOnLastDay[1] += _endOnLastDayCount;
+
+        forwarded.push(_forwardedCount);
+        forwarded[1] += _forwardedCount;
+
+        ttOrders.push(_ttOrders);
+        ttOrders[1] += _ttOrders;
+
+        done.push(_done);
+        done[1] += _done;
+
+        doneNew.push(_doneNew);
+        doneNew[1] += _doneNew;
+
+        round1.push(_round1);
+        round1[1] += _round1;
+
+        round1New.push(_round1New);
+        round1New[1] += _round1New;
+
+        round2.push(_round2);
+        round2[1] += _round2;
+
+        round2New.push(_round2New);
+        round2New[1] += _round2New;
+
+        round3.push(_round3);
+        round3[1] += _round3;
+
+        round3New.push(_round3New);
+        round3New[1] += _round3New;
+
+        selfPickUp.push(_selfPickUp);
+        selfPickUp[1] += _selfPickUp;
+
+        selfPickUpNew.push(_selfPickUpNew);
+        selfPickUpNew[1] += _selfPickUpNew;
+
+        deny.push(_deny);
+        deny[1] += _deny;
+
+        denyNew.push(_denyNew);
+        denyNew[1] += _denyNew;
+
+        undercall.push(_undercall);
+        undercall[1] += _undercall;
+
+        undercallNew.push(_undercallNew);
+        undercallNew[1] += _undercallNew;
+
+        replaceDate.push(_replaceDate);
+        replaceDate[1] += _replaceDate;
+
+        replaceDateNew.push(_replaceDateNew);
+        replaceDateNew[1] += _replaceDateNew;
+
+        newOrders.push(_newOrders);
+        newOrders[1] += _newOrders;
+
+        operatorTimeAvg.push(_operatorTimeAvg);
+        if (_operatorTimeAvg) {
+            if (!operatorTimeAvg[1]) {
+                operatorTimeAvg[1] = _operatorTimeAvg
+            }
+            operatorTimeAvg[1] = (_operatorTimeAvg + operatorTimeAvg[1]) / 2
+        }
+
+        donePercent.push(_donePercent);
+        donePercentNew.push(_donePercentNew);
+        denyPercent.push(_denyPercent);
+        denyPercentNew.push(_denyPercentNew);
+        replaceDatePercent.push(_replaceDatePercent);
+        replaceDatePercentNew.push(_replaceDatePercentNew);
+        undercallPercent.push(_undercallPercent);
+        undercallPercentNew.push(_undercallPercentNew);
+    });
+
+    donePercent[1] = getPercent(done[1] + selfPickUp[1], orders.list.length);
+    donePercentNew[1] = getPercent(doneNew[1] + selfPickUpNew[1], orders.list.length);
+
+    denyPercent[1] = getPercent(deny[1], orders.list.length);
+    denyPercentNew[1] = getPercent(denyNew[1], orders.list.length);
+
+    replaceDatePercent[1] = getPercent(replaceDate[1], orders.list.length);
+    replaceDatePercentNew[1] = getPercent(replaceDateNew[1], orders.list.length);
+
+    undercallPercent[1] = getPercent(undercall[1], orders.list.length);
+    undercallPercentNew[1] = getPercent(undercallNew[1], orders.list.length);
+
+    const dataXlsx = [
+        header,
+        endOnLastDay,
+        forwarded,
+        ttOrders,
+        done,
+        round1,
+        round1New,
+        round2,
+        round2New,
+        round3,
+        round3New,
+        selfPickUp,
+        selfPickUpNew,
+        deny,
+        denyNew,
+        undercall,
+        undercallNew,
+        replaceDate,
+        replaceDateNew,
+        newOrders,
+        operatorTimeAvg,
+        donePercent,
+        donePercentNew,
+        denyPercent,
+        denyPercentNew,
+        replaceDatePercent,
+        replaceDatePercentNew,
+        undercallPercent,
+        undercallPercentNew
+    ];
+
+    const buff = xlsx.build([
+        { name: "Stats By Day", data: dataXlsx }
+    ]);
     res.send(buff);
 });
