@@ -278,6 +278,18 @@ function getPercent (n1, n2) {
     return ((n1/n2)*100).toFixed(2);
 }
 
+function getStatusByOrder (status, nextStatus) {
+    switch(status) {
+        case __.ORDER_STATUS.DONE:
+        case __.ORDER_STATUS.DONE_PICKUP:
+        case __.ORDER_STATUS.DENY:
+        case __.ORDER_STATUS.REPLACE_DATE:
+            return status;
+        default:
+            return nextStatus;
+    }
+}
+
 
 get("/getCurrentCalls", token(), setXlsx("current_calls"), async (req, res) => {
     const query = {};
@@ -583,24 +595,24 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const orderIdx = _.findIndex(memo[dd], _.matches({ orderId: stat.orderId }));
         const order = orderIdx === -1 ? stat : memo[dd][orderIdx];
 
+        order.status = getStatusByOrder(order.status || stat.status, stat.status)
         order.rounds = order.rounds || [];
-        order.isNew = order.isNew || order.status === __.ORDER_STATUS.NOT_PROCESSED;
+        order.isNew = order.isNew || stat.status === __.ORDER_STATUS.NOT_PROCESSED;
         order.isForwarded = order.isForwarded || (
-            stat.status === __.ORDER_STATUS.DONE || 
-            stat.status === __.ORDER_STATUS.DONE_PICKUP || 
-            stat.status === __.ORDER_STATUS.DENY || 
-            stat.status === __.ORDER_STATUS.REPLACE_DATE
+            order.status === __.ORDER_STATUS.DONE || 
+            order.status === __.ORDER_STATUS.DONE_PICKUP || 
+            order.status === __.ORDER_STATUS.DENY || 
+            order.status === __.ORDER_STATUS.REPLACE_DATE
         )
         order.count = order.count || 0;
         order.count++;
-        order.status = stat.status;
 
         if (stat._i_operatorTimeUsage) {
             order.c = order._i_operatorTimeUsage || stat._i_operatorTimeUsage;
             order._i_operatorTimeUsage = (stat._i_operatorTimeUsage + order._i_operatorTimeUsage) / 2;
         }
 
-        if (order.status !== __.ORDER_STATUS.NOT_PROCESSED) {
+        if (stat.status !== __.ORDER_STATUS.NOT_PROCESSED) {
             order.rounds.push(order.status);
         }
 
@@ -734,19 +746,17 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         header.push(dd);
 
         const stats = statsMap[dd];
-        const ttCount = _.sumBy(stats, "count");
-        const ttCountNew = _.sumBy(stats, s => s.isNew && s.count || 0);
         const _forwardedCount = _.filter(stats, s => s.isForwarded).length;
         const _endOnLastDayCount = stats.length - _forwardedCount;
         const _ttOrders = stats.length;
         const _done = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE })).length;
         const _doneNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE && s.isNew).length;
-        const _round1 = _.filter(stats, s => s.rounds[0]).length;
-        const _round1New = _.filter(stats, s => s.rounds[0] && s.isNew).length;
-        const _round2 = _.filter(stats, s => s.rounds[1]).length;
-        const _round2New = _.filter(stats, s => s.rounds[1] && s.isNew).length;
-        const _round3 = ttCount - (_round1 + _round2);
-        const _round3New = ttCountNew - (_round1New + _round2New);
+        const _round1 = _.filter(stats, s => s.rounds[0] === __.ORDER_STATUS.DONE).length;
+        const _round1New = _.filter(stats, s => s.rounds[0] === __.ORDER_STATUS.DONE && s.isNew).length;
+        const _round2 = _.filter(stats, s => s.rounds[1] === __.ORDER_STATUS.DONE).length;
+        const _round2New = _.filter(stats, s => s.rounds[1] === __.ORDER_STATUS.DONE && s.isNew).length;
+        const _round3 = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE)).length - (_round1 + _round2);
+        const _round3New = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE) && s.isNew).length - (_round1New + _round2New);
         const _selfPickUp = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE_PICKUP })).length;
         const _selfPickUpNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE_PICKUP && s.isNew).length;
         const _deny = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY).length;
