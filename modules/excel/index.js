@@ -275,7 +275,7 @@ function getDays (from, to) {
 }
 
 function getPercent (n1, n2) {
-    return (n2/100)*n1;
+    return (n1/n2)*100;
 }
 
 
@@ -724,11 +724,12 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         0
     ]
 
-    _.each(stats, (stats, dd) => {
+    _.each(stats.reverse(), (stats, dd) => {
         header.push(dd);
+        const ttNew = _.filter(stats, s => s.isNew).length;
 
         const _forwardedCount = _.filter(stats, s => 
-            s.status === __.ORDER_STATUS.DENE || 
+            s.status === __.ORDER_STATUS.DONE || 
             s.status === __.ORDER_STATUS.DONE_PICKUP || 
             s.status === __.ORDER_STATUS.DENY || 
             s.status === __.ORDER_STATUS.REPLACE_DATE
@@ -741,8 +742,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _round1New = _.filter(stats, s => s.rounds[0] && s.isNew).length;
         const _round2 = _.filter(stats, s => s.rounds[1]).length;
         const _round2New = _.filter(stats, s => s.rounds[1] && s.isNew).length;
-        const _round3 = _.filter(stats, s => s.rounds[2]).length;
-        const _round3New = _.filter(stats, s => s.rounds[2] && s.isNew).length;
+        const _round3 = stats.length - (_round1 + _round2);
+        const _round3New = ttNew - (_round1New + _round2New);
         const _selfPickUp = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE_PICKUP })).length;
         const _selfPickUpNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE_PICKUP && s.isNew).length;
         const _deny = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY).length;
