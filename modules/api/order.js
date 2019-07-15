@@ -815,7 +815,6 @@ api.getProcessedTime = (user, orderId) => {
     
     const order = _.find(user.orders, _.matches({ orderId }));
     if (!(order && order._dt)) {
-        console.log(user.orders, orderId);
         return {};
     }
 
