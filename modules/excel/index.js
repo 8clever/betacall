@@ -742,7 +742,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         0
     ]
 
-    _.each(_.keys(statsMap).reverse(), (dd) => {
+    _.each(_.keys(statsMap), (dd) => {
         header.push(dd);
 
         const stats = statsMap[dd];
