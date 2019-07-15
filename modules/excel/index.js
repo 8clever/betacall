@@ -613,7 +613,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         }
 
         if (stat.status !== __.ORDER_STATUS.NOT_PROCESSED) {
-            order.rounds.push(order.status);
+            order.rounds.push(stat.status);
         }
 
         if (orderIdx === -1) memo[dd].push(order);
@@ -767,14 +767,14 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _replaceDateNew = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE && s.isNew).length;
         const _newOrders = _.filter(stats, s => s.isNew).length;
         const _operatorTimeAvg = _.sumBy(stats, "_i_operatorTimeUsage") / _.filter(stats, s => s._i_operatorTimeUsage).length || null;
-        const _donePercent = getPercent(_done + _selfPickUp, stats.length);
-        const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, stats.length);
-        const _denyPercent = getPercent(_deny, stats.length);
-        const _denyPercentNew = getPercent(_denyNew, stats.length);
-        const _replaceDatePercent = getPercent(_replaceDate, stats.length);
-        const _replaceDatePercentNew = getPercent(_replaceDateNew, stats.length);
-        const _undercallPercent = getPercent(_undercall, stats.length);
-        const _undercallPercentNew = getPercent(_undercallNew, stats.length);
+        const _donePercent = getPercent(_done + _selfPickUp, _ttOrders);
+        const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, _ttOrders);
+        const _denyPercent = getPercent(_deny, _ttOrders);
+        const _denyPercentNew = getPercent(_denyNew, _ttOrders);
+        const _replaceDatePercent = getPercent(_replaceDate, _ttOrders);
+        const _replaceDatePercentNew = getPercent(_replaceDateNew, _ttOrders);
+        const _undercallPercent = getPercent(_undercall, _ttOrders);
+        const _undercallPercentNew = getPercent(_undercallNew, _ttOrders);
 
         endOnLastDay.push(_endOnLastDayCount);
         endOnLastDay[1] += _endOnLastDayCount;
