@@ -844,17 +844,17 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         undercallPercentNew.push(_undercallPercentNew);
     });
 
-    donePercent[1] = getPercent(done[1] + selfPickUp[1], orders.list.length);
-    donePercentNew[1] = getPercent(doneNew[1] + selfPickUpNew[1], orders.list.length);
+    donePercent[1] = getPercent(done[1] + selfPickUp[1], ttOrders[1]);
+    donePercentNew[1] = getPercent(doneNew[1] + selfPickUpNew[1], ttOrders[1]);
 
-    denyPercent[1] = getPercent(deny[1], orders.list.length);
-    denyPercentNew[1] = getPercent(denyNew[1], orders.list.length);
+    denyPercent[1] = getPercent(deny[1], ttOrders[1]);
+    denyPercentNew[1] = getPercent(denyNew[1], ttOrders[1]);
 
-    replaceDatePercent[1] = getPercent(replaceDate[1], orders.list.length);
-    replaceDatePercentNew[1] = getPercent(replaceDateNew[1], orders.list.length);
+    replaceDatePercent[1] = getPercent(replaceDate[1], ttOrders[1]);
+    replaceDatePercentNew[1] = getPercent(replaceDateNew[1], ttOrders[1]);
 
-    undercallPercent[1] = getPercent(undercall[1], orders.list.length);
-    undercallPercentNew[1] = getPercent(undercallNew[1], orders.list.length);
+    undercallPercent[1] = getPercent(undercall[1], ttOrders[1]);
+    undercallPercentNew[1] = getPercent(undercallNew[1], ttOrders[1]);
 
     const dataXlsx = [
         header,
