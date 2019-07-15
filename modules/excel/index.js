@@ -577,7 +577,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
        }
     });
 
-    const stats = _.reduce(orders.list, (memo, stat) => {
+    const statsMap = _.reduce(orders.list, (memo, stat) => {
         const dd = moment(stat._dt).format("DD.MM.YYYY");
         memo[dd] = memo[dd] || [];
         const orderIdx = _.findIndex(memo[dd], _.matches({ orderId: stat.orderId }));
@@ -724,7 +724,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         0
     ]
 
-    _.each(stats.reverse(), (stats, dd) => {
+    _.each(_.keys(statsMap).reverse(), (dd) => {
+        const stats = statsMap[dd];
         header.push(dd);
         const ttNew = _.filter(stats, s => s.isNew).length;
 
