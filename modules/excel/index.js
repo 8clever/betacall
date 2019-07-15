@@ -585,6 +585,12 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
 
         order.rounds = order.rounds || [];
         order.isNew = order.isNew || order.status === __.ORDER_STATUS.NOT_PROCESSED;
+        order.isForwarded = order.isForwarded || (
+            s.status === __.ORDER_STATUS.DONE || 
+            s.status === __.ORDER_STATUS.DONE_PICKUP || 
+            s.status === __.ORDER_STATUS.DENY || 
+            s.status === __.ORDER_STATUS.REPLACE_DATE
+        )
         order.count = order.count || 0;
         order.count++;
         order.status = stat.status;
@@ -725,18 +731,12 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
     ]
 
     _.each(_.keys(statsMap).reverse(), (dd) => {
-        const stats = statsMap[dd];
         header.push(dd);
 
+        const stats = statsMap[dd];
         const ttCount = _.sumBy(stats, "count");
         const ttCountNew = _.sumBy(stats, s => s.isNew && s.count || 0);
-
-        const _forwardedCount = _.filter(stats, s => 
-            s.status === __.ORDER_STATUS.DONE || 
-            s.status === __.ORDER_STATUS.DONE_PICKUP || 
-            s.status === __.ORDER_STATUS.DENY || 
-            s.status === __.ORDER_STATUS.REPLACE_DATE
-        ).length;
+        const _forwardedCount = _.filter(stats, s => s.isForwarded).length;
         const _endOnLastDayCount = stats.length - _forwardedCount;
         const _ttOrders = stats.length;
         const _done = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE })).length;
