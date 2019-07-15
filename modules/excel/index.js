@@ -586,10 +586,10 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         order.rounds = order.rounds || [];
         order.isNew = order.isNew || order.status === __.ORDER_STATUS.NOT_PROCESSED;
         order.isForwarded = order.isForwarded || (
-            s.status === __.ORDER_STATUS.DONE || 
-            s.status === __.ORDER_STATUS.DONE_PICKUP || 
-            s.status === __.ORDER_STATUS.DENY || 
-            s.status === __.ORDER_STATUS.REPLACE_DATE
+            stat.status === __.ORDER_STATUS.DONE || 
+            stat.status === __.ORDER_STATUS.DONE_PICKUP || 
+            stat.status === __.ORDER_STATUS.DENY || 
+            stat.status === __.ORDER_STATUS.REPLACE_DATE
         )
         order.count = order.count || 0;
         order.count++;
