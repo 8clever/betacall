@@ -569,7 +569,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
            _id: 1,
            orderId: 1,
            status: 1,
-           _i_operatorTimeUsage: 1
+           _i_operatorTimeUsage: 1,
+           _dt: 1
        },
        sort: {
            _dt: -1
