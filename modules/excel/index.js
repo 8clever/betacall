@@ -755,8 +755,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _round1New = _.filter(stats, s => s.rounds[0] === __.ORDER_STATUS.DONE && s.isNew).length;
         const _round2 = _.filter(stats, s => s.rounds[1] === __.ORDER_STATUS.DONE).length;
         const _round2New = _.filter(stats, s => s.rounds[1] === __.ORDER_STATUS.DONE && s.isNew).length;
-        const _round3 = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE)).length - (_round1 + _round2);
-        const _round3New = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE) && s.isNew).length - (_round1New + _round2New);
+        const _round3 = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE)).length;
+        const _round3New = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE) && s.isNew).length;
         const _selfPickUp = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE_PICKUP })).length;
         const _selfPickUpNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE_PICKUP && s.isNew).length;
         const _deny = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY).length;
