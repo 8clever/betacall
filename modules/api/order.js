@@ -814,7 +814,10 @@ api.getProcessedTime = (user, orderId) => {
     if (!user) throw new Error("User is required");
     
     const order = _.find(user.orders, _.matches({ orderId }));
-    if (!(order && order._dt)) throw new Error("Order not found");
+    if (!(order && order._dt)) {
+        console.log(user.orders, orderId);
+        return {};
+    }
 
     return {
         _i_operatorTimeUsage: moment().diff(order._dt)
