@@ -766,7 +766,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _replaceDate = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE).length;
         const _replaceDateNew = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE && s.isNew).length;
         const _newOrders = _.filter(stats, s => s.isNew).length;
-        const _operatorTimeAvg = _.sumBy(stats, "_i_operatorTimeUsage") / _.filter(stats, s => s._i_operatorTimeUsage).length || null;
+        const _operatorTimeAvg = (_.sumBy(stats, s => s._i_operatorTimeUsage || 0) / _.filter(stats, s => s._i_operatorTimeUsage).length) || null;
         const _donePercent = getPercent(_done + _selfPickUp, _ttOrders);
         const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, _ttOrders);
         const _denyPercent = getPercent(_deny, _ttOrders);
@@ -866,6 +866,11 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
     undercallPercent[1] = getPercent(undercall[1], ttOrders[1]);
     undercallPercentNew[1] = getPercent(undercallNew[1], ttOrders[1]);
 
+    const formatOperatorTime = _.map(operatorTimeAvg, (ms, idx) => {
+        if (idx === 0) return ms;
+        return moment().startOf("day").add(ms).format("HH:mm:ss");
+    });
+
     const dataXlsx = [
         header,
         endOnLastDay,
@@ -890,7 +895,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         replaceDateNew,
         newOrders,
         [],
-        operatorTimeAvg,
+        formatOperatorTime,
         donePercent,
         donePercentNew,
         denyPercent,

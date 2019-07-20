@@ -316,6 +316,8 @@ api.getMyOrders = async function(t, p) {
 
 api.addToMyOrders = async function(t, { orderId, callId }) {
     if (!orderId) throw new Error("Invalid order id");
+    orderId = parseFloat(orderId);
+
     let u = await ctx.api.users.getCurrentUserPublic(t, {});
 
     u.orders = u.orders || [];

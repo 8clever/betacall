@@ -40,6 +40,7 @@ import _ from "lodash";
 import moment from "moment";
 import { SketchPicker } from 'react-color';
 import url from "url";
+import { AddOrder } from "../components/AddOrder.jsx";
 
 const AdminPage = props => {
     const { user, orders, limit  } = props;
@@ -408,205 +409,218 @@ class OperatorPage extends Component {
             </Layout>
         }
 
-        return (
-            <Layout title={ i18n.t("Home") } page="home" user={user}>
-                {/** LEFT FORM */}
-                <Scroll>
-                    {
-                        order ?
-                        <div>
-                            <Card>
-                                <CardBody>
-                                    <CardTitle>
-                                        {i18n.t("Information about client")}
-                                    </CardTitle>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Name")}</Label>
-                                        <Input 
-                                            value={this.get(order, "info.clientInfo.fio", "")}
-                                            onChange={this.change("order.info.clientInfo.fio")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Phone")}</Label>
-                                        <Input
-                                            value={this.get(order, "info.clientInfo.phone", "")}
-                                            onChange={this.change("order.info.clientInfo.phone")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("E-mail")}</Label>
-                                        <Input
-                                            value={this.get(order, "info.clientInfo.email", "")}
-                                            onChange={this.change("order.info.clientInfo.email")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Comment")}</Label>
-                                        <Input
-                                            type="textarea"
-                                            value={this.get(order, "info.clientInfo.comment", "")}
-                                            onChange={this.change("order.info.clientInfo.comment")}
-                                        />
-                                    </FormGroup>
-
-                                </CardBody>
-                            </Card>
-                            <div className="mb-2"></div>
-
-                            <Card>
-                                <CardBody>
-                                    <CardTitle>
-                                        {i18n.t("Information about delivery")}
-                                    </CardTitle>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Delivery Date")}</Label>
-                                        <DatePicker 
-                                            isValidDate={current => {
-                                                if (current.isBefore(new Date())) return false;
-                                                if (current.day() === 0) return false;
-                                                return true
-                                            }}
-                                            i18n={i18n}
-                                            key={order.info.orderIdentity.orderId}
-                                            value={desiredDate}
-                                            onChange={this.change("order.info.desiredDateDelivery.date")}
-                                            format="YYYY-MM-DD"
-                                            mask={"9999-99-99"}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Time intervals")}</Label>
-                                        <Input
-                                            type="select"
-                                            onChange={e => {
-                                                let { order } = _.cloneDeep(this.state);
-                                                let [ timeStart, timeEnd ] = e.target.value.split("|");
-                                                timeStart = timeStart || "";
-                                                timeEnd = timeEnd || "";
-                                                _.set(order, "info.desiredDateDelivery.timeInterval.bTime", timeStart);
-                                                _.set(order, "info.desiredDateDelivery.timeInterval.eTime", timeEnd);
-                                                this.setState({ order });
-                                            }}
-                                            value={timeStart && timeEnd && `${timeStart}|${timeEnd}` || ""}>
-                                            <option value="">{i18n.t("Not Selected")}</option>
-                                            <option value="10:00:00|14:00:00">10:00 - 14:00</option>
-                                            <option value="14:00:00|18:00:00">14:00 - 18:00</option>
-                                            <option value="10:00:00|18:00:00">10:00 - 18:00</option>
-                                        </Input>
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Delivery Region")}</Label>
-                                        <Input
-                                            readOnly
-                                            value={this.get(order, "info.deliveryAddress.region", "")}
-                                            onChange={this.change("order.info.deliveryAddress.region")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Delivery City")}</Label>
-                                        <Input
-                                            readOnly
-                                            value={this.get(order, "info.deliveryAddress.city", "")}
-                                            onChange={this.change("order.info.deliveryAddress.city")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Zip Code")}</Label>
-                                        <Input
-                                            value={this.get(order, "info.deliveryAddress.inCityAddress.zipcode", "")}
-                                            onChange={this.change("order.info.deliveryAddress.inCityAddress.zipcode")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label>{i18n.t("Delivery Address")}</Label>
-                                        <Input
-                                            value={this.get(order, "info.deliveryAddress.inCityAddress.address", "")}
-                                            onChange={this.change("order.info.deliveryAddress.inCityAddress.address")}
-                                        />
-                                    </FormGroup>
-
-                                    <FormGroup check>
-                                        <Label check>
-                                            <Input 
-                                                type="radio" 
-                                                name="delivery-type"
-                                                checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.COURIER}
-                                                onChange={() => {
-                                                    this.change("order.info.deliveryType")({ 
-                                                        target: { 
-                                                            value: __.DELIVERY_TYPE.COURIER
-                                                        }
-                                                    });
-                                                }}
-                                            /> 
-                                            {i18n.t("Courier")}
-                                        </Label>
-                                    </FormGroup>
-
-                                    <FormGroup check>
-                                        <Label check>
-                                            <Input 
-                                                type="radio" 
-                                                name="delivery-type"
-                                                checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP}
-                                                onChange={() => {
-                                                    this.change("order.info.deliveryType")({ 
-                                                        target: { 
-                                                            value: __.DELIVERY_TYPE.PICKUP
-                                                        }
-                                                    });
-                                                }}
-                                            /> 
-                                            {i18n.t("Pickup")} 
-                                        </Label>
-                                    </FormGroup>
-
-                                    <div className="mb-2"></div>
-
-                                    {
-                                        this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
-                                        <FormGroup>
-                                            <Label>{i18n.t("Pickup Point")}</Label>
-                                            <Input
-                                                type="select"
-                                                value={this.get(this.state, "pickupId", "")}
-                                                onChange={this.change("pickupId")}>
-                                                <option value="">{i18n.t("Not Selected")}</option>
-                                                {
-                                                    _.map(order.info.pickupPoints, (point, idx) => {
-                                                        return (
-                                                            <option key={idx} value={point.locationId}>
-                                                                {point.cityOfLocation} {point.addressOfLocation}
-                                                            </option>
-                                                        )
-                                                    })
-                                                }
-                                            </Input>
-                                        </FormGroup> : null
-                                    }
-
-                                </CardBody>
-                            </Card>
-                            <div className="mb-2"></div>
-                        </div> : 
+        if (!order) {
+            return (
+                <Layout title={i18n.t("Home")} page="home" user={user}>
+                    <Scroll>
                         <Alert color="warning">
                             <b>{i18n.t("Information")}</b>
                             <p>
                                 {i18n.t("You not have available orders")}
                             </p>
                         </Alert>
-                    }
+                        <Alert color="info">
+                            <b>{i18n.t("Helper")}</b>
+                            <p>
+                                {i18n.t("In this place you can reassign order by some cases")}
+                            </p>
+                            <AddOrder 
+                                i18n={i18n}
+                            />
+                        </Alert>
+                    </Scroll>
+                </Layout>
+            )
+        }
+
+        return (
+            <Layout title={ i18n.t("Home") } page="home" user={user}>
+                {/** LEFT FORM */}
+                <Scroll>
+                    <Card>
+                        <CardBody>
+                            <CardTitle>
+                                {i18n.t("Information about client")}
+                            </CardTitle>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Name")}</Label>
+                                <Input 
+                                    value={this.get(order, "info.clientInfo.fio", "")}
+                                    onChange={this.change("order.info.clientInfo.fio")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Phone")}</Label>
+                                <Input
+                                    value={this.get(order, "info.clientInfo.phone", "")}
+                                    onChange={this.change("order.info.clientInfo.phone")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("E-mail")}</Label>
+                                <Input
+                                    value={this.get(order, "info.clientInfo.email", "")}
+                                    onChange={this.change("order.info.clientInfo.email")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Comment")}</Label>
+                                <Input
+                                    type="textarea"
+                                    value={this.get(order, "info.clientInfo.comment", "")}
+                                    onChange={this.change("order.info.clientInfo.comment")}
+                                />
+                            </FormGroup>
+
+                        </CardBody>
+                    </Card>
+                    <div className="mb-2"></div>
+
+                    <Card>
+                        <CardBody>
+                            <CardTitle>
+                                {i18n.t("Information about delivery")}
+                            </CardTitle>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Delivery Date")}</Label>
+                                <DatePicker 
+                                    isValidDate={current => {
+                                        if (current.isBefore(new Date())) return false;
+                                        if (current.day() === 0) return false;
+                                        return true
+                                    }}
+                                    i18n={i18n}
+                                    key={order.info.orderIdentity.orderId}
+                                    value={desiredDate}
+                                    onChange={this.change("order.info.desiredDateDelivery.date")}
+                                    format="YYYY-MM-DD"
+                                    mask={"9999-99-99"}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Time intervals")}</Label>
+                                <Input
+                                    type="select"
+                                    onChange={e => {
+                                        let { order } = _.cloneDeep(this.state);
+                                        let [ timeStart, timeEnd ] = e.target.value.split("|");
+                                        timeStart = timeStart || "";
+                                        timeEnd = timeEnd || "";
+                                        _.set(order, "info.desiredDateDelivery.timeInterval.bTime", timeStart);
+                                        _.set(order, "info.desiredDateDelivery.timeInterval.eTime", timeEnd);
+                                        this.setState({ order });
+                                    }}
+                                    value={timeStart && timeEnd && `${timeStart}|${timeEnd}` || ""}>
+                                    <option value="">{i18n.t("Not Selected")}</option>
+                                    <option value="10:00:00|14:00:00">10:00 - 14:00</option>
+                                    <option value="14:00:00|18:00:00">14:00 - 18:00</option>
+                                    <option value="10:00:00|18:00:00">10:00 - 18:00</option>
+                                </Input>
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Delivery Region")}</Label>
+                                <Input
+                                    readOnly
+                                    value={this.get(order, "info.deliveryAddress.region", "")}
+                                    onChange={this.change("order.info.deliveryAddress.region")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Delivery City")}</Label>
+                                <Input
+                                    readOnly
+                                    value={this.get(order, "info.deliveryAddress.city", "")}
+                                    onChange={this.change("order.info.deliveryAddress.city")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Zip Code")}</Label>
+                                <Input
+                                    value={this.get(order, "info.deliveryAddress.inCityAddress.zipcode", "")}
+                                    onChange={this.change("order.info.deliveryAddress.inCityAddress.zipcode")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup>
+                                <Label>{i18n.t("Delivery Address")}</Label>
+                                <Input
+                                    value={this.get(order, "info.deliveryAddress.inCityAddress.address", "")}
+                                    onChange={this.change("order.info.deliveryAddress.inCityAddress.address")}
+                                />
+                            </FormGroup>
+
+                            <FormGroup check>
+                                <Label check>
+                                    <Input 
+                                        type="radio" 
+                                        name="delivery-type"
+                                        checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.COURIER}
+                                        onChange={() => {
+                                            this.change("order.info.deliveryType")({ 
+                                                target: { 
+                                                    value: __.DELIVERY_TYPE.COURIER
+                                                }
+                                            });
+                                        }}
+                                    /> 
+                                    {i18n.t("Courier")}
+                                </Label>
+                            </FormGroup>
+
+                            <FormGroup check>
+                                <Label check>
+                                    <Input 
+                                        type="radio" 
+                                        name="delivery-type"
+                                        checked={this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP}
+                                        onChange={() => {
+                                            this.change("order.info.deliveryType")({ 
+                                                target: { 
+                                                    value: __.DELIVERY_TYPE.PICKUP
+                                                }
+                                            });
+                                        }}
+                                    /> 
+                                    {i18n.t("Pickup")} 
+                                </Label>
+                            </FormGroup>
+
+                            <div className="mb-2"></div>
+
+                            {
+                                this.get(order, "info.deliveryType") === __.DELIVERY_TYPE.PICKUP ?
+                                <FormGroup>
+                                    <Label>{i18n.t("Pickup Point")}</Label>
+                                    <Input
+                                        type="select"
+                                        value={this.get(this.state, "pickupId", "")}
+                                        onChange={this.change("pickupId")}>
+                                        <option value="">{i18n.t("Not Selected")}</option>
+                                        {
+                                            _.map(order.info.pickupPoints, (point, idx) => {
+                                                return (
+                                                    <option key={idx} value={point.locationId}>
+                                                        {point.cityOfLocation} {point.addressOfLocation}
+                                                    </option>
+                                                )
+                                            })
+                                        }
+                                    </Input>
+                                </FormGroup> : null
+                            }
+
+                        </CardBody>
+                    </Card>
+                    <div className="mb-2"></div>
                 </Scroll>
 
                 {/** RIGHT FORM */}
