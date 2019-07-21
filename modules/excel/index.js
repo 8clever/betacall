@@ -701,7 +701,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         "из них новых",
         0
     ]
-    const newOrders = [
+    const newOrdersWithoutAttempts = [
         "Новое, без попыток дозвона",
         0
     ]
@@ -765,7 +765,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _undercallNew = _.filter(stats, s => s.status === __.ORDER_STATUS.UNDER_CALL && s.isNew).length;
         const _replaceDate = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE).length;
         const _replaceDateNew = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE && s.isNew).length;
-        const _newOrders = _.filter(stats, s => s.isNew).length;
+        const _newOrdersWithoutAttempts = _.filter(stats, s => s.isNew && s.rounds.length === 1).length;
         const _operatorTimeAvg = (_.sumBy(stats, s => s._i_operatorTimeUsage || 0) / _.filter(stats, s => s._i_operatorTimeUsage).length) || null;
         const _donePercent = getPercent(_done + _selfPickUp, _ttOrders);
         const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, _ttOrders);
@@ -833,8 +833,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         replaceDateNew.push(_replaceDateNew);
         replaceDateNew[1] += _replaceDateNew;
 
-        newOrders.push(_newOrders);
-        newOrders[1] += _newOrders;
+        newOrdersWithoutAttempts.push(_newOrdersWithoutAttempts);
+        newOrdersWithoutAttempts[1] += _newOrdersWithoutAttempts;
 
         operatorTimeAvg.push(_operatorTimeAvg);
         if (_operatorTimeAvg) {
@@ -893,7 +893,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         undercallNew,
         replaceDate,
         replaceDateNew,
-        newOrders,
+        newOrdersWithoutAttempts,
         [],
         formatOperatorTime,
         donePercent,
