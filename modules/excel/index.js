@@ -746,9 +746,11 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         header.push(dd);
 
         const stats = statsMap[dd];
+        
         const _forwardedCount = _.filter(stats, s => s.isForwarded).length;
         const _endOnLastDayCount = stats.length - _forwardedCount;
         const _ttOrders = stats.length;
+        
         const _done = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE })).length;
         const _doneNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE && s.isNew).length;
         const _round1 = _.filter(stats, s => s.rounds[0] === __.ORDER_STATUS.DONE).length;
@@ -757,6 +759,7 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _round2New = _.filter(stats, s => s.rounds[1] === __.ORDER_STATUS.DONE && s.isNew).length;
         const _round3 = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE)).length;
         const _round3New = _.filter(stats, s => s.rounds.slice(2).includes(__.ORDER_STATUS.DONE) && s.isNew).length;
+        
         const _selfPickUp = _.filter(stats, _.matches({ status: __.ORDER_STATUS.DONE_PICKUP })).length;
         const _selfPickUpNew = _.filter(stats, s => s.status === __.ORDER_STATUS.DONE_PICKUP && s.isNew).length;
         const _deny = _.filter(stats, s => s.status === __.ORDER_STATUS.DENY).length;
@@ -765,7 +768,8 @@ get("/getStatsByDay", token(), setXlsx("call_stats_by_day"), async (req, res) =>
         const _undercallNew = _.filter(stats, s => s.status === __.ORDER_STATUS.UNDER_CALL && s.isNew).length;
         const _replaceDate = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE).length;
         const _replaceDateNew = _.filter(stats, s => s.status === __.ORDER_STATUS.REPLACE_DATE && s.isNew).length;
-        const _newOrdersWithoutAttempts = _.filter(stats, s => s.isNew && s.rounds.length === 1).length;
+        const _newOrdersWithoutAttempts = _.filter(stats, s => s.isNew && !s.rounds.length).length;
+        
         const _operatorTimeAvg = (_.sumBy(stats, s => s._i_operatorTimeUsage || 0) / _.filter(stats, s => s._i_operatorTimeUsage).length) || null;
         const _donePercent = getPercent(_done + _selfPickUp, _ttOrders);
         const _donePercentNew = getPercent(_doneNew + _selfPickUpNew, _ttOrders);
