@@ -13,7 +13,12 @@ module.exports.init = async function (_ctx) {
 
 	// WRITE SCHEDULES HERE
 	let t = await api._getRobotToken();
-	await ctx.api.order._getCallOrders(t, {});
+
+	try {
+		await ctx.api.order._getCallOrders(t, {});
+	} catch (e) {
+		console.log(e);
+	}
 	
 	api.addJob("order._getCallOrders", { cronTime: "0 */15 * * * *" });
 	api.addJob("order._insertNotProcessedOrders", { cronTime: "0 */15 * * * *" });
