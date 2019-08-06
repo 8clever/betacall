@@ -22,7 +22,15 @@ function getStats (ctx) {
     }, {});
 
     let roundCount = 0;
-    let header = [ "OrderID", "Full Name", "First Date", "Last Date", "End Of Storage", "Region", "Market Name" ];
+    let header = [ 
+      "OrderID", 
+      "Full Name", 
+      "First Date", 
+      "Last Date", 
+      "End Of Storage", 
+      "Region", 
+      "Market Name" 
+    ];
     let defaultHeaderLength = header.length;
     let data = [header];
 

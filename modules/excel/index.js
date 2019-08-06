@@ -5,6 +5,7 @@ const { getCurrentCalls } = require("./getCurrentCalls");
 const { getStatsByRegion } = require("./getStatsByRegion");
 const { getStats } = require("./getStats");
 const { getStatsByDay } = require("./getStatsByDay");
+const { getIndicators } = require("./getIndicators")
 const {
     get,
     token,
@@ -25,6 +26,8 @@ module.exports.init = async function (...args) {
     get(Router)("/getStats", token(), setXlsx("call_stats"), getStats(ctx));
 
     get(Router)("/getStatsByDay", token(), setXlsx("call_stats_by_day"), getStatsByDay(ctx));
+
+    get(Router)("/getIndicators", token(), setXlsx("indicators"), getIndicators(ctx));
 
     return { api: {}};
 };

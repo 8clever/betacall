@@ -166,6 +166,13 @@ const Stats = props => {
         });
     }
 
+    const downloadXlsxIndicators = () => {
+        window.location = url.format({
+            pathname: "/excel/getIndicators",
+            query: stateFilter
+        });
+    }
+
     const downloadXlsx = () => {
         window.location = url.format({
             pathname: "/excel/getStats",
@@ -268,7 +275,7 @@ const Stats = props => {
                                         value={filter.marketName || ""}
                                     />
                                 </Col>
-                                <Col md={4}>
+                                <Col md={12}>
                                     <Label>&nbsp;</Label>
                                     <br/>
                                     <Button 
@@ -292,6 +299,11 @@ const Stats = props => {
                                         onClick={downloadXlsxByDays}
                                         color="light">
                                         <Fa fa="file-o"/> {"Excel by Days"}
+                                    </Button>{" "}
+                                    <Button
+                                        onClick={downloadXlsxIndicators}
+                                        color="light">
+                                        <Fa fa="file-o"/> {"Excel Indicators"}
                                     </Button>
                                 </Col>
                             </Row>

@@ -16,6 +16,7 @@ module.exports = {
   getDays,
   getPercent,
   getStatusByOrder,
+  getStatsMap,
   ddFormat
 }
 
@@ -289,4 +290,61 @@ function getStatusByOrder (status, nextStatus) {
       default:
           return nextStatus;
   }
+}
+
+async function getStatsMap (t, filter, ctx) {
+  const { query, query2 } = getQuery(filter, ctx);
+    const mainQuery = Object.assign(query, query2);
+
+    await ctx.api.order.prepareJoinStats(t, { query });
+    const orders = await ctx.api.order.getJoinStats(t, {
+       query: mainQuery,
+       fields: {
+           _id: 1,
+           orderId: 1,
+           status: 1,
+           _i_operatorTimeUsage: 1,
+           _dt: 1
+       },
+       sort: {
+           _dt: 1
+       }
+    });
+
+    const statsMap = _.reduce(orders.list, (memo, stat) => {
+        const dd = moment(stat._dt).format("DD.MM.YYYY");
+        memo[dd] = memo[dd] || [];
+        const orderIdx = _.findIndex(memo[dd], _.matches({ orderId: stat.orderId }));
+        const order = orderIdx === -1 ? stat : memo[dd][orderIdx];
+
+        order.status = getStatusByOrder(order.status || stat.status, stat.status)
+        order.rounds = order.rounds || [];
+        order.isNew = order.isNew || stat.status === __.ORDER_STATUS.NOT_PROCESSED;
+        order.isForwarded = order.isForwarded || (
+            order.status === __.ORDER_STATUS.DONE || 
+            order.status === __.ORDER_STATUS.DONE_PICKUP || 
+            order.status === __.ORDER_STATUS.DENY || 
+            order.status === __.ORDER_STATUS.REPLACE_DATE
+        )
+        order.count = order.count || 0;
+        order.count++;
+
+        if (stat._i_operatorTimeUsage) {
+            order.c = order._i_operatorTimeUsage || stat._i_operatorTimeUsage;
+            order._i_operatorTimeUsage = (stat._i_operatorTimeUsage + order._i_operatorTimeUsage) / 2;
+        }
+
+        if (stat.status !== __.ORDER_STATUS.NOT_PROCESSED) {
+            order.rounds.push(stat.status);
+        }
+
+        if (orderIdx === -1) memo[dd].push(order);
+
+        return memo;
+    }, {});
+
+    return {
+      statsMap,
+      orders
+    }
 }
