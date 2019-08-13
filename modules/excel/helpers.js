@@ -277,6 +277,7 @@ function getDays (from, to) {
 }
 
 function getPercent (n1, n2) {
+  if (!n2) return (0).toFixed(2);
   return ((n1/n2)*100).toFixed(2);
 }
 
