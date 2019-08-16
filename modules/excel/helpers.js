@@ -336,6 +336,7 @@ async function getStatsMap (t, filter, ctx) {
 
         if (order.isNew && order.isForwarded) {
             order._i_timeOrderProcessed = moment(order._dt).valueOf() - moment(order._dtstart).valueOf();
+            console.log(order._i_timeOrderProcessed)
         }
 
         if (stat._i_operatorTimeUsage) {
