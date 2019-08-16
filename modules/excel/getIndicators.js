@@ -42,7 +42,7 @@ function getIndicators (ctx) {
     const ttUndercallPercent = ["% Недозвонов", 0];
 
     const operatorAvgTime = ["Средняя длительность обработки заказа от загружен в систему до получения финального статуса done или pick_up", 0];
-    const incomingOperatorAvgTime = ["Средняя длительность обработки заказа от загружен в систему до получения финального статуса done или pick_up"]
+    const orderAvgTime = ["Средняя длительность обработки заказа от загружен в систему до получения финального статуса done или pick_up", 0];
 
     const remainsOrders = ["Остаток за пред. период", 0];
     const doneOrders = ["Согласованная дата доставки", 0];
@@ -101,7 +101,8 @@ function getIndicators (ctx) {
       const _ttReplaceDatePercent = getPercent(_ttReplaceDate, _total);
       const _ttUndercallPercent = getPercent(_ttUndercall, _total);
 
-      const _operatorAvgTime = (_.sumBy(stats, s => !s.isNew && s._i_operatorTimeUsage || 0) / _.filter(stats, s => !s.isNew && s._i_operatorTimeUsage).length) || null;
+      const _operatorAvgTime = (_.sumBy(stats, s => s._i_operatorTimeUsage || 0) / _.filter(stats, s => s._i_operatorTimeUsage).length) || null;
+      const _orderAvgTime = (_.sumBy(stats, s => s._i_timeOrderProcessed || 0) / _.filter(stats, s => s._i_timeOrderProcessed).length) || null;
 
       const _remainsOrders = _.filter(stats, s => !s.isNew).length;
       const _doneOrders = _.filter(stats, s => !s.isNew && s.status === __.ORDER_STATUS.DONE).length;
@@ -155,6 +156,7 @@ function getIndicators (ctx) {
       ttUndercallPercent.push(_ttUndercallPercent);
 
       operatorAvgTime.push(_operatorAvgTime);
+      orderAvgTime.push(_orderAvgTime);
 
       remainsOrders.push(_remainsOrders);
       doneOrders.push(_doneOrders);
@@ -213,6 +215,13 @@ function getIndicators (ctx) {
         operatorAvgTime[1] = (_operatorAvgTime + operatorAvgTime[1]) / 2;
       }
 
+      if (_orderAvgTime) {
+        if (!orderAvgTime[1]) {
+          orderAvgTime[1] = _orderAvgTime;
+        }
+        orderAvgTime[1] = (_orderAvgTime + orderAvgTime[1]) / 2;
+      }
+
       remainsOrders[1] += _remainsOrders;
       doneOrders[1] += _doneOrders;
       doneCalls[1] += _doneCalls;
@@ -254,6 +263,11 @@ function getIndicators (ctx) {
       return moment().startOf("day").add(ms).format("HH:mm:ss");
     });
 
+    const formatOrderTime = _.map(orderAvgTime, (ms, idx) => {
+      if (idx === 0) return ms;
+      return moment().startOf("year").add(ms).format("D HH:mm:ss");
+    });
+
     const percentLabel = "%";
 
     /** write data to xlsx */
@@ -274,7 +288,7 @@ function getIndicators (ctx) {
       writeLabel(ttUndercallPercent, percentLabel),
       [],
       formatOperatorTime,
-      incomingOperatorAvgTime,
+      formatOrderTime,
       [],
       remainsOrders,
       doneOrders,

@@ -330,6 +330,14 @@ async function getStatsMap (t, filter, ctx) {
         order.count = order.count || 0;
         order.count++;
 
+        if (order.isNew && !order._dtstart) {
+            order._dtstart = order._dt;
+        }
+
+        if (order.isNew && order.isForwarded) {
+            order._i_timeOrderProcessed = moment(order._dt).valueOf() - moment(order._dtstart).valueOf();
+        }
+
         if (stat._i_operatorTimeUsage) {
             order.c = order._i_operatorTimeUsage || stat._i_operatorTimeUsage;
             order._i_operatorTimeUsage = (stat._i_operatorTimeUsage + order._i_operatorTimeUsage) / 2;
