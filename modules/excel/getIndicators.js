@@ -265,7 +265,7 @@ function getIndicators (ctx) {
 
     const formatOrderTime = _.map(orderAvgTime, (ms, idx) => {
       if (idx === 0) return ms;
-      return moment().startOf("year").add(ms).format("D HH:mm:ss");
+      return moment().startOf("year").add(ms).format("HH:mm:ss");
     });
 
     const percentLabel = "%";
