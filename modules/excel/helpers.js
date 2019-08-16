@@ -331,11 +331,11 @@ async function getStatsMap (t, filter, ctx) {
         order.count++;
 
         if (order.isNew && !order._dtstart) {
-            order._dtstart = order._dt;
+            order._dtstart = stat._dt;
         }
 
         if (order.isNew && order.isForwarded) {
-            order._i_timeOrderProcessed = moment(order._dt).valueOf() - moment(order._dtstart).valueOf();
+            order._i_timeOrderProcessed = moment(stat._dt).valueOf() - moment(order._dtstart).valueOf();
             console.log(order._i_timeOrderProcessed)
         }
 
