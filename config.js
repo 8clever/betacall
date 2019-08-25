@@ -45,6 +45,9 @@ module.exports = {
 		blackList: [
 			"8800",
 			"89167766437"
+		],
+		blackMarkets: [
+			"homshoppingrasha"
 		]
 	},
 	mongo: {

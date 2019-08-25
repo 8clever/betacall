@@ -95,12 +95,27 @@ function getQuery (filter, ctx) {
   }
 
   query.$and = query.$and || [];
-  query.$and.push({
-      _s_phone: {
-          $nin: _.map(ctx.cfg.ami.blackList, black => {
-              return { $regex: black, $options: "gmi" };
-          })
-      }
+
+  _.each(ctx.cfg.ami.blackList, black => {
+    query.$and.push({
+        _s_phone: {
+            $not: {
+                $regex: black, 
+                $options: "gmi"
+            }
+        }
+    })
+  });
+
+  _.each(ctx.cfg.ami.blackMarkets, black => {
+    query.$and.push({
+        _s_marketName: {
+            $not: {
+                $regex: black, 
+                $options: "gmi"
+            }
+        }
+    })
   });
 
   return {

@@ -624,7 +624,7 @@ api.startCallByOrder =  async function(t, p) {
         ctx.api.socket.getListenersCount(),
         ctx.api.socket.getIo(),
         ctx.api.socket.getServerIo(),
-        ctx.api.asterisk.__isOn(t, {}),
+        ctx.api.asterisk.__isOn(t, {})
     ]);
     const currentDate = new Date();
     const idOrders = _.map(orders.list, "orderIdentity.orderId");
@@ -677,6 +677,7 @@ api.startCallByOrder =  async function(t, p) {
 
     _.each(orders.list, order => {
         let phone = _.get(order, "clientInfo.phone");
+        let marketName = _.get(order, "orderUrl", "");
         let orderId = _.get(order, "orderIdentity.orderId");
         let region = _.get(order, "deliveryAddress.region");
         let timeCall = callTimes[region] || callTimes.default;
@@ -690,6 +691,14 @@ api.startCallByOrder =  async function(t, p) {
                 blackPhone = true;
                 return false;
             }
+        });
+
+        _.each(ctx.cfg.ami.blackMarkets, black => {
+            let regex = new RegExp(black);
+            if (regex.test(marketName)) {
+                blackPhone = true;
+                return false;
+            } 
         });
 
         if (ctx.cfg.ami.sandbox) {
