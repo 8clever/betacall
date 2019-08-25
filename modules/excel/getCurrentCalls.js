@@ -14,12 +14,20 @@ function getCurrentCalls (ctx) {
     if (req.query.phone) query["clientInfo.phone"] = req.query.phone;
   
     const orders = await ctx.api.order.getOrders(res.locals.token, { query });
-    let data = [["OrderID", "Phone", "Client", "End of Storage Date", "Full Price"]];
+    let data = [[
+      "OrderID", 
+      "Phone", 
+      "Client", 
+      "End of Storage Date",
+      "Market Name",
+      "Full Price"
+    ]];
   
     orders.list.forEach(order => {
         const orderId = _.get(order, "orderIdentity.orderId");
         const phone = _.get(order, "clientInfo.phone");
         const client = _.get(order, "clientInfo.fio");
+        const marketName = _.get(order, "orderUrl", "");
         const price = _.get(order, "clientFullCost");
         let endOfStorageDate = _.get(order, "endOfStorageDate");
         if (endOfStorageDate) {
@@ -31,6 +39,7 @@ function getCurrentCalls (ctx) {
             phone,
             client,
             endOfStorageDate,
+            marketName,
             price   
         ]);
     });
