@@ -105,6 +105,8 @@ function getQuery (filter, ctx) {
     })
   });
 
+  console.log(query)
+
   _.each(ctx.cfg.ami.blackMarkets, black => {
     query.$and.push({
         _s_marketName: {
