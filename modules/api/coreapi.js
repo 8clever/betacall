@@ -63,7 +63,6 @@ api.initSearchApiFunction = function (collection) {
 			if (a.$match)
 				a.$match = qf(a.$match);
 
-			console.dir(a.$match, { depth: null })
 			aggregate.push(a);
 		});
 
