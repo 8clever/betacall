@@ -264,9 +264,6 @@ async function getStatsWithRounds (token, filter, ctx) {
       }
   });
 
-  console.dir(query, { depth: null });
-  console.log(stats.list[0])
-
   return {
       stats,
       rounds
