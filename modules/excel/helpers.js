@@ -96,16 +96,11 @@ function getQuery (filter, ctx) {
 
   query.$and = query.$and || [];
 
-  _.each(ctx.cfg.ami.blackList, black => {
-    const re = new RegExp(black);
-    query.$and.push({
-        _s_phone: {
-            $not: re
-        }
-    })
-  });
-
-  console.dir(query, { depth: null });
+  query._s_phone = {
+      $nin: _.map(ctx.cfg.ami.blackList, black => {
+          return new RegExp(black)
+      })
+  }
 
   _.each(ctx.cfg.ami.blackMarkets, black => {
     query.$and.push({
