@@ -99,10 +99,7 @@ function getQuery (filter, ctx) {
   _.each(ctx.cfg.ami.blackList, black => {
     query.$and.push({
         _s_phone: {
-            $not: {
-                $regex: black, 
-                $options: "gmi"
-            }
+            $not: new RegExp(black)
         }
     })
   });
@@ -110,10 +107,7 @@ function getQuery (filter, ctx) {
   _.each(ctx.cfg.ami.blackMarkets, black => {
     query.$and.push({
         _s_marketName: {
-            $not: {
-                $regex: black, 
-                $options: "gmi"
-            }
+            $not: new RegExp(black), 
         }
     })
   });
