@@ -98,11 +98,11 @@ function getQuery (filter, ctx) {
 
   _.each(ctx.cfg.ami.blackList, black => {
     const re = new RegExp(`^(?!${black}).+$`);
-    query.$and.push({
-        _s_phone: {
-            $regex: re, 
-        }
-    })
+    // query.$and.push({
+    //     _s_phone: {
+    //         $regex: re, 
+    //     }
+    // })
   });
 
   _.each(ctx.cfg.ami.blackMarkets, black => {
