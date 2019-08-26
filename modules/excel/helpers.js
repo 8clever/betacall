@@ -97,7 +97,7 @@ function getQuery (filter, ctx) {
   query.$and = query.$and || [];
 
   _.each(ctx.cfg.ami.blackList, black => {
-    const re = new RegExp(`^(?!${black}).+$`);
+    const re = new RegExp(black);
     query.$and.push({
         _s_phone: {
             $not: re
