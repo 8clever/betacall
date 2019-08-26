@@ -82,7 +82,6 @@
 					_.forOwn(v, function (val, op) {
 						// op value is array {$in:[1,2,4]}
 						if (_.isArray(val)) {
-							console.log(val)
 							var na = [];
 							_.forOwn(val, function (a) {
 								_.attempt(function () { na.push(translate[prefix](a)); });
