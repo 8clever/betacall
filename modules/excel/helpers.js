@@ -100,7 +100,8 @@ function getQuery (filter, ctx) {
     query.$and.push({
         _s_phone: {
             $not: {
-                $regex: new RegExp(black)
+                $regex: black, 
+                $options: "gmi"
             }
         }
     })
@@ -110,7 +111,8 @@ function getQuery (filter, ctx) {
     query.$and.push({
         _s_marketName: {
             $not: {
-                $regex: new RegExp(black)
+                $regex: black, 
+                $options: "gmi"
             }
         }
     })
