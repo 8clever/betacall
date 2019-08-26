@@ -21,6 +21,7 @@
 				return pr;
 		},
 		"_s_": function (pr) {
+			console.log(pr, _.isRegExp(pr))
 			if (_.isRegExp(pr)) return pr;
 			return pr.toString();
 		},
