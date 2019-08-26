@@ -62,7 +62,7 @@ api.initSearchApiFunction = function (collection) {
 		_.each(p.aggregate, a => {
 			if (a.$match)
 				a.$match = qf(a.$match);
-			
+
 			aggregate.push(a);
 		});
 

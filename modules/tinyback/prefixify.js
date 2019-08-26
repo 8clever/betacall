@@ -21,6 +21,7 @@
 				return pr;
 		},
 		"_s_": function (pr) {
+			if (_.isRegExp(pr)) return pr;
 			return pr.toString();
 		},
 		"_id": function (pr) {

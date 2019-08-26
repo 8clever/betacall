@@ -98,7 +98,7 @@ function getQuery (filter, ctx) {
 
   query._s_phone = {
       $nin: _.map(ctx.cfg.ami.blackList, black => {
-          return new RegExp(black)
+          return new RegExp(black);
       })
   }
 
@@ -217,6 +217,8 @@ async function getStatsWithRounds (token, filter, ctx) {
 
   await ctx.api.order.prepareJoinStats(token, { query });
 
+
+  console.dir(query, { depth: null })
   const stats = await ctx.api.order.getJoinStats(token, {
       aggregate: [
           { $match: query },
@@ -229,7 +231,6 @@ async function getStatsWithRounds (token, filter, ctx) {
               _s_region: { $last: "$_s_region" },
               _s_marketName: { $last: "$_s_marketName" }
           }},
-          { $match: query2 },
           { $addFields: {
               orderId: "$_id"
           }}
@@ -262,6 +263,8 @@ async function getStatsWithRounds (token, filter, ctx) {
           _dt: -1
       }
   });
+
+  console.log(stats.list[0], { depth: null })
 
   return {
       stats,
