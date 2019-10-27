@@ -20,6 +20,7 @@ function getCurrentCalls (ctx) {
       "Client", 
       "End of Storage Date",
       "Market Name",
+      "Region",
       "Full Price"
     ]];
   
@@ -28,6 +29,7 @@ function getCurrentCalls (ctx) {
         const phone = _.get(order, "clientInfo.phone");
         const client = _.get(order, "clientInfo.fio");
         const marketName = _.get(order, "orderUrl", "");
+        const region = _.get(order, "deliveryAddress.region", "");
         const price = _.get(order, "clientFullCost");
         let endOfStorageDate = _.get(order, "endOfStorageDate");
         if (endOfStorageDate) {
@@ -40,6 +42,7 @@ function getCurrentCalls (ctx) {
             client,
             endOfStorageDate,
             marketName,
+            region,
             price   
         ]);
     });

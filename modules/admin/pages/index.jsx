@@ -140,6 +140,7 @@ const AdminPage = props => {
                                     <th>{i18n.t("Client")}</th>
                                     <th>{i18n.t("End of Storage Date")}</th>
                                     <th>{i18n.t("Market Name")}</th>
+                                    <th>{i18n.t("Region")}</th>
                                     <th>{i18n.t("Full Price")}</th>
                                 </tr>
                             </thead>
@@ -158,6 +159,7 @@ const AdminPage = props => {
                                                 <td>{_.get(order, "clientInfo.fio")}</td>
                                                 <td>{endOfStorageDate}</td>
                                                 <td>{_.get(order, "orderUrl")}</td>
+                                                <td>{_.get(order, "deliveryAddress.region")}</td>
                                                 <td>{_.get(order, "clientFullCost")} p.</td>
                                             </tr>
                                         )
