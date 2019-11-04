@@ -33,6 +33,7 @@ import {
 import TimePicker from "../components/TimePicker.jsx";
 import moment from "moment";
 import PropTypes from "prop-types";
+import md5 from "md5";
 
 class EditTimeCall extends Component {
     constructor(props) {
@@ -155,6 +156,88 @@ class EditTimeCall extends Component {
     }
 }
 
+const getDefaultMark = () => {
+    return {
+        id: md5(Math.random().toString()),
+        name: ""
+    }
+}
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {Boolean} props.visible 
+ * @param {String} props.idMark
+ * @param {Function} props.onCancel
+ * @param {Function} props.onSave
+ * @param {Object} props.i18n 
+ * @param {Function} props.i18n.t
+ */
+const EditMark = (props) => {
+    const { i18n } = props;
+    const [ mark, setMark ] = React.useState(getDefaultMark());
+
+    React.useEffect(() => {
+        if (!props.visible) return;
+
+        setMark(getDefaultMark());
+        if (!props.idMark) return;
+
+        withError(async () => {
+            const settings = await api("settings.getSettings", token.get(), {});
+            const mark = _.find(settings.marks, _.matches({ id: props.idMark }));
+            if (!mark) return;
+            setMark(mark);
+        });
+    }, [props.visible]);
+
+    if (!props.visible) return <Modal isOpen={false} />
+
+    return (
+        <Modal isOpen={props.visible}>
+            <ModalHeader>
+                {i18n.t("Edit mark")}
+            </ModalHeader>
+            <ModalBody>
+                <FormGroup>
+                    <Label>{i18n.t("Name")}</Label>
+                    <Input
+                        onChange={e => {
+                            setMark({
+                                ...mark,
+                                name: e.target.value
+                            });
+                        }}
+                        value={mark.name}
+                        placeholder={i18n.t("Text...")}
+                    />
+                </FormGroup>
+            </ModalBody>
+            <ModalFooter>
+                <Button 
+                    color="primary" 
+                    onClick={() => {
+                        withError(async () => {
+                            const settings = await api("settings.getSettings", token.get(), {});
+                            const oldMark = _.find(settings.marks, _.matches({ id: mark.id }));
+                            if (oldMark) Object.assign(oldMark, mark);
+                            else settings.marks.push(mark);
+                            await api("settings.editSettings", token.get(), { data: settings });
+                            props.onSave();
+                        });
+                    }}>
+                    {i18n.t("Save")}
+                </Button>
+                <Button 
+                    onClick={props.onCancel}
+                    color="light">
+                    {i18n.t("Cancel")}
+                </Button>
+            </ModalFooter>
+        </Modal>
+    )
+}
+
 class Settings extends Component {
     constructor (props) {
         super(props)
@@ -187,6 +270,7 @@ class Settings extends Component {
         let i18n = new I18n(user);
     
         const stateAddTimeCall = "add-time-call";
+        const stateAddMark = "add-mark";
 
         return (
             <Layout title={ i18n.t("Settings") } page="settings" user={user}>
@@ -279,6 +363,112 @@ class Settings extends Component {
                                 }
                             </Row>
                             
+                        </CardBody>
+                    </Card>
+
+                    <Card className="mt-2">
+                        <CardHeader>
+                            <Row>
+                                <Col>
+                                    {i18n.t("Marks")}
+                                </Col>
+                                <Col className="text-right">
+                                    <Button 
+                                        onClick={this.toggle(stateAddMark)}
+                                        color="success" 
+                                        size="sm">
+                                        <Fa fa="plus" />
+                                    </Button>
+
+                                    <EditMark 
+                                        i18n={i18n}
+                                        visible={!!this.state[stateAddMark]}
+                                        onCancel={this.toggle(stateAddMark)}
+                                        onSave={() => {
+                                            global.router.reload();
+                                            this.toggle(stateAddMark)();
+                                        }}
+                                    />
+                                </Col>
+                            </Row>
+                        </CardHeader>
+                        <CardBody>
+                            <Row>
+                                {
+                                    settings.marks.map((mark) => {
+                                        const stateRemoveMark = "rm-mark-" + mark.id;
+
+                                        return (
+                                            <Col key={mark.id} md={6} className="mb-2">
+                                                <Row>
+                                                    <Col>
+                                                        {mark.name}
+                                                    </Col>
+                                                    <Col className="text-right">
+                                                        <Button
+                                                            onClick={this.toggle(mark.id)}
+                                                            size="sm"   
+                                                            outline
+                                                            color="primary">
+                                                            <Fa fa="pencil" />
+                                                        </Button>
+                                                        {" "}
+
+                                                        <Button
+                                                            outline
+                                                            size="sm"
+                                                            onClick={this.toggle(stateRemoveMark)}
+                                                            color="danger">
+                                                            <Fa fa="trash" />
+                                                        </Button>
+
+                                                        <EditMark 
+                                                            i18n={i18n}
+                                                            onSave={() => {
+                                                                global.router.reload();
+                                                                this.toggle(mark.id)();
+                                                            }}
+                                                            idMark={mark.id}
+                                                            onCancel={this.toggle(mark.id)}
+                                                            visible={!!this.state[mark.id]}
+                                                        />
+
+                                                        <Modal isOpen={!!this.state[stateRemoveMark]}>
+                                                            <ModalHeader className="bg-warning">
+                                                                {i18n.t("Attention!")}
+                                                            </ModalHeader>
+                                                            <ModalBody>
+                                                                {i18n.t("Are you sure remove mark?")}
+                                                            </ModalBody>
+                                                            <ModalFooter>
+                                                                <Button
+                                                                    onClick={() => {
+                                                                        withError(async () => {
+                                                                            const marks = _.cloneDeep(settings.marks);
+                                                                            _.remove(marks, _.matches({ id: mark.id }));
+                                                                            await api("settings.editSettings", token.get(), { data: {
+                                                                                ...settings,
+                                                                                marks
+                                                                            }});
+                                                                            this.toggle(stateRemoveMark);
+                                                                            global.router.reload();
+                                                                        })
+                                                                    }}
+                                                                    color="warning">{i18n.t("Confirm")}</Button>
+                                                                <Button 
+                                                                    color="light"
+                                                                    onClick={this.toggle(stateRemoveMark)}>
+                                                                    {i18n.t("Cancel")}
+                                                                </Button>
+                                                            </ModalFooter>
+                                                        </Modal>
+                                                    </Col>
+                                                </Row>
+                                            </Col>
+                                        )
+                                    })
+                                }
+                            </Row>
                         </CardBody>
                     </Card>
                     

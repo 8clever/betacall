@@ -19,7 +19,7 @@ module.exports.init = async function (...args) {
 				timeCalls: {
                     type: "array",
                     items: {
-                        type: "Object",
+                        type: "object",
                         properties: {
                             region: {
                                 type: "string",
@@ -32,11 +32,28 @@ module.exports.init = async function (...args) {
                                 maximum: 24,
                                 required: true
                             },
-                            _t_end: {
+                            _i_end: {
                                 type: "number",
                                 minimum: 0,
                                 maximum: 24,
                                 required: true
+                            }
+                        }
+                    }
+                },
+                marks: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            id: {
+                                type: "string",
+                                required: true
+                            },
+                            name: {
+                                type: "string",
+                                required: true,
+                                minLength: 2
                             }
                         }
                     }
@@ -60,7 +77,9 @@ module.exports.init = async function (...args) {
 api.getSettings = async (t, p) => {
     const DEFAULT = "default";
     let settings = await ctx.api.settings._getSettings(t, {});
-    settings = settings.list[0] || { timeCalls: [] };
+    settings = settings.list[0] || {};
+    settings.timeCalls = settings.timeCalls || [];
+    settings.marks = settings.marks || [];
 
     let defaultExists = _.find(settings.timeCalls, _.matches({ region: DEFAULT }));
     if (!defaultExists) {
