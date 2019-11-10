@@ -701,6 +701,14 @@ api.startCallByOrder =  async function(t, p) {
             } 
         });
 
+        _.each(ctx.cfg.ami.blackRegions, black => {
+            let regex = new RegExp(black);
+            if (regex.test(region)) {
+                blackPhone = true;
+                return false;
+            } 
+        });
+
         if (ctx.cfg.ami.sandbox) {
             order.clientInfo.phone = ctx.cfg.ami.phone;
             allowedTimeToCall = true;

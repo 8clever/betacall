@@ -44,10 +44,15 @@ module.exports = {
 		phone: "89066482837",
 		blackList: [
 			"8800",
-			"89167766437"
+			"8940"
 		],
 		blackMarkets: [
-			"homshoppingrasha"
+			"homshoppingrasha",
+			"hsr24.ru"
+		],
+		blackRegions: [
+			"Москва",
+			"Московская область"
 		]
 	},
 	mongo: {
