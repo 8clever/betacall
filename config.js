@@ -47,8 +47,6 @@ module.exports = {
 			"8940"
 		],
 		blackMarkets: [
-			"homshoppingrasha",
-			"hsr24.ru"
 		],
 		blackRegions: [
 			"Москва",

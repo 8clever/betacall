@@ -198,6 +198,10 @@ class OperatorPage extends Component {
             }
         };
 
+        this.warningMarkets  = [
+            "homshoppingrasha",
+            "hsr24.ru"
+        ];
         this.canvasBodyRef = React.createRef();
     }
 
@@ -371,6 +375,7 @@ class OperatorPage extends Component {
         let timeStart = this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "");
         let timeEnd = this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "");
 
+        const marketName = this.get(order, "info.orderUrl", "");
 
         // render pain when user want to use paint and not have orders
         if (!order && _.includes(CFG.paint.users, user.login)) {
@@ -660,8 +665,19 @@ class OperatorPage extends Component {
                                         <br/>
                                         <b>{i18n.t("work status")}:</b> {this.get(order, "info.workStatus.name", "")}
                                         <br/>
-                                        <b>{i18n.t("market name")}:</b> {this.get(order, "info.orderUrl", "")}
+                                        <b>{i18n.t("market name")}:</b> {marketName}
                                         <br/>
+
+                                        {
+                                            this.warningMarkets.includes(marketName) ?
+                                            <Alert color="danger">
+                                                <b>{i18n.t("Attention!")}</b>
+                                                <p>
+                                                    {i18n.t("You should use other script for this market.")}
+                                                </p>
+                                            </Alert> : null
+                                        }
+
                                         <b>{i18n.t("link")}: 
                                             {" "}
                                             <a 
