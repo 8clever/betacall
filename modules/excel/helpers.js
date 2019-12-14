@@ -94,15 +94,13 @@ function getQuery (filter, ctx) {
       query2.status = filter.status;
   }
 
-  query.$and = query.$and || [];
-
-  query._s_phone = {
-      $nin: _.map(ctx.cfg.ami.blackList, black => {
-          return new RegExp(black);
-      })
-  }
+  _.each(ctx.cfg.ami.blackList, black => {
+      query._s_phone = query._s_phone || { $nin: []};
+      query._s_phone.$nin.push(new RegExp(black));
+  })
 
   _.each(ctx.cfg.ami.blackMarkets, black => {
+    query.$and = query.$and || [];
     query.$and.push({
         _s_marketName: {
             $ne: black
