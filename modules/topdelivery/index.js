@@ -32,7 +32,13 @@ module.exports.init = async function (...args) {
         }
 
         let t = await ctx.api.scheduler._getRobotToken();
-        let orders = await ctx.api.order.getStatsAll(t, { query });
+        let orders = await ctx.api.order.getStatsAll(t, { 
+            limit: 1000,
+            sort: {
+                _dt: -1
+            },
+            query 
+        });
         let callIds = _.map(orders.list, "_s_callId");
         let stats = await new Promise((resolve, reject) => {
             mysql.query([
