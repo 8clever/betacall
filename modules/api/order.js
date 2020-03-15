@@ -74,6 +74,9 @@ module.exports.init = async function(...args) {
                 _dtendOfStorage: {
                     type: [ "date", "null" ]
                 },
+                _s_deliveryType: {
+                    type: "string"
+                },
                 _s_marketName: {
                     type: "string"
                 }
@@ -719,7 +722,8 @@ api.startCallByOrder =  async function(t, p) {
             allowedTimeToCall &&
             !ORDERS_IN_OPERATORS[orderId] &&
             !callQueue.tasks[orderId] &&
-            !blackPhone
+            !blackPhone &&
+            order.deliveryType !== __.DELIVERY_TYPE.PICKUP
         )
 
         if (!weCanCall) return;
@@ -821,7 +825,8 @@ api.getOrderMeta = order => {
         _dtendOfStorage: _.get(order, "endOfStorageDate", null),
         _dt: new Date(),
         orderId: _.get(order, "orderIdentity.orderId"),
-        _s_marketName: _.get(order, "orderUrl", "")
+        _s_marketName: _.get(order, "orderUrl", ""),
+        _s_deliveryType: _.get(order, "deliveryType", "")
     };
 }
 

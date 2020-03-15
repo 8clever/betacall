@@ -89,6 +89,10 @@ function getQuery (filter, ctx) {
       query._s_marketName = { $regex: filter.marketName, $options: "gmi" }
   }
 
+  if (filter.deliveryType) {
+    query._s_deliveryType = filter.deliveryType;
+  }
+
   // query 2
   if (filter.status) {
       query2.status = filter.status;
