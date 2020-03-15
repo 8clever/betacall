@@ -76,7 +76,7 @@ const AdminPage = props => {
                 <Card>
                     <CardBody>
                         <Row form>
-                            <Col md={4}>
+                            <Col md={2}>
                                 <Label>{i18n.t("Phone Number")}</Label>
                                 <Input 
                                     value={filter.phone || ""}
@@ -87,7 +87,7 @@ const AdminPage = props => {
                                     }}
                                 />
                             </Col>
-                            <Col md={4}>
+                            <Col md={2}>
                                 <Label>{i18n.t("Order ID")}</Label>
                                 <Input 
                                     value={filter.orderId || ""}
@@ -98,7 +98,27 @@ const AdminPage = props => {
                                     }}
                                 />
                             </Col>
-                            <Col md={4} className="text-right">
+                            <Col md={2}>
+                                <Label>{i18n.t("Delivery Type")}</Label>
+                                <Input 
+                                    type="select" 
+                                    onChange={e => {
+                                        filter.deliveryType = e.target.value;
+                                        setFilter(filter)
+                                    }}
+                                    value={filter.deliveryType || ""}>
+                                    <option value={""}>
+                                        {i18n.t("Not Selected")}
+                                    </option>
+                                    <option value={__.DELIVERY_TYPE.COURIER}>
+                                        {i18n.t("Courier")}
+                                    </option>
+                                    <option value={__.DELIVERY_TYPE.PICKUP}>
+                                        {i18n.t("Pickup")}
+                                    </option>
+                                </Input>
+                            </Col>
+                            <Col md={6} className="text-right">
                                 <Label>&nbsp;</Label>
                                 <br/>
                                 <Button
@@ -138,6 +158,7 @@ const AdminPage = props => {
                                     <th>{i18n.t("Order ID")}</th>
                                     <th>{i18n.t("Phone")}</th>
                                     <th>{i18n.t("Client")}</th>
+                                    <th>{i18n.t("Delivery Type")}</th>
                                     <th>{i18n.t("End of Storage Date")}</th>
                                     <th>{i18n.t("Market Name")}</th>
                                     <th>{i18n.t("Region")}</th>
@@ -157,6 +178,7 @@ const AdminPage = props => {
                                                 <td>{_.get(order, "orderIdentity.orderId")}</td>
                                                 <td>{_.get(order, "clientInfo.phone")}</td>
                                                 <td>{_.get(order, "clientInfo.fio")}</td>
+                                                <td>{_.get(order, "deliveryType")}</td>
                                                 <td>{endOfStorageDate}</td>
                                                 <td>{_.get(order, "orderUrl")}</td>
                                                 <td>{_.get(order, "deliveryAddress.region")}</td>
@@ -926,6 +948,10 @@ export default async (ctx) => {
 
         if (filter.phone) {
             query["clientInfo.phone"] = filter.phone;
+        }
+
+        if (filter.deliveryType) {
+            query.deliveryType = filter.deliveryType;
         }
 
         let [ orders ] = await Promise.all([

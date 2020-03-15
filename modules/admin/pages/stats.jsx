@@ -275,26 +275,6 @@ const Stats = props => {
                                         value={filter.marketName || ""}
                                     />
                                 </Col>
-                                <Col md={2}>
-                                    <Label>{i18n.t("Delivery Type")}</Label>
-                                    <Input 
-                                        type="select" 
-                                        onChange={e => {
-                                            filter.deliveryType = e.target.value;
-                                            setFilter(filter)
-                                        }}
-                                        value={filter.deliveryType || ""}>
-                                        <option value={""}>
-                                            {i18n.t("Not Selected")}
-                                        </option>
-                                        <option value={__.DELIVERY_TYPE.COURIER}>
-                                            {i18n.t("Courier")}
-                                        </option>
-                                        <option value={__.DELIVERY_TYPE.PICKUP}>
-                                            {i18n.t("Pickup")}
-                                        </option>
-                                    </Input>
-                                </Col>
                                 <Col md={12}>
                                     <Label>&nbsp;</Label>
                                     <br/>
