@@ -69,13 +69,13 @@ module.exports = {
 		ssl_port: false
 	},
 	topDelivery: {
-		url: "http://is-test.topdelivery.ru/api/soap/c/2.0/?WSDL",
+		url: "http://is-c-test.topdelivery.ru/api/soap/c/2.0/?wsdl",
 		basicAuth: {
 			user: "tdsoap",
 			password: "5f3b5023270883afb9ead456c8985ba8"
 		},
 		bodyAuth: {
-			login: "KobotovCall",
+			login: "kobotovcall",
 			password: "pass"
 		}
 	},
