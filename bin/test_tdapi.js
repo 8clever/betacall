@@ -1,5 +1,6 @@
 const config = require("../config.js");
 const soap = require("soap");
+const fs = require("fs");
 
 (async () => {
   const topDelivery = await soap.createClientAsync(config.topDelivery.url);
@@ -12,4 +13,8 @@ const soap = require("soap");
     auth: config.topDelivery.bodyAuth
   });
 
-})().catch(console.log)
+  console.log(orders)
+})().catch(e => {
+  console.log(e.Fault);
+  fs.writeFileSync("./log.txt", e.body);
+})
