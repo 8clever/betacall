@@ -17,4 +17,4 @@ const fs = require("fs");
 })().catch(e => {
   console.log(e.Fault);
   fs.writeFileSync("./log.txt", e.body);
-})
+}) 
