@@ -54,7 +54,8 @@ module.exports.init = async function (...args) {
                     evt.Cause === "20" ||
                     evt.Cause === "21" ||
                     evt.Cause === "34" ||
-                    evt.Cause === "58" 
+                    evt.Cause === "58" ||
+                    evt.Cause === "127"
                 ) {
                     ami.emit(evt.Uniqueid, { 
                         status: __.CALL_STATUS.UNNAVAILABLE,
