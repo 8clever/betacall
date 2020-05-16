@@ -847,6 +847,26 @@ api.getProcessedTime = (user, orderId) => {
     }
 }
 
+api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
+    const [ response ] = await topDelivery.getNearDeliveryDatesIntervalsAsync({
+        auth: ctx.cfg.topDelivery.bodyAuth,
+        orderIdentity: {
+            orderId
+        }
+    });
+
+    /**
+     * @name Quota
+     * @param date<Date>
+     * @param quotas<Object>
+     * @param quotas.available<Number>
+     * @param timeInterval<Array>
+     * @param timeInterval.bTime<String> as HH:mm:ss
+     * @param timeInterval.eTime<String> as HH:mm:ss
+     */
+    return response.dateTimeIntervals;
+}
+
 // permissions
 
 api[ __.PERMISSION.ORDER.VIEW ] = async function(t, p) {

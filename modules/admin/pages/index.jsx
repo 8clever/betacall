@@ -384,14 +384,15 @@ class OperatorPage extends Component {
     }
 
     render() {
-        let { user, orders, filter } = this.props;
+        let { user, orders, filter, dateTimeIntervals } = this.props;
         let { order } = this.state;
         const i18n = new I18n(user);
 
         let desiredDate = this.get(order, "info.desiredDateDelivery.date", "");
         let storageDate = this.get(order, "info.endOfStorageDate", "");
 
-        desiredDate = this.convertToYYYYMMDD(desiredDate, "YYYY-MM-DD");
+        const dateTimeInteval = desiredDate && dateTimeIntervals.find(i => moment(i.date).format("YYYY-MM-DD") === desiredDate) || null;
+
         storageDate = this.convertToYYYYMMDD(storageDate, "YYYY-MM-DD");
 
         let timeStart = this.get(order, "info.desiredDateDelivery.timeInterval.bTime", "");
@@ -521,9 +522,11 @@ class OperatorPage extends Component {
                                 <Label>{i18n.t("Delivery Date")}</Label>
                                 <DatePicker 
                                     isValidDate={current => {
-                                        if (current.isBefore(new Date())) return false;
-                                        if (current.day() === 0) return false;
-                                        return true
+                                        for (const i of dateTimeIntervals) {
+                                            const isValid = current.isSame(i.date, "day") && i.quotas.available;
+                                            if (isValid) return true;
+                                        }
+                                        return false;
                                     }}
                                     i18n={i18n}
                                     key={order.info.orderIdentity.orderId}
@@ -537,6 +540,7 @@ class OperatorPage extends Component {
                             <FormGroup>
                                 <Label>{i18n.t("Time intervals")}</Label>
                                 <Input
+                                    disabled={!desiredDate}
                                     type="select"
                                     onChange={e => {
                                         let { order } = _.cloneDeep(this.state);
@@ -549,9 +553,15 @@ class OperatorPage extends Component {
                                     }}
                                     value={timeStart && timeEnd && `${timeStart}|${timeEnd}` || ""}>
                                     <option value="">{i18n.t("Not Selected")}</option>
-                                    <option value="10:00:00|14:00:00">10:00 - 14:00</option>
-                                    <option value="14:00:00|18:00:00">14:00 - 18:00</option>
-                                    <option value="10:00:00|18:00:00">10:00 - 18:00</option>
+                                    {dateTimeInteval && dateTimeInteval.timeInterval.map((i, idx) => {
+                                        return (
+                                            <option
+                                                key={idx}
+                                                value={`${i.bTime}|${i.eTime}`}>
+                                                {i.bTime} - {i.eTime}
+                                            </option>
+                                        )
+                                    })}
                                 </Input>
                             </FormGroup>
 
@@ -969,13 +979,20 @@ export default async (ctx) => {
         });
     }
 
-    let orders = await api("order.getMyOrders", token.get(ctx), {});
-    let order = orders[filter.page] || orders[0] || null;
+    const orders = await api("order.getMyOrders", token.get(ctx), {});
+    const order = orders[filter.page] || orders[0] || null;
+    const dateTimeIntervals = [];
+
+    if (order) {
+        const intervals = await api("order.getNearDeliveryDatesIntervals", token.get(ctx), order.info.orderIdentity)
+        dateTimeIntervals.push(...intervals);
+    }
 
     return ctx.res._render(OperatorPage, { 
         user: u,
         orders,
         order,
-        filter
+        filter,
+        dateTimeIntervals
     });
 }
