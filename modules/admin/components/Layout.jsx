@@ -139,7 +139,10 @@ const Layout = observer(props => {
                     </h2>
                 </div>
             </div>
-            <div className="align-self-stretch w-100 d-flex flex-column" style={{ minWidth: "320px" }}>
+            <div className="align-self-stretch w-100 d-flex flex-column" style={{ 
+                minWidth: "320px", 
+                height: "100vh"
+            }}>
                 <Card>
                     <CardBody className="d-flex p-1 pb-2">
                         <div>
@@ -222,7 +225,9 @@ const Layout = observer(props => {
                     <ClientInfo />
                 </div>
               
-                <div className="w-100 flex-column flex-sm-row d-flex scroll-parent">
+                <div className="w-100 flex-column flex-fill flex-sm-row d-flex" style={{
+                    height: "0vh"
+                }}>
                     {children}
                 </div>
             </div>

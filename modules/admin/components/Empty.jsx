@@ -19,7 +19,7 @@ class Empty extends React.Component {
                 position: "absolute",
                 padding: 0,
                 width: "100%",
-                height: "100%",
+                height: "100vh",
                 margin: 0
             }}>
                 {this.props.children}
