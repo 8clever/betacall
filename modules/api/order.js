@@ -864,7 +864,7 @@ api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
      * @param timeInterval.bTime<String> as HH:mm:ss
      * @param timeInterval.eTime<String> as HH:mm:ss
      */
-    return response.dateTimeIntervals;
+    return response.dateTimeIntervals || [];
 }
 
 // permissions
