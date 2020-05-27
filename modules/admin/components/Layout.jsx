@@ -226,7 +226,8 @@ const Layout = observer(props => {
                 </div>
               
                 <div className="w-100 flex-column flex-fill flex-sm-row d-flex" style={{
-                    height: "0vh"
+                    height: "0vh",
+                    overflow: "auto"
                 }}>
                     {children}
                 </div>
