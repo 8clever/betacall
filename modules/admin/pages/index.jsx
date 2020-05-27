@@ -152,7 +152,7 @@ const AdminPage = props => {
                             </Alert>
                         }
 
-                        <Table>
+                        <Table responsive>
                             <thead>
                                 <tr>
                                     <th>{i18n.t("Order ID")}</th>

@@ -314,7 +314,7 @@ const Stats = props => {
 
                 <Card>
                     <CardBody>
-                        <Table>
+                        <Table responsive>
                             <thead>
                                 <tr>
                                     <th>{i18n.t("Date")}</th>
