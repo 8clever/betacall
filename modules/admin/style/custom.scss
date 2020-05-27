@@ -14,10 +14,12 @@
 }
 
 .scroll {
-    min-height: 0px;
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: auto;
+    @media (min-width: 576px) {
+        min-height: 0px;
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
 }
 
 pre {
