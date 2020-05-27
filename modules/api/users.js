@@ -147,6 +147,12 @@ module.exports.init = async function (...args) {
 							}
 						}
 					}
+				},
+				_dtlogin: {
+					type: "date"
+				},
+				_dtlogout: {
+					type: "date"
 				}
 			}
 		}
@@ -330,14 +336,21 @@ api._updateUserToken = async function (t, { _iduser, token, tz }) {
 	let range = 7 * 24 * 60 * 60 * 1000;
 	let _dtexp = new Date(Date.parse(Date()) + range);
 
-	await cols.users.update(
-		{ _id: _iduser },
-		{ $push: { tokens: { token, _dt, _dtexp, tz } } }
-	);
-	await cols.users.update(
-		{ _id: _iduser },
-		{ $pull: { tokens: { _dtexp: { $lt: _dt } } } }
-	);
+	await Promise.all([
+		cols.users.update(
+			{ _id: _iduser },
+			{ 
+				$push: { tokens: { token, _dt, _dtexp, tz } },
+				$set: {
+					_dtlogin: new Date()
+				}
+			}
+		),
+		cols.users.update(
+			{ _id: _iduser },
+			{ $pull: { tokens: { _dtexp: { $lt: _dt } } } }
+		)
+	])
 };
 
 /**
@@ -346,7 +359,16 @@ api._updateUserToken = async function (t, { _iduser, token, tz }) {
  * @param cb
  */
 api.logout = async function (t, p) {
-	await cols.users.update({ 'tokens.token': t }, { $pull: { tokens: { token: t } } }, {});
+	await cols.users.update(
+		{ 'tokens.token': t }, 
+		{ 
+			$pull: { tokens: { token: t } },
+			$set: {
+				_dtlogout: new Date()
+			}
+		}, 
+		{}
+	);
 };
 
 api.restorePassword = async function (t, p) {
