@@ -113,7 +113,7 @@ class ViewStats extends Component {
                                         <tr key={idx}>
                                             <td>{moment(order._dt).format(DDMMYYYYHHmm)}</td>
                                             <td>{order.status}</td>
-                                            <td>{moment(order._dtnextCall).format(DDMMYYYYHHmm)}</td>
+                                            <td>{order._dtnextCall && moment(order._dtnextCall).format(DDMMYYYYHHmm) || ""}</td>
                                             <td>{_.get(order, "_t_user.0.name")}</td>
                                             <td>{order.status}</td>
                                         </tr>
