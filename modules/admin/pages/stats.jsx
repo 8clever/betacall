@@ -100,6 +100,8 @@ class ViewStats extends Component {
                         <thead>
                             <tr>
                                 <th>{i18n.t("Date")}</th>
+                                <th>{i18n.t("Status")}</th>
+                                <th>{i18n.t("Replace To")}</th>
                                 <th>{i18n.t("User")}</th>
                                 <th>{i18n.t("Status")}</th>
                             </tr>
@@ -110,6 +112,8 @@ class ViewStats extends Component {
                                     return (
                                         <tr key={idx}>
                                             <td>{moment(order._dt).format(DDMMYYYYHHmm)}</td>
+                                            <td>{order.status}</td>
+                                            <td>{moment(order._dtnextCall).format(DDMMYYYYHHmm)}</td>
                                             <td>{_.get(order, "_t_user.0.name")}</td>
                                             <td>{order.status}</td>
                                         </tr>
