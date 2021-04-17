@@ -303,6 +303,16 @@ class Users extends Component {
 		}
 	}
 
+	accessUser (token, bool) {
+		this.setState({
+			[ token + "_access_view"]: bool
+		})
+	}
+
+	visibleAccessUser (token) {
+		return this.state[ token + "_access_view"]
+	}
+
 	render() {
 		let { users, filter, limit, user } = this.props;
 		let currentUser = user;
@@ -352,10 +362,55 @@ class Users extends Component {
 															<span className="text-danger">off</span>
 														}
 													</td>
-													<td>
-														<Button outline color="success" size="sm" className="pull-right" onClick={this.toggle(stateEdit)} >
+													<td className="text-right">
+														<Button 
+															style={{
+																marginRight: 5
+															}}
+															outline 
+															color="danger" 
+															onClick={() => {
+																this.accessUser(user._id, true)
+															}}
+															size="sm">
+															<Fa fa="ban" />
+														</Button>
+														<Button 
+															outline color="success" 
+															size="sm" onClick={this.toggle(stateEdit)} >
 															<Fa fa="info" />
 														</Button>
+														<Modal 
+															isOpen={this.visibleAccessUser(user._id)}>
+															<ModalHeader>
+																{i18n.t("Attention!")}
+															</ModalHeader>
+															<ModalBody>
+																{i18n.t("Are you sure reject access for user?")}
+															</ModalBody>
+															<ModalFooter>
+																<Button 
+																	outline 
+																	onClick={() => {
+																		this.accessUser(user._id, false)
+																	}}>
+																	{i18n.t("Cancel")}
+																</Button>
+																<Button 
+																	color="danger" 
+																	onClick={() => {
+																		withError(async () => {
+																			await api("users.rejectAccess", token.get(), {
+																				_iduser: user._id
+																			});
+																			this.accessUser(user._id, false);
+																			global.router.reload();
+																		})
+																	}}>
+																	{i18n.t("Confirm")}
+																</Button>
+															</ModalFooter>
+														</Modal>
 														<EditUser
 															toggle={this.toggle(stateEdit)}
 															visible={this.state[stateEdit]}

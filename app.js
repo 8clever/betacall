@@ -55,7 +55,7 @@ async function startApp () {
 	console.timeEnd("Live !");
 
 	var httpServer = http.Server(app.express);
-	if (app.api.socket && app.api.socket.init) await app.api.socket.init("", httpServer);
+	if (app.api.socket && app.api.socket.init) await app.api.socket.init(app, httpServer);
 	httpServer.listen(cfg.config.server.port);
 
 	if (argv.env === "test") {

@@ -480,6 +480,22 @@ api.loginGoogle = async function(notRequired, { profile, tz }) {
 	}
 }
 
+api.rejectAccess = async function (t, p) {
+	const { _iduser } = qf(p);
+
+	await this.getCurrentUser(t, {});
+	await cols.users.update(
+		{ _id: _iduser },
+		{ 
+			$set: {
+				tokens: [],
+				_dtlogout: new Date()
+			}
+		}
+	)
+	await ctx.api.socket.closeConnections(t, {});
+}
+
 // permissions
 api.permUserView = async function (t, p) {
 	let u = await this.getCurrentUser(t, {});

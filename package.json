@@ -67,8 +67,8 @@
     "serve-static": "^1.13.2",
     "short-id": "0.1.0-1",
     "soap": "^0.27.1",
-    "socket.io": "^2.2.0",
-    "socket.io-client": "^2.2.0",
+    "socket.io": "^4.0.1",
+    "socket.io-client": "^4.0.1",
     "tinyback": "./modules/tinyback",
     "tinyhook": "~0.2.2",
     "yargs": "^8.0.2"
