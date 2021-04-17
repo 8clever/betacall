@@ -786,28 +786,6 @@ class OperatorPage extends Component {
 										</Modal>
 										{" "}
 
-										<Button
-											onClick={this.toggle(OperatorPage.state.skipModal)}
-											color="primary">
-											{i18n.t("Skip")}
-										</Button>
-										<Modal isOpen={!!this.state[OperatorPage.state.skipModal]}>
-											<ModalHeader className="bg-warning">{i18n.t("Attention!")}</ModalHeader>
-											<ModalBody>{i18n.t("Are you sure skip order?")}</ModalBody>
-											<ModalFooter>
-												<Button
-													onClick={this.skipOrder()}
-													color="warning">
-													{i18n.t("Confirm")}
-												</Button>
-												<Button
-													onClick={this.toggle(OperatorPage.state.skipModal)}
-													color="light">
-													{i18n.t("Cancel")}
-												</Button>
-											</ModalFooter>
-										</Modal>
-
 									</CardBody>
 								</Card>
 								<div className="mb-2"></div>
