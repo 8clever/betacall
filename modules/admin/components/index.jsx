@@ -9,10 +9,8 @@ import Scroll from "./Scroll.jsx";
 import Progress from "./Progress.jsx";
 import DatePicker from "./DatePicker.jsx";
 import TimePicker from "./TimePicker.jsx";
-import Paint from "./Paint.jsx";
 
 export {
-    Paint,
     TimePicker,
     DatePicker,
     ClientInfo,

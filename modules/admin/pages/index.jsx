@@ -5,8 +5,7 @@ import {
 	DatePicker,
 	Panel,
 	Pagination,
-	Fa,
-	Paint
+	Fa
 } from "../components/index.jsx"
 import {
 	Socket,
@@ -209,15 +208,6 @@ class OperatorPage extends Component {
 		super(props);
 		this.state = {
 			order: props.order,
-			paint: {
-				style: {
-					background: '#F2F2F8'
-				},
-				brushCol: 'black',
-				lineWidth: 10,
-				width: 800,
-				height: 600
-			}
 		};
 
 		this.warningMarkets = [
@@ -399,47 +389,6 @@ class OperatorPage extends Component {
 		let timeEnd = this.get(order, "info.desiredDateDelivery.timeInterval.eTime", "");
 
 		const marketName = this.get(order, "info.orderUrl", "");
-
-		// render pain when user want to use paint and not have orders
-		if (!order && _.includes(CFG.paint.users, user.login)) {
-			return <Layout title={i18n.t("Home")} page="home" user={user}>
-				<Scroll>
-					<div className="body-canvas h-100">
-						<Paint {...this.state.paint}
-							className='h-100 react-paint'
-						/>
-					</div>
-				</Scroll>
-				<Scroll className="col-md-4">
-					<FormGroup>
-						<Label>{i18n.t("Brush size")}</Label>
-						<Input
-							placeholder={"Number..."}
-							value={this.state.paint.lineWidth || ""}
-							onChange={this.change("paint.lineWidth", {
-								isNumber: true
-							})}
-						/>
-					</FormGroup>
-
-					<FormGroup>
-						<Label>{i18n.t("Brush")}</Label>
-						<SketchPicker
-							color={this.state.paint.brushCol}
-							onChangeComplete={this.changeColor("paint.brushCol")}
-						/>
-					</FormGroup>
-
-					<FormGroup>
-						<Label>{i18n.t("Background")}</Label>
-						<SketchPicker
-							color={this.state.paint.style.background}
-							onChangeComplete={this.changeColor("paint.style.background")}
-						/>
-					</FormGroup>
-				</Scroll>
-			</Layout>
-		}
 
 		if (!order) {
 			return (
