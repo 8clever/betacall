@@ -480,6 +480,20 @@ api.loginGoogle = async function(notRequired, { profile, tz }) {
 	}
 }
 
+/**
+ * Login is Exten of asterisk
+ * 
+ * @param {*} t 
+ * @param {*} p 
+ */
+api.getUserByLogin= async (t, p) => {
+	const { login } = p;
+	const user = await ctx.api.users.getUsers(t, {
+		query: { login }
+	});
+	return user.list[0];
+}
+
 api.rejectAccess = async function (t, p) {
 	const { _iduser } = qf(p);
 

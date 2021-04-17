@@ -208,6 +208,7 @@ class OperatorPage extends Component {
 		super(props);
 		this.state = {
 			order: props.order,
+			holdTime: 0
 		};
 
 		this.warningMarkets = [
@@ -220,11 +221,18 @@ class OperatorPage extends Component {
 	componentDidMount() {
 		let { user } = this.props;
 		this.socket = Socket.connect();
+
 		this.socket.on(user._id, (evt) => {
 			withError(async () => {
 				await api("order.addToMyOrders", token.get(), evt);
 				global.router.reload();
 			});
+		});
+
+		this.socket.on(user._id + "_holdTime", time => {
+			this.setState({
+				holdTime: time
+			})
 		});
 
 		let setSize = () => {
@@ -857,6 +865,10 @@ class OperatorPage extends Component {
 										redirect(null, "index", { page })
 									}}>
 									{_.get(order, "info.clientInfo.phone")}
+
+									<span className="text-muted">
+										{" " + this.state.holdTime}
+									</span>
 
 									<br />
 									<small className="text-muted">{_.get(order, "info.clientInfo.fio")}</small>

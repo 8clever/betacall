@@ -85,6 +85,16 @@ module.exports.init = async function (...args) {
                 });
             });
 
+            const holdTimeListener = _.debounce(async (evt) => {
+                const io = await ctx.api.socket.getIo();
+                let user = await ctx.api.users.getUsers(t, { login: evt.Exten });
+                if (user) {
+                    io.emit(`${user._id}_holdTime`, evt.HoldTime);
+                }
+            }, 300);
+
+            ami.on("eventAgentConnect", holdTimeListener);
+
             resolve();
         });
     });

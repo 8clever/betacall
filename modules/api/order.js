@@ -787,10 +787,9 @@ api.startCallByOrder =  async function(t, p) {
                 }
                 
                 if (call.status === __.CALL_STATUS.DONE) {
-                    let user = await ctx.api.users.getUsers(t, {
-                        query: { login: call.exten }
+                    const user = await ctx.api.users.getUserByLogin(t, { 
+                        login: call.exten
                     });
-                    user = user.list[0];
                     if (!user) throw new Error("User not found. Exten: " + call.exten);
                     
                     ORDERS_IN_OPERATORS[orderId] = 1;
