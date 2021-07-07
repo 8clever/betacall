@@ -1,14 +1,14 @@
-const fs = require('fs');
 const path = require('path');
 const tinyback = require('tinyback');
 const modules = require("./tiny-modules");
 const http = require('http');
-const https = require('https');
 const express = require('express');
 const sstatic = express.static;
 const argv = require('yargs').argv;
 const tinyPromise = require("./tiny-promise");
 const __ = require("./modules/api/__namespace");
+
+const { lookup } = require('lookup-dns-cache');
 
 let cfg = { modules };
 
@@ -24,6 +24,8 @@ startApp().catch(err => {
 async function startApp () {
 	let config = await tinyback.readConfig();
 	cfg.config = config;
+
+	await cacheDns();
 
 	let app = await	tinyback.createApp(cfg);
 	let newrelic = config.__newrelic;
@@ -61,4 +63,14 @@ async function startApp () {
 	if (argv.env === "test") {
 		await require("./test")(app);
 	}
+}
+
+async function cacheDns () {
+	return new Promise((res, rej) => {
+		const url = new URL(cfg.config.topDelivery.url);
+		lookup(url.hostname, { ttl: true }, function(err, result) {
+			if (err) return rej(err);
+			res(result);
+		});
+	})
 }
