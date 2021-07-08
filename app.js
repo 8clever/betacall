@@ -68,7 +68,7 @@ async function startApp () {
 async function cacheDns () {
 	return new Promise((res, rej) => {
 		const url = new URL(cfg.config.topDelivery.url);
-		lookup(url.hostname, { ttl: true }, function(err, result) {
+		lookup(url.hostname, { ttl: true, all: true }, function(err, result) {
 			if (err) return rej(err);
 			res(result);
 		});
