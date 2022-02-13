@@ -11,12 +11,7 @@ const webpack = require("webpack");
 const _ = require("lodash");
 const { readConfig } = require('tinyback');
 
-const cfg = readConfig();
-
-const pubConfig = _.pick(cfg, [
-    "paint",
-    "env"
-]);
+const mode = process.env.ENV || "development";
 
 const jsxLoader = {
     test: /\.jsx$|__namespace\.js$/,
@@ -30,7 +25,7 @@ const jsxLoader = {
 
 let config = {
     context: __dirname,
-    mode: cfg.env,
+    mode,
     module: {
         rules: [
             jsxLoader
@@ -47,7 +42,9 @@ let config = {
     plugins: [
         new WebpackBundleSizeAnalyzerPlugin('../../../report-admin.txt'),
         new webpack.DefinePlugin({
-            CFG: JSON.stringify(pubConfig)
+            CFG: JSON.stringify({
+                env: mode
+            })
         })
     ]
 }

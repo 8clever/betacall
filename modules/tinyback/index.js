@@ -708,7 +708,13 @@ module.exports.readConfig = function () {
 	var argv = require('yargs').argv;
 	var dirPath = __dirname + "/../../",
 		mcfg = require(path.resolve(dirPath, "config.js")),
+		lcfg = {};
+	
+	try {
 		lcfg = require(path.resolve(dirPath, "volume/config.js"));
+	} catch {
+		console.error("IN")
+	}
 
 	mcfg = _.merge({}, mcfg, lcfg);
 

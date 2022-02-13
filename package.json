@@ -114,7 +114,7 @@
     "start": "node app.js",
     "reset": "node bin/reset_dataentry.js",
     "build": "npm run translate && npm run builds",
-    "builds": "npm run build-admin",
+    "builds": "ENV=production npm run build-admin",
     "translate": "npm run translate-admin",
     "build-admin": "cd modules/admin && npx webpack",
     "translate-admin": "cd modules/admin/dist && neo-json-i18n localization.json --lang ru,pt",
