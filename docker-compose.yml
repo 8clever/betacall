@@ -8,6 +8,8 @@ services:
       - 27017:27017
   web:
     build: .
+    environment:
+      - TZ=Europe/Moscow
     volumes:
       - ./:/app
     network_mode: "host"
