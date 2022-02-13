@@ -867,6 +867,16 @@ api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
     return response.dateTimeIntervals || [];
 }
 
+api.getHistoryByOrderId = async (t, { orderId }) => {
+    const [ response ] = await topDelivery.getOrderEventsAsync({
+        auth: ctx.cfg.topDelivery.bodyAuth,
+        order: {
+            orderId
+        }
+    });
+    return response.orderEventsInfo;
+}
+
 // permissions
 
 api[ __.PERMISSION.ORDER.VIEW ] = async function(t, p) {

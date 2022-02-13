@@ -203,6 +203,7 @@ const AdminPage = props => {
 	)
 }
 
+const colStyle = { minWidth: 135 };
 class OperatorPage extends Component {
 	constructor(props) {
 		super(props);
@@ -382,7 +383,7 @@ class OperatorPage extends Component {
 	}
 
 	render() {
-		let { user, orders, filter, dateTimeIntervals } = this.props;
+		let { user, orders, filter, dateTimeIntervals, history } = this.props;
 		let { order } = this.state;
 		const i18n = new I18n(user);
 
@@ -849,6 +850,45 @@ class OperatorPage extends Component {
 										</Modal>
 									</CardBody>
 								</Card>
+								<div className="mb-2"></div>
+								<Card>
+									<CardBody>
+										<CardTitle>{i18n.t("History")}</CardTitle>
+										<Table responsive borderless size="sm" striped hover>
+											<thead>
+												<tr>
+													<th>{i18n.t("Date")}</th>
+													<th>{i18n.t("Updated by")}</th>
+													<th>{i18n.t("Title")}</th>
+													<th>{i18n.t("New value")}</th>
+													<th>{i18n.t("Previous value")}</th>
+													<th>{i18n.t("Region")}</th>
+													<th>{i18n.t("City")}</th>
+													<th>{i18n.t("Comment")}</th>
+												</tr>
+											</thead>
+											<tbody>
+												{
+													history[0] &&
+													history[0].events.map(e => {
+
+														return (
+															<tr key={e.eventId}>
+																<td style={colStyle}>{moment(e.date).format("DD.MM.YYYY HH:mm")}</td>
+																<td style={colStyle}>{e.user}</td>
+																<td style={colStyle}>{e.eventType.name}</td>
+																<td style={colStyle}>{e.newValue}</td>
+																<td style={colStyle}>{e.prevValue}</td>
+																<td style={colStyle}>{e.region.name}</td>
+																<td style={colStyle}>{e.city.name}</td>
+																<td style={colStyle}>{e.comment}</td>
+															</tr>
+														)
+												})}
+											</tbody>
+										</Table>
+									</CardBody>
+								</Card>
 							</div>
 							: null
 					}
@@ -920,18 +960,20 @@ export default async (ctx) => {
 
 	const orders = await api("order.getMyOrders", token.get(ctx), {});
 	const order = orders[filter.page] || orders[0] || null;
-	const dateTimeIntervals = [];
 
-	if (order) {
-		const intervals = await api("order.getNearDeliveryDatesIntervals", token.get(ctx), order.info.orderIdentity)
-		dateTimeIntervals.push(...intervals);
-	}
-
-	return ctx.res._render(OperatorPage, {
+	const dto = {
 		user: u,
 		orders,
 		order,
 		filter,
-		dateTimeIntervals
-	});
+		dateTimeIntervals: []
+	}
+
+	if (order) {
+		dto.history = await api("order.getHistoryByOrderId", token.get(ctx), order.info.orderIdentity)
+		const intervals = await api("order.getNearDeliveryDatesIntervals", token.get(ctx), order.info.orderIdentity)
+		dto.dateTimeIntervals.push(...intervals);
+	}
+
+	return ctx.res._render(OperatorPage, dto);
 }
