@@ -9,11 +9,10 @@ const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
 const smp = new SpeedMeasurePlugin();
 const webpack = require("webpack");
 const _ = require("lodash");
-const cfg = _.merge(
-    {},
-    require("../../config"),
-    require("../../local-config"),
-);
+const { readConfig } = require('tinyback');
+
+const cfg = readConfig();
+
 const pubConfig = _.pick(cfg, [
     "paint",
     "env"

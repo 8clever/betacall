@@ -704,11 +704,11 @@ module.exports.mongocache = function () {
 	};
 };
 
-module.exports.readConfig = async function () {
+module.exports.readConfig = function () {
 	var argv = require('yargs').argv;
 	var dirPath = __dirname + "/../../",
 		mcfg = require(path.resolve(dirPath, "config.js")),
-		lcfg = require(path.resolve(dirPath, "local-config.js"));
+		lcfg = require(path.resolve(dirPath, "volume/config.js"));
 
 	mcfg = _.merge({}, mcfg, lcfg);
 

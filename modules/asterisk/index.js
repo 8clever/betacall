@@ -23,7 +23,11 @@ module.exports.init = async function (...args) {
     
     await new Promise((resolve, reject) => {
         ami.on('error', function(err){
-            reject(err);
+            if (config.env === "production") {
+                return reject(err);
+            }
+            console.error(`INVALID CONNECTION TO ASTERISK: ${config.ami.host}:${config.ami.port}`);
+            resolve();
         });
 
         ami.on('ready', function(){
