@@ -1,5 +1,4 @@
 FROM node:erbium-slim
-RUN timedatectl set-timezone Etc/GMT-3
 RUN apt-get update || : && apt-get install python make g++ tzdata -y
 WORKDIR /app
 COPY . .
