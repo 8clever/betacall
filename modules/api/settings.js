@@ -16,6 +16,20 @@ module.exports.init = async function (...args) {
 				_id: {
 					type: "mongoId"
 				},
+                robots: {
+                    required: true,
+                    type: "object",
+                    properties: {
+                        _i_count: {
+                            type: "number",
+                            minimum: 0,
+                            required: true
+                        },
+                        start: {
+                            type: "boolean"
+                        }
+                    }
+                },
 				timeCalls: {
                     type: "array",
                     items: {
@@ -80,6 +94,7 @@ api.getSettings = async (t, p) => {
     settings = settings.list[0] || {};
     settings.timeCalls = settings.timeCalls || [];
     settings.marks = settings.marks || [];
+    settings.robots = settings.robots || { _i_count: 0, start: false }
 
     let defaultExists = _.find(settings.timeCalls, _.matches({ region: DEFAULT }));
     if (!defaultExists) {

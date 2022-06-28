@@ -62,5 +62,10 @@ api.getServerIo = async function (t, p) {
 }
 
 api.getListenersCount = async function (t, p) {
-	return io.engine.clientsCount + ctx.cfg.ami.robotsCount;
+	const cfg = await ctx.api.settings.getSettings(t);
+	let count = io.engine.clientsCount;
+	if (cfg.robots.start) {
+		count += cfg.robots._i_count;
+	}
+	return count;
 }

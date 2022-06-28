@@ -38,7 +38,6 @@ module.exports = {
 				regex: /SIP\/mango1/
 			}
 		},
-		robotsCount: 0,
 		maxQueue: 1,
 		addQueue: 3,
 		sandbox: true,
