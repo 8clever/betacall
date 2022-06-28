@@ -62,5 +62,5 @@ api.getServerIo = async function (t, p) {
 }
 
 api.getListenersCount = async function (t, p) {
-	return io.engine.clientsCount;
+	return io.engine.clientsCount + ctx.cfg.ami.robotsCount;
 }
