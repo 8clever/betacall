@@ -2,8 +2,6 @@ version: "3.9"
 services:
   mongo:
     image: mongo:4.4
-    volumes:
-      - ./volume/mongo:/data/db
     ports:
       - 27017:27017
   web:
