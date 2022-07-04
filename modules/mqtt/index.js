@@ -12,7 +12,7 @@ const METHODS = {
 const emitter = new EventEmitter();
 
 function generateMethod (topic) {
-  return (dto = {}) => {
+  return (t, dto = {}) => {
     return new Promise(res => {
       const id = Math.floor(Math.random() * 10000000);
       emitter.on(id, res)
@@ -38,10 +38,6 @@ module.exports.init = async function (...args) {
     return { api };
 }
 
-/**
- * 
- * @param {*} t 
- * @param {*} p 
- * @param {*} p.order 
- */
-api.textToSpeech = generateMethod(METHODS.TEXT_TO_SPEECH);
+for (const topic of Object.values(METHODS)) {
+  api[topic] = generateMethod(topic);
+}
