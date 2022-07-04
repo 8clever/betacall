@@ -1,9 +1,9 @@
 version: "3.9"
 services:
+  mqtt:
+    image: eclipse-mosquitto
   mongo:
     image: mongo:4.4
-    ports:
-      - 27017:27017
   web:
     build:
       context: .
@@ -12,6 +12,8 @@ services:
       - TZ=Europe/Moscow
     volumes:
       - ./:/app
-    network_mode: "host"
+    ports:
+      - 3000:3000    
     depends_on:
+      - "mqtt"
       - "mongo"
