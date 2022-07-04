@@ -49,6 +49,14 @@ module.exports.init = async function (...args) {
                     evt.Uniqueid
                 )) return;
 
+                if (evt.Cause === "777") {
+                    ami.emit(evt.Uniqueid, { 
+                        status: __.CALL_STATUS.DONE_BOT,
+                        id: evt.Uniqueid
+                    });
+                    return;
+                }
+
                 if (
                     evt.Cause === "1" ||
                     evt.Cause === "16" ||

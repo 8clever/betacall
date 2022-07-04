@@ -16,6 +16,7 @@ module.exports.LANGS = {
 
 module.exports.CALL_STATUS = {
     DONE: "done",
+    DONE_BOT: "done_bot",
     UNNAVAILABLE: "unnavailable",
     CONNECTING_PROBLEM: "connecting-problem",
     ASTERISK_BUSY: "asterisk-busy"

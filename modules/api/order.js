@@ -787,6 +787,14 @@ api.startCallByOrder =  async function(t, p) {
                     });
                     return;
                 }
+
+                if (call.status === __.CALL_STATUS.DONE_BOT) {
+                    await ctx.api.order.doneOrder(t, { order, metadata: {
+                        orderId,
+                        callId: call.id
+                    }})
+                    return;
+                }
                 
                 if (call.status === __.CALL_STATUS.DONE) {
                     const user = await ctx.api.users.getUserByLogin(t, { 
