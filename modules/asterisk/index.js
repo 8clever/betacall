@@ -148,7 +148,7 @@ api.__call = async function(t, { phone, gateawayName, order }) {
 
     let Variable = null;
 
-    if (ctx.cfg.textToSpeech) {
+    if (ctx.cfg.mqtt.textToSpeech) {
         Variable = {
             text1: `Вам пришла посылка из интернет магазина ${order.orderUrl}. Стоимостью ${order.clientFullCost} руб`,
             text2: `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
