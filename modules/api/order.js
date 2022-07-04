@@ -428,7 +428,7 @@ api.doneOrder = async function(t, { order, metadata }) {
     let data = _.assign({
         _s_callId: metadata.callId,
         _iduser: user._id,
-        status: __.ORDER_STATUS.DONE
+        status: metadata.status || __.ORDER_STATUS.DONE
     }, 
         api.getOrderMeta(order),
         api.getProcessedTime(user, orderId)
@@ -791,7 +791,8 @@ api.startCallByOrder =  async function(t, p) {
                 if (call.status === __.CALL_STATUS.DONE_BOT) {
                     await ctx.api.order.doneOrder(t, { order, metadata: {
                         orderId,
-                        callId: call.id
+                        callId: call.id,
+                        status: __.CALL_STATUS.DONE_BOT
                     }})
                     return;
                 }
