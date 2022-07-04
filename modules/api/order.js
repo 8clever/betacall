@@ -770,6 +770,8 @@ api.startCallByOrder =  async function(t, p) {
                 const n = _.get(ordersRoundMap, `${orderId}.count`, 0);
                 const gateawayName = n === 1 ? "mango1" : "default";
                 console.log("gateaway", gateawayName, n);
+                
+                /** TODO connect textToSpeech service */
 
                 let call = await ctx.api.asterisk.__call(t, { phone, gateawayName });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;

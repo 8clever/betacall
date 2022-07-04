@@ -24,5 +24,6 @@ module.exports = [
 	{name: "admin", require: path.join(__dirname, "./modules/admin")},
 	{name: "asterisk", require: path.join(__dirname, "./modules/asterisk")},
 	{name: "socket", require: path.join(__dirname, "./modules/socket")},
+	{name: "mqtt", require: path.join(__dirname, "./modules/mqtt")},
 	{name: "excel", require: path.join(__dirname, "./modules/excel")}
 ];

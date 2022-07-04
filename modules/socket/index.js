@@ -3,7 +3,6 @@ const parser = require("cookie");
 let api = {};
 let io = null;
 let ctx = null;
-let connected = 0;
 
 module.exports.init = async function (_ctx) {
 	ctx = _ctx;
@@ -33,7 +32,6 @@ api.init = async function (t, http) {
 
 	io.on("connection", async function (client) {
 		console.log("socket-client connected: " + io.engine.clientsCount);
-		connected++;
 
 		client.on("msg", (data) => {
 			if (data.evtid) {
@@ -43,7 +41,6 @@ api.init = async function (t, http) {
 
 		client.on('disconnect', function () {
 			console.log('socket-client disconnected');
-			connected--;
 		});
 
 	});

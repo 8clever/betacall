@@ -53,10 +53,16 @@ module.exports = {
 			"Московская область"
 		]
 	},
+	mqtt: {
+		on: true,
+		main: {
+			host: "mqtt"
+		}
+	},
 	mongo: {
 		main: {
 			db: "betacall",
-			host: "localhost",
+			host: "mongo",
 			port: 27017,
 			scfg: { auto_reconnect: true, poolSize: 100 },
 			ccfg: { native_parser: true, w: 1 }
