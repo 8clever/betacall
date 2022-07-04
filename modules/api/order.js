@@ -773,7 +773,7 @@ api.startCallByOrder =  async function(t, p) {
                 
                 /** TODO connect textToSpeech service */
 
-                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName });
+                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName, order });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
 
                 console.log(`end call --- ` + call.status);

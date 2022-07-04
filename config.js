@@ -54,7 +54,7 @@ module.exports = {
 		]
 	},
 	mqtt: {
-		on: true,
+		textToSpeech: false,
 		main: {
 			host: "mqtt"
 		}
