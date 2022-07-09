@@ -48,10 +48,20 @@ module.exports.init = async function (...args) {
                 if (!(
                     evt.Uniqueid
                 )) return;
-
+                
+                /** DONE ORDER */
                 if (evt.Cause === "777") {
                     ami.emit(evt.Uniqueid, { 
                         status: __.CALL_STATUS.DONE_BOT,
+                        id: evt.Uniqueid
+                    });
+                    return;
+                }
+
+                /** RECALL LATER */
+                if (evt.Cause === "778") {
+                    ami.emit(evt.Uniqueid, { 
+                        status: __.CALL_STATUS.RECALL_LATER_BOT,
                         id: evt.Uniqueid
                     });
                     return;
