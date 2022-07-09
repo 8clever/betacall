@@ -712,8 +712,9 @@ module.exports.readConfig = function () {
 	
 	try {
 		lcfg = require(path.resolve(dirPath, "volume/config.js"));
-	} catch {
-		console.error("IN")
+	} catch (e) {
+		console.error("readConfig error: ");
+		console.log(e);
 	}
 
 	mcfg = _.merge({}, mcfg, lcfg);
