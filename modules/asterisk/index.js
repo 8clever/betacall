@@ -190,7 +190,7 @@ api.__call = async function(t, { phone, gateawayName, texts }) {
                 CallerID: phone,
                 ActionID: "service_call",
                 ChannelId: id,
-                Variable
+                variables: Variable
             },
             data => {
                 if(data.Response === 'Error'){
