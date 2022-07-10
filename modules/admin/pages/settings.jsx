@@ -269,6 +269,7 @@ class Settings extends Component {
 
   save () {
     withError(async () => {
+      console.log(this.state.settings)
       await api("settings.editSettings", token.get(), { data: this.state.settings });
     });
   }
@@ -321,7 +322,6 @@ class Settings extends Component {
               <FormItem>
                 <Checkbox 
                   onChange={e => {
-                    console.log(e.target.checked)
                     this.setState({
                       settings: {
                         ...settings,
@@ -426,7 +426,8 @@ class Settings extends Component {
 
             </CardBody>
           </Card>
-          <Card>
+
+          <Card className="mb-2">
             <CardHeader>
               <Row>
                 <Col>
@@ -534,7 +535,89 @@ class Settings extends Component {
             </CardBody>
           </Card>
 
-
+          <Card>
+            <CardHeader>
+              <Row>
+                <Col>
+                  {i18n.t("Markets Translate")}
+                </Col>
+                <Col className="text-right">
+                  <Button className="mr-2" size="sm" onClick={() => {
+                    this.setState({
+                      settings: {
+                        ...settings,
+                        markets: [
+                          ...settings.markets,
+                          { key: "", value: "" }
+                        ]
+                      }
+                    })
+                  }}>
+                    <Fa fa='plus' />
+                  </Button>
+                  <Button color="primary" size="sm" onClick={() => {
+                    this.save()
+                  }}>
+                    <Fa fa='edit' />
+                  </Button>
+                </Col>
+              </Row>
+            </CardHeader>
+            <CardBody>
+              <Row>
+                <Col>{i18n.t("Original")}</Col>
+                <Col>{i18n.t("Translate")}</Col>
+                <Col></Col>
+              </Row>
+              {settings.markets.map((market, idx) => {
+                return (
+                  <Row key={idx} className="mb-2">
+                    <Col>
+                      <Input value={market.key} onChange={e => {
+                        const upd = settings.markets.concat();
+                        upd[idx].key = e.target.value;
+                        this.setState({
+                          settings: {
+                            ...settings,
+                            markets: upd
+                          }
+                        })
+                      }} />
+                    </Col>
+                    <Col>
+                      <Input value={market.value} onChange={e => {
+                        const upd = settings.markets.concat();
+                        upd[idx].value = e.target.value;
+                        this.setState({
+                          settings: {
+                            ...settings,
+                            markets: upd
+                          }
+                        })
+                      }}/>
+                    </Col>
+                    <Col>
+                      <Button
+                        outline
+                        onClick={() => {
+                          const upd = settings.markets.concat();
+                          upd.splice(idx, 1);
+                          this.setState({
+                            settings: {
+                              ...settings,
+                              markets: upd
+                            }
+                          })
+                        }}
+                        color="danger">
+                        <Fa fa="trash" />
+                      </Button>
+                    </Col>
+                  </Row>
+                )
+              })}
+            </CardBody>
+          </Card>
           <Pagination
             location="default"
             count={0}

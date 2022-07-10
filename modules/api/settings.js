@@ -71,6 +71,20 @@ module.exports.init = async function (...args) {
                             }
                         }
                     }
+                },
+                markets: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            key: {
+                                type: "string"
+                            },
+                            value: {
+                                type: "string"
+                            }
+                        }
+                    }
                 }
 			}
 		}
@@ -95,6 +109,7 @@ api.getSettings = async (t, p) => {
     settings.timeCalls = settings.timeCalls || [];
     settings.marks = settings.marks || [];
     settings.robots = settings.robots || { _i_count: 0, start: false }
+    settings.markets = settings.markets || [];
 
     let defaultExists = _.find(settings.timeCalls, _.matches({ region: DEFAULT }));
     if (!defaultExists) {

@@ -621,13 +621,15 @@ api.startCallByOrder =  async function(t, p) {
         listenersCount,
         io,
         serverIo,
-        asteriskIsOn
+        asteriskIsOn,
+        settings
     ] = await Promise.all([
         this.getOrders(t, {}),
         ctx.api.socket.getListenersCount(),
         ctx.api.socket.getIo(),
         ctx.api.socket.getServerIo(),
-        ctx.api.asterisk.__isOn(t, {})
+        ctx.api.asterisk.__isOn(t, {}),
+        ctx.api.settings.getSettings(t, {})
     ]);
     const currentDate = new Date();
     const idOrders = _.map(orders.list, "orderIdentity.orderId");
@@ -775,12 +777,15 @@ api.startCallByOrder =  async function(t, p) {
                 let texts = [];
 
                 if (ctx.cfg.mqtt.textToSpeech) {
-                    const intervals = await ctx.api.getNearDeliveryDatesIntervals(t, { orderId });
+                    const intervals = await ctx.api.order.getNearDeliveryDatesIntervals(t, { orderId });
                     const allowedInterval = intervals.find(i => i.quotas.available);
+                    const translit = settings.markets.find(m => m.key === order.orderUrl);
+                    const marketName = translit ? translit.value : order.orderUrl;
+
                     if (allowedInterval) {
                         const deliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
                         texts = [
-                            `Вам пришла посылка из интернет магазина ${order.orderUrl}. Стоимостью ${order.clientFullCost} руб`,
+                            `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost} руб`,
                             `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
                             `Мы можем доставить посылку ${deliveryDate} года`
                         ]  
