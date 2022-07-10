@@ -164,8 +164,12 @@ api.__call = async function(t, { phone, gateawayName, texts }) {
 
     if (!(gateaway && isAvailable)) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
+    let Variable = {};
+    let n = 1;
     for (const text of texts) {
         await ctx.api.mqtt.textToSpeech(t, { text });
+        Variable[`text${n}`] = text;
+        n += 1;
     }
 
     return new Promise((resolve, reject) => {
@@ -186,9 +190,7 @@ api.__call = async function(t, { phone, gateawayName, texts }) {
                 CallerID: phone,
                 ActionID: "service_call",
                 ChannelId: id,
-                Variable: {
-                    texts
-                }
+                Variable
             },
             data => {
                 if(data.Response === 'Error'){
