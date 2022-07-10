@@ -786,7 +786,7 @@ api.startCallByOrder =  async function(t, p) {
                     if (allowedInterval) {
                         robotDeliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
                         texts = [
-                            `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost} руб`,
+                            `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost}`,
                             `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
                             `Мы можем доставить посылку ${robotDeliveryDate} года`
                         ]  
