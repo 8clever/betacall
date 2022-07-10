@@ -772,8 +772,22 @@ api.startCallByOrder =  async function(t, p) {
                 console.log("gateaway", gateawayName, n);
                 
                 /** TODO connect textToSpeech service */
+                let texts = [];
 
-                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName, order });
+                if (ctx.cfg.mqtt.textToSpeech) {
+                    const intervals = await ctx.api.getNearDeliveryDatesIntervals(t, { orderId });
+                    const allowedInterval = intervals.find(i => i.quotas.available);
+                    if (allowedInterval) {
+                        const deliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
+                        texts = [
+                            `Вам пришла посылка из интернет магазина ${order.orderUrl}. Стоимостью ${order.clientFullCost} руб`,
+                            `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
+                            `Мы можем доставить посылку ${deliveryDate} года`
+                        ]  
+                    }
+                }
+
+                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName, texts });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
 
                 console.log(`end call --- ` + call.status);

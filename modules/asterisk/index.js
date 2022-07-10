@@ -146,7 +146,7 @@ api.__isOn = async function(t, p) {
   * }}
   * @return {CallResponse}
   */
-api.__call = async function(t, { phone, gateawayName, order }) {
+api.__call = async function(t, { phone, gateawayName, texts }) {
     let id = api.__generateID();
     let isOn = await api.__isOn(t, {});
     if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
@@ -164,20 +164,8 @@ api.__call = async function(t, { phone, gateawayName, order }) {
 
     if (!(gateaway && isAvailable)) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
-    let Variable = null;
-
-    if (ctx.cfg.mqtt.textToSpeech) {
-        Variable = {
-            text1: `Вам пришла посылка из интернет магазина ${order.orderUrl}. Стоимостью ${order.clientFullCost} руб`,
-            text2: `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
-            text3: `Мы можем доставить посылку ${order.desiredDateDelivery.date} года`
-        }
-
-        await Promise.all([
-            ctx.api.mqtt.textToSpeech(t, { text: Variable.text1 }),
-            ctx.api.mqtt.textToSpeech(t, { text: Variable.text2 }),
-            ctx.api.mqtt.textToSpeech(t, { text: Variable.text3 })
-        ])
+    for (const text of texts) {
+        await ctx.api.mqtt.textToSpeech(t, { text });
     }
 
     return new Promise((resolve, reject) => {
@@ -198,7 +186,9 @@ api.__call = async function(t, { phone, gateawayName, order }) {
                 CallerID: phone,
                 ActionID: "service_call",
                 ChannelId: id,
-                Variable
+                Variable: {
+                    texts
+                }
             },
             data => {
                 if(data.Response === 'Error'){

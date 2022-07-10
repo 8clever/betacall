@@ -37,7 +37,6 @@ import {
 } from "reactstrap";
 import _ from "lodash";
 import moment from "moment";
-import { SketchPicker } from 'react-color';
 import url from "url";
 import { AddOrder } from "../components/AddOrder.jsx";
 
