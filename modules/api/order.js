@@ -790,7 +790,7 @@ api.startCallByOrder =  async function(t, p) {
 
                 if (call.status === __.CALL_STATUS.RECALL_LATER_BOT) {
                     const replaceDate = moment().add(1, "day").toDate();
-                    await ctx.api.replaceCallDate(t, { order, replaceDate, metadata: {
+                    await ctx.api.order.replaceCallDate(t, { order, replaceDate, metadata: {
                         orderId,
                         callId: call.id
                     }})
