@@ -29,9 +29,13 @@ module.exports.init = async function (...args) {
 
     const resMethods = Object.values(METHODS).map(m => `${m}Res`);
 
+    for (const topic of resMethods) {
+      client.subscribe(topic);
+    }
+
     client.on("message", (topic, message) => {
       if (resMethods.includes(topic)) {
-        const obj = JSON.parse(message);
+        const obj = JSON.parse(message.toString());
         emitter.emit(obj.id, obj);
       }
     });
