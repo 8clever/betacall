@@ -15,7 +15,7 @@ function generateMethod (topic) {
   return (t, dto = {}) => {
     return new Promise(res => {
       const id = Math.floor(Math.random() * 10000000);
-      emitter.on(id, res)
+      emitter.once(id, res)
       client.publish(topic, JSON.stringify(Object.assign({ id }, dto)));
     });
   }
@@ -31,7 +31,8 @@ module.exports.init = async function (...args) {
 
     client.on("message", (topic, message) => {
       if (resMethods.includes(topic)) {
-        emitter.emit(message.id, JSON.parse(message));
+        const obj = JSON.parse(message);
+        emitter.emit(obj.id, obj);
       }
     });
 
