@@ -775,6 +775,7 @@ api.startCallByOrder =  async function(t, p) {
                 
                 /** TODO connect textToSpeech service */
                 let texts = [];
+                let robotDeliveryDate = null;
 
                 if (ctx.cfg.mqtt.textToSpeech) {
                     const intervals = await ctx.api.order.getNearDeliveryDatesIntervals(t, { orderId });
@@ -783,11 +784,11 @@ api.startCallByOrder =  async function(t, p) {
                     const marketName = translit ? translit.value : order.orderUrl;
 
                     if (allowedInterval) {
-                        const deliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
+                        robotDeliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
                         texts = [
                             `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost} руб`,
                             `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
-                            `Мы можем доставить посылку ${deliveryDate} года`
+                            `Мы можем доставить посылку ${robotDeliveryDate} года`
                         ]  
                     }
                 }
@@ -817,6 +818,7 @@ api.startCallByOrder =  async function(t, p) {
                 }
 
                 if (call.status === __.CALL_STATUS.DONE_BOT) {
+                    _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
                     await ctx.api.order.doneOrder(t, { order, metadata: {
                         orderId,
                         callId: call.id,

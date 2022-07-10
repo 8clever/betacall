@@ -168,7 +168,7 @@ api.__call = async function(t, { phone, gateawayName, texts }) {
     let n = 1;
     for (const text of texts) {
         await ctx.api.mqtt.textToSpeech(t, { text });
-        Variable.push(`text${n}=${text}`);
+        Variable.push(`text${n}='${text}'`);
         n += 1;
     }
 
