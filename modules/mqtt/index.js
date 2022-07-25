@@ -25,20 +25,26 @@ module.exports.deps = [];
 module.exports.init = async function (...args) {
     [ ctx ] = args;
 
-    client = mqtt.connect(`mqtt://${ctx.cfg.mqtt.main.host}`);
+    const isON = (
+      ctx.cfg.mqtt.textToSpeech
+    )
 
-    const resMethods = Object.values(METHODS).map(m => `${m}Res`);
+    if (isON) {
+      client = mqtt.connect(`mqtt://${ctx.cfg.mqtt.main.host}`);
 
-    for (const topic of resMethods) {
-      client.subscribe(topic);
-    }
-
-    client.on("message", (topic, message) => {
-      if (resMethods.includes(topic)) {
-        const obj = JSON.parse(message.toString());
-        emitter.emit(obj.id, obj);
+      const resMethods = Object.values(METHODS).map(m => `${m}Res`);
+  
+      for (const topic of resMethods) {
+        client.subscribe(topic);
       }
-    });
+  
+      client.on("message", (topic, message) => {
+        if (resMethods.includes(topic)) {
+          const obj = JSON.parse(message.toString());
+          emitter.emit(obj.id, obj);
+        }
+      });
+    }
 
     return { api };
 }
