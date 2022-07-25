@@ -788,13 +788,19 @@ api.startCallByOrder =  async function(t, p) {
                         texts = [
                             `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost}`,
                             `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
-                            `Мы можем доставить посылку ${robotDeliveryDate} года`,
-                            orderId
+                            `Мы можем доставить посылку ${robotDeliveryDate} года`
                         ]  
                     }
                 }
 
-                let call = await ctx.api.asterisk.__call(t, { phone, gateawayName, texts });
+                let call = await ctx.api.asterisk.__call(t, { 
+                    phone, 
+                    gateawayName, 
+                    texts,
+                    vars: {
+                        orderId
+                    }
+                });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
 
                 console.log(`end call --- ` + call.status);

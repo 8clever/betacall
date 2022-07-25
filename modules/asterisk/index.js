@@ -146,7 +146,7 @@ api.__isOn = async function(t, p) {
   * }}
   * @return {CallResponse}
   */
-api.__call = async function(t, { phone, gateawayName, texts }) {
+api.__call = async function(t, { phone, gateawayName, texts = [], vars = {} }) {
     let id = api.__generateID();
     let isOn = await api.__isOn(t, {});
     if (!isOn) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
@@ -165,11 +165,20 @@ api.__call = async function(t, { phone, gateawayName, texts }) {
     if (!(gateaway && isAvailable)) return { id, status: __.CALL_STATUS.ASTERISK_BUSY };
 
     const Variable = [];
+
+    const makeVar = (key, val) => {
+        Variable.push(`${key}="${val}"`);
+    }
+
     let n = 1;
     for (const text of texts) {
         await ctx.api.mqtt.textToSpeech(t, { text });
-        Variable.push(`text${n}="${text}"`);
+        makeVar(`text${n}`, text);
         n += 1;
+    }
+
+    for (const key of Object.keys(vars)) {
+        makeVar(key, vars[key]);
     }
 
     return new Promise((resolve, reject) => {
