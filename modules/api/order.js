@@ -788,7 +788,8 @@ api.startCallByOrder =  async function(t, p) {
                         texts = [
                             `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost}`,
                             `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
-                            `Мы можем доставить посылку ${robotDeliveryDate} года`
+                            `Мы можем доставить посылку ${robotDeliveryDate} года`,
+                            orderId
                         ]  
                     }
                 }
