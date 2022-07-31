@@ -428,7 +428,7 @@ api.doneOrder = async function(t, { order, metadata }) {
     let data = _.assign({
         _s_callId: metadata.callId,
         _iduser: user._id,
-        status: metadata.status || __.ORDER_STATUS.DONE
+        status: __.ORDER_STATUS.DONE
     }, 
         api.getOrderMeta(order),
         api.getProcessedTime(user, orderId)
@@ -815,7 +815,7 @@ api.startCallByOrder =  async function(t, p) {
                     return;
                 }
 
-                if (call.status === __.CALL_STATUS.RECALL_LATER_BOT) {
+                if (call.status === __.CALL_STATUS.RECALL_LATER) {
                     const replaceDate = moment().add(1, "day").toDate();
                     await ctx.api.order.replaceCallDate(t, { order, replaceDate, metadata: {
                         orderId,
@@ -824,12 +824,11 @@ api.startCallByOrder =  async function(t, p) {
                     return;
                 }
 
-                if (call.status === __.CALL_STATUS.DONE_BOT) {
+                if (call.status === __.CALL_STATUS.DONE_ORDER) {
                     _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
                     await ctx.api.order.doneOrder(t, { order, metadata: {
                         orderId,
-                        callId: call.id,
-                        status: __.CALL_STATUS.DONE_BOT
+                        callId: call.id
                     }})
                     return;
                 }

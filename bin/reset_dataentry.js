@@ -1,6 +1,7 @@
 var { init } = require("./utils");
 const path = require("path");
 const fs = require("fs");
+const { exec } = require("child_process");
 
 (async () => {
   const { db, ctx } = await init();
@@ -23,6 +24,19 @@ const fs = require("fs");
     const coll = await db.collection(collName);
     await coll.insert(prefixify(data));
   }
+
+  const hashPasswordsPath = path.resolve(__dirname, "hash_passwords");
+  await new Promise((res, rej) => {
+    exec(`node ${hashPasswordsPath}`, (err, stdout) => {
+      if (err) {
+        rej(err);
+        return;
+      }
+      
+      console.log(stdout);
+      res();
+    });
+  })
 })()
 .then(() => {
 	console.log("reset db success!");

@@ -52,7 +52,7 @@ module.exports.init = async function (...args) {
                 /** DONE ORDER */
                 if (evt.Cause === "777") {
                     ami.emit(evt.Uniqueid, { 
-                        status: __.CALL_STATUS.DONE_BOT,
+                        status: __.CALL_STATUS.DONE_ORDER,
                         id: evt.Uniqueid
                     });
                     return;
@@ -61,7 +61,7 @@ module.exports.init = async function (...args) {
                 /** RECALL LATER */
                 if (evt.Cause === "778") {
                     ami.emit(evt.Uniqueid, { 
-                        status: __.CALL_STATUS.RECALL_LATER_BOT,
+                        status: __.CALL_STATUS.RECALL_LATER,
                         id: evt.Uniqueid
                     });
                     return;
