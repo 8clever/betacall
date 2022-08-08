@@ -146,7 +146,7 @@ api.prepareJoinStats = async function(t, p) {
     const qf = ctx.api.prefixify.query;
     const query = qf(p.query);
 
-    const [remove, stats, statsAll] = await Promise.all([
+    const [, stats, statsAll] = await Promise.all([
         cols[COLLECTION.__JOIN_STATS].remove(),
         cols[COLLECTION.STATS].find(query).toArray(),
         cols[COLLECTION.STATS_ALL].find(query).toArray()
@@ -798,7 +798,8 @@ api.startCallByOrder =  async function(t, p) {
                     gateawayName, 
                     texts,
                     vars: {
-                        orderId
+                        orderId,
+                        robotDeliveryDate
                     }
                 });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
