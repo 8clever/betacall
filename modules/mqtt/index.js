@@ -56,8 +56,13 @@ module.exports.init = async function (...args) {
       client = mqtt.connect(`mqtt://${ctx.cfg.mqtt.main.host}`);
 
       const resMethods = Object.values(METHODS).map(m => `${m}Res`);
-  
-      for (const topic of resMethods) {
+      const subscribeMethods = Object.keys(SUBSCRIBTIONS);
+      const clientSubscribers = [
+        ...resMethods,
+        ...subscribeMethods
+      ]
+      
+      for (const topic of clientSubscribers) {
         client.subscribe(topic);
       }
   
