@@ -411,19 +411,24 @@ api.doneOrder = async function(t, { order, metadata }) {
     order.desireDateDelivery = order.desiredDateDelivery;
     order.clientAddress = order.deliveryAddress.inCityAddress;
 
+    const editOrderParams = _.pick(order, [
+        "accessCode",
+        "orderIdentity",
+        "workStatus",
+        "desireDateDelivery",
+        "clientInfo",
+        "clientAddress"
+    ]);
+
     let [ response ] = await topDelivery.editOrdersAsync({
         auth: topDeliveryCfg.bodyAuth,
-        editOrderParams: _.pick(order, [
-            "accessCode",
-            "orderIdentity",
-            "workStatus",
-            "desireDateDelivery",
-            "clientInfo",
-            "clientAddress"
-        ])
+        editOrderParams
     });
 
-    if (response.requestResult.status === 1) throw new Error(response.requestResult.message);
+    if (response.requestResult.status === 1) {
+        console.dir(editOrderParams, { depth: null });
+        throw new Error(response.requestResult.message);
+    }
 
     let data = _.assign({
         _s_callId: metadata.callId,
