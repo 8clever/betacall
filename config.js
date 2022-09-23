@@ -31,11 +31,6 @@ module.exports = {
 				slots: 7,
 				channel: "SIP/<phone>@voip1",
 				regex: /SIP\/voip1/
-			},
-			mango1: {
-				slots: 7,
-				channel: "SIP/<phone>@mango1",
-				regex: /SIP\/mango1/
 			}
 		},
 		maxQueue: 1,
@@ -46,12 +41,8 @@ module.exports = {
 			"8800",
 			"8940"
 		],
-		blackMarkets: [
-		],
-		blackRegions: [
-			"Москва",
-			"Московская область"
-		]
+		blackMarkets: [],
+		blackRegions: []
 	},
 	mqtt: {
 		textToSpeech: false,
