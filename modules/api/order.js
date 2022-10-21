@@ -832,6 +832,9 @@ api.startCallByOrder =  async function(t, p) {
 
                 if (call.status === __.CALL_STATUS.DONE_ORDER) {
                     _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
+                    _.set(order, "desiredDateDelivery.timeInterval.bTime", "10:00:00");
+                    _.set(order, "desiredDateDelivery.timeInterval.eTime", "18:00:00");
+
                     await ctx.api.order.doneOrder(t, { order, metadata: {
                         orderId,
                         callId: call.id
@@ -904,8 +907,8 @@ api.getProcessedTime = (user, orderId) => {
 /**
  * @typedef TimeInterval
  * @type {object}
- * @property {string} bTime - HH:mm:ss
- * @property {string} eTime - HH:mm:ss
+ * @property {string} bTime - HH:mm:ss time from
+ * @property {string} eTime - HH:mm:ss time to
  * 
  * @typedef Quota
  * @type {object}
@@ -930,18 +933,7 @@ api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
      * @type {Quota[]}
      */
     const dateTimeIntervals = response.dateTimeIntervals || [];
-
-    return dateTimeIntervals.map(quota => {
-        
-        /** market quotas some time is wrong */
-        quota.timeInterval = [
-            {
-                bTime: "10:00:00",
-                eTime: "18:00:00"
-            }
-        ]
-        return quota;
-    })
+    return dateTimeIntervals;
 }
 
 api.getHistoryByOrderId = async (t, { orderId }) => {
