@@ -900,6 +900,24 @@ api.getProcessedTime = (user, orderId) => {
     }
 }
 
+
+/**
+ * @typedef TimeInterval
+ * @type {object}
+ * @property {string} bTime - HH:mm:ss
+ * @property {string} eTime - HH:mm:ss
+ * 
+ * @typedef Quota
+ * @type {object}
+ * @property {string} date
+ * @property {number} available
+ * @property {TimeInterval[]} timeInterval
+ * 
+ * @param {string} t 
+ * @param {object} param1
+ * @param {number} param1.orderId
+ * @returns {Promise<Quota[]>}
+*/
 api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
     const [ response ] = await topDelivery.getNearDeliveryDatesIntervalsAsync({
         auth: ctx.cfg.topDelivery.bodyAuth,
@@ -909,15 +927,21 @@ api.getNearDeliveryDatesIntervals = async (t, { orderId }) => {
     });
 
     /**
-     * @name Quota
-     * @param date<Date>
-     * @param quotas<Object>
-     * @param quotas.available<Number>
-     * @param timeInterval<Array>
-     * @param timeInterval.bTime<String> as HH:mm:ss
-     * @param timeInterval.eTime<String> as HH:mm:ss
+     * @type {Quota[]}
      */
-    return response.dateTimeIntervals || [];
+    const dateTimeIntervals = response.dateTimeIntervals || [];
+
+    return dateTimeIntervals.map(quota => {
+        
+        /** market quotas some time is wrong */
+        quota.timeInterval = [
+            {
+                bTime: "10:00:00",
+                eTime: "18:00:00"
+            }
+        ]
+        return quota;
+    })
 }
 
 api.getHistoryByOrderId = async (t, { orderId }) => {
