@@ -88,7 +88,7 @@
     "babel-runtime": "^6.26.0",
     "browser-sync": "^2.26.5",
     "chromedriver": "^2.41.0",
-    "css-loader": "^1.0.0",
+    "css-loader": "^6.7.1",
     "eslint": "^4.7.2",
     "eslint-plugin-react": "^7.13.0",
     "git-describe": "^4.0.4",
