@@ -1,4 +1,4 @@
-const aio = require("asterisk.io");
+const amiInit = require("./ami");
 const __ = require("../api/__namespace");
 const RosReestr = require("./RosReestr");
 const rosreestr = new RosReestr();
@@ -14,7 +14,7 @@ module.exports.init = async function (...args) {
     [ ctx ] = args;
     let config = ctx.cfg;
     
-    ami = aio.ami(
+    ami = amiInit(
         config.ami.host,
         config.ami.port,
         config.ami.username,
@@ -272,32 +272,26 @@ api.__gateawayIsAvailable = async function(t, { gateaway }) {
 
     return new Promise((resolve, reject) => {
 
-        ami.action(
-            "CoreShowChannels",
-            {},
-            data => {
-                let id = data.ActionID;
-                let usedSlots = 0;
+        ami.action("Command", {
+            Command: "sip show channels"
+        }, data => {
+            const  [ ,domain ] = gateaway.channel.split("@")
+            const raw = data.raw;
+            const lines = raw.split("\n");
 
-                if (data.Response === "Error") {
-                    reject(data);
-                    return
-                }
+            let awailSlots = gateaway.slots;
 
-                ami.on("CoreShowChannel" + id, coreShowChannel);
-                ami.once("CoreShowChannelsComplete" + id, evt => {
-                    ami.off("CoreShowChannel" + id, coreShowChannel);
-
-                    let isActive = usedSlots < gateaway.slots;
-                    resolve(isActive);
-                });
-
-                function coreShowChannel (evt) {
-                    if (gateaway.regex.test(evt.Channel)) {
-                        usedSlots++
-                    }
+            for (const line of lines) {
+                if (
+                    line.includes("Output") && 
+                    line.includes(domain) && 
+                    !line.includes("BYE")
+                ) {
+                    awailSlots--;    
                 }
             }
-        );
+
+            resolve(awailSlots > 0)
+        })
     });
 }
