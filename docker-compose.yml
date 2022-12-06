@@ -1,11 +1,14 @@
 version: "3.9"
 services:
+  
   mqtt:
     image: eclipse-mosquitto
+
   mongo:
     image: mongo:4.4
     volumes:
       - mongo:/data/db
+  
   web:
     build:
       context: .
