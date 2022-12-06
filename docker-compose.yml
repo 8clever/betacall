@@ -4,6 +4,8 @@ services:
     image: eclipse-mosquitto
   mongo:
     image: mongo:4.4
+    volumes:
+      - mongo:/data/db
   web:
     build:
       context: .
@@ -17,3 +19,7 @@ services:
     depends_on:
       - "mqtt"
       - "mongo"
+
+volumes:
+  mongo:
+    name: mongo
