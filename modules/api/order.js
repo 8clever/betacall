@@ -831,14 +831,27 @@ api.startCallByOrder =  async function(t, p) {
                 }
 
                 if (call.status === __.CALL_STATUS.DONE_ORDER) {
+                    const intervals = [
+                        { from: "10:00:00", to: "18:00:00" },
+                        { from: "10:00:00", to: "22:00:00" }
+                    ]
                     _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
-                    _.set(order, "desiredDateDelivery.timeInterval.bTime", "10:00:00");
-                    _.set(order, "desiredDateDelivery.timeInterval.eTime", "18:00:00");
 
-                    await ctx.api.order.doneOrder(t, { order, metadata: {
-                        orderId,
-                        callId: call.id
-                    }})
+                    for (const i of intervals) {
+                        _.set(order, "desiredDateDelivery.timeInterval.bTime", i.from);
+                        _.set(order, "desiredDateDelivery.timeInterval.eTime", i.to);
+
+                        try {
+                            await ctx.api.order.doneOrder(t, { order, metadata: {
+                                orderId,
+                                callId: call.id
+                            }})
+                            break;                            
+                        } catch {
+                            /** EMPTY */
+                        }
+                    }
+
                     return;
                 }
                 
