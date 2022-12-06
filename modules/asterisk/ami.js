@@ -23,7 +23,7 @@ const node = {
 * @param {string} name - error const name
 */
 function AMIError(_name) {
-  const args = args || [];
+  const args = [];
 
   let name = _name || null;
   let i = 1;

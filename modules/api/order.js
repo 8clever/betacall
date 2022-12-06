@@ -787,8 +787,9 @@ api.startCallByOrder =  async function(t, p) {
                     const allowedInterval = intervals.find(i => i.quotas.available);
                     const translit = settings.markets.find(m => m.key === order.orderUrl);
                     const marketName = translit ? translit.value : order.orderUrl;
+                    const allowedMarket = !ctx.cfg.robot.blockMarkets.includes(order.orderUrl);
 
-                    if (allowedInterval) {
+                    if (allowedInterval && allowedMarket) {
                         robotDeliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
                         texts = [
                             `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost}`,

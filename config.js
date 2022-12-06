@@ -19,6 +19,9 @@ module.exports = {
 			"apikey"
 		]
 	},
+	robot: {
+		blockMarkets: []
+	},
 	ami: {
 		dirRecords: "/var/www/html/caller/rec/",
 		port: 5038,
