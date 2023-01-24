@@ -12,6 +12,16 @@ const METHODS = {
 }
 
 const SUBSCRIBTIONS = {
+  getNearDeliveryDatesIntervals: async ({ orderId }) => {
+    const t = await ctx.api.scheduler._getRobotToken("", {});
+    const dates = await ctx.api.order.getNearDeliveryDatesIntervals(t, { orderId });
+    return dates;
+  },
+  getOrder: async ({ orderId }) => {
+    const t = await ctx.api.scheduler._getRobotToken("", {});
+    const order = await ctx.api.order.getOrderByID(t, { orderId });
+    return order;
+  },
   orderDone: async ({ orderId, callId, robotDeliveryDate }) => {
     const t = await ctx.api.scheduler._getRobotToken("", {});
     const order = await ctx.api.order.getOrderByID(t, { orderId });
@@ -74,10 +84,15 @@ module.exports.init = async function (...args) {
 
         if (SUBSCRIBTIONS[topic]) {
           const obj = JSON.parse(message.toString());
-          SUBSCRIBTIONS[topic](obj).catch(err => {
-            console.log(`Error in topic: ${topic}`);
-            console.log(err);
-          })
+          SUBSCRIBTIONS[topic](obj)
+            .then(res => {
+              if (!res) return;
+              client.publish(topic + "Res", JSON.stringify(res));
+            })
+            .catch(err => {
+              console.log(`Error in topic: ${topic}`);
+              console.log(err);
+            })
         }
       });
     }
