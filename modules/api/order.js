@@ -877,6 +877,7 @@ api.startCallByOrder =  async function(t, p) {
                     return;
                 }
 
+                if (call.status === __.CALL_STATUS.MANUAL_RELEASE) return;
                 if (call.status === __.CALL_STATUS.CONNECTING_PROBLEM) return;
     
                 throw new Error("Invalid call status: " + call.status);

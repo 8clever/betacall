@@ -23,6 +23,8 @@ const SUBSCRIBTIONS = {
     return order;
   },
   orderDone: async ({ orderId, callId, robotDeliveryDate }) => {
+    await ctx.api.asterisk.__releaseCall("", { callId });
+
     const t = await ctx.api.scheduler._getRobotToken("", {});
     const order = await ctx.api.order.getOrderByID(t, { orderId });
     _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
@@ -32,6 +34,8 @@ const SUBSCRIBTIONS = {
     }});
   },
   orderRecallLater: async ({ orderId, callId }) => {
+    await ctx.api.asterisk.__releaseCall("", { callId });
+    
     const t = await ctx.api.scheduler._getRobotToken("", {});
     const replaceDate = moment().add(1, "day").toDate();
     const order = await ctx.api.order.getOrderByID(t, { orderId });

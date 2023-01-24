@@ -20,7 +20,8 @@ module.exports.CALL_STATUS = {
     RECALL_LATER: "recall_later",
     UNNAVAILABLE: "unnavailable",
     CONNECTING_PROBLEM: "connecting-problem",
-    ASTERISK_BUSY: "asterisk-busy"
+    ASTERISK_BUSY: "asterisk-busy",
+    MANUAL_RELEASE: "manual-release"
 }
 
 module.exports.ORDER_STATUS = {

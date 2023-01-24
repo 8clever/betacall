@@ -211,6 +211,13 @@ api.__call = async function(t, { phone, gateawayName, texts = [], vars = {} }) {
     });
 }
 
+api.__releaseCall = async (t, { callId }) => {
+    ami.emit(callId, { 
+        status: __.CALL_STATUS.MANUAL_RELEASE,
+        id: callId
+    });
+}
+
 /**
  * @param {{ gateawayName: String }}
  * @return {GateAway}
