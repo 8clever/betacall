@@ -22,16 +22,37 @@ const SUBSCRIBTIONS = {
     const order = await ctx.api.order.getOrderByID(t, { orderId });
     return order;
   },
-  orderDone: async ({ orderId, callId, robotDeliveryDate }) => {
+  orderDoneRobot: async ({ orderId, callId, robotDeliveryDate }) => {
     await ctx.api.asterisk.__releaseCall("", { callId });
+
+    const intervals = [
+      { from: "10:00:00", to: "18:00:00" },
+      { from: "10:00:00", to: "22:00:00" }
+    ]
 
     const t = await ctx.api.scheduler._getRobotToken("", {});
     const order = await ctx.api.order.getOrderByID(t, { orderId });
+
     _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
-    await ctx.api.order.doneOrder(t, { order, metadata: {
-      orderId,
-      callId
-    }});
+
+    let error = null;
+
+    for (const i of intervals) {
+      _.set(order, "desiredDateDelivery.timeInterval.bTime", i.from);
+      _.set(order, "desiredDateDelivery.timeInterval.eTime", i.to);
+
+      try {
+          await ctx.api.order.doneOrder(t, { order, metadata: {
+              orderId,
+              callId
+          }});
+          return;
+      } catch (e) {
+        error = e;
+      }
+    }
+
+    throw error;
   },
   orderRecallLater: async ({ orderId, callId }) => {
     await ctx.api.asterisk.__releaseCall("", { callId });
@@ -48,10 +69,14 @@ const SUBSCRIBTIONS = {
 
 const emitter = new EventEmitter();
 
+function generateId () {
+  return Math.floor(Math.random() * 10000000);
+}
+
 function generateMethod (topic) {
   return (t, dto = {}) => {
     return new Promise(res => {
-      const id = Math.floor(Math.random() * 10000000);
+      const id = generateId();
       emitter.once(id, res)
       client.publish(topic, JSON.stringify(Object.assign({ id }, dto)));
     });
@@ -88,14 +113,26 @@ module.exports.init = async function (...args) {
 
         if (SUBSCRIBTIONS[topic]) {
           const obj = JSON.parse(message.toString());
+          const id = obj.id || generateId();
+          const responseTopic = topic + "Res";
+
           SUBSCRIBTIONS[topic](obj)
             .then(res => {
-              if (!res) return;
-              client.publish(topic + "Res", JSON.stringify(res));
+              client.publish(responseTopic, JSON.stringify({
+                id,
+                status: "success",
+                data: res || null
+              }));
             })
             .catch(err => {
               console.log(`Error in topic: ${topic}`);
               console.log(err);
+
+              client.publish(responseTopic, JSON.stringify({
+                id,
+                status: "error",
+                errorMessage: err.message
+              }));
             })
         }
       });
