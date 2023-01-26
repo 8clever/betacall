@@ -285,9 +285,9 @@ api.getOrders = async function(t, p) {
 api.getOrderByID = async function(t, { orderId }) {
     if (!orderId) throw new Error("Invalid order id");
     await ctx.api.users.getCurrentUserPublic(t, {});
-    let order = _.find(__orders, _.matchesProperty("orderIdentity.orderId", Number(orderId)));
+    const order = _.find(__orders, _.matchesProperty("orderIdentity.orderId", Number(orderId)));
     if (!order) throw new Error("Order by id not found");
-    return order;
+    return _.cloneDeep(order);
 }
 
 api.getOrderByPhone = async function(t, { phone }) {
