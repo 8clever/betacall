@@ -11,27 +11,36 @@ const METHODS = {
   TEXT_TO_SPEECH: "textToSpeech"
 }
 
+const extendOrder = async (t, { order }) => {
+  const settings = await ctx.api.settings.getSettings(t, {});
+  const translit = settings.markets.find(m => m.key === order.orderUrl);
+
+  /** extends */
+  const marketName = translit ? translit.value : order.orderUrl;
+  const robot = !ctx.cfg.robot.blockMarkets.includes(order.orderUrl);
+
+  return {
+    ...order,
+    marketName,
+    robot
+  }
+}
+
 const SUBSCRIBTIONS = {
   getNearDeliveryDatesIntervals: async ({ orderId }) => {
     const t = await ctx.api.scheduler._getRobotToken("", {});
     const dates = await ctx.api.order.getNearDeliveryDatesIntervals(t, { orderId });
     return dates;
   },
+  getOrderByPhone: async ({ phone }) => {
+    const t = await ctx.api.scheduler._getRobotToken("", {});
+    const order = await ctx.api.order.getOrderByPhone(t, { phone });
+    return extendOrder(t, { order })
+  },
   getOrder: async ({ orderId }) => {
     const t = await ctx.api.scheduler._getRobotToken("", {});
-    
-    const [ order, settings ] = await Promise.all([
-      ctx.api.order.getOrderByID(t, { orderId }),
-      ctx.api.settings.getSettings(t, {})
-    ]);
-    
-    const translit = settings.markets.find(m => m.key === order.orderUrl);
-    
-    /** extends */
-    order.marketName = translit ? translit.value : order.orderUrl;
-    order.robot = !ctx.cfg.robot.blockMarkets.includes(order.orderUrl);
-
-    return order;
+    const order = await ctx.api.order.getOrderByID(t, { orderId });
+    return extendOrder(t, { order });
   },
   orderDoneRobot: async ({ orderId, callId, robotDeliveryDate }) => {
     await ctx.api.asterisk.__releaseCall("", { callId });

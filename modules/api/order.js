@@ -295,7 +295,7 @@ api.getOrderByPhone = async function(t, { phone }) {
     await ctx.api.users.getCurrentUserPublic(t, {});
     let order = _.find(__orders, _.matchesProperty("clientInfo.phone", phone.toString()));
     if (!order) throw new Error("Order by phone not found!");
-    return order;
+    return _.cloneDeep(order);
 }
 
 api.getMyOrders = async function(t, p) {
