@@ -26,7 +26,10 @@ const SUBSCRIBTIONS = {
     ]);
     
     const translit = settings.markets.find(m => m.key === order.orderUrl);
+    
+    /** extends */
     order.marketName = translit ? translit.value : order.orderUrl;
+    order.robot = !ctx.cfg.robot.blockMarkets.includes(order.orderUrl);
 
     return order;
   },
