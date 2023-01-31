@@ -19,7 +19,15 @@ const SUBSCRIBTIONS = {
   },
   getOrder: async ({ orderId }) => {
     const t = await ctx.api.scheduler._getRobotToken("", {});
-    const order = await ctx.api.order.getOrderByID(t, { orderId });
+    
+    const [ order, settings ] = await Promise.all([
+      ctx.api.order.getOrderByID(t, { orderId }),
+      ctx.api.settings.getSettings(t, {})
+    ]);
+    
+    const translit = settings.markets.find(m => m.key === order.orderUrl);
+    order.marketName = translit ? translit.value : order.orderUrl;
+
     return order;
   },
   orderDoneRobot: async ({ orderId, callId, robotDeliveryDate }) => {
