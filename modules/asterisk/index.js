@@ -183,7 +183,8 @@ api.__call = async function(t, { phone, gateawayName, texts = [], vars = {} }) {
     }
 
     return new Promise((resolve, reject) => {
-        let channel = gateaway.channel.replace(/<phone>/, phone);
+        const { ctx = "ringing" } = gateaway;
+        const channel = gateaway.channel.replace(/<phone>/, phone);
 
         ami.once(id, response => {
             resolve(response);
@@ -193,7 +194,7 @@ api.__call = async function(t, { phone, gateawayName, texts = [], vars = {} }) {
             'Originate',
             { 
                 Channel: channel, 
-                Context: "ringing", 
+                Context: ctx, 
                 Exten: ctx.cfg.ami.exten, 
                 Priority: '1',
                 Async: true,
