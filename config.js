@@ -25,6 +25,7 @@ module.exports = {
 	ami: {
 		dirRecords: "/var/www/html/caller/rec/",
 		port: 5038,
+		timeout: 120000,
 		host: "localhost",
 		username: "",
 		password: "",

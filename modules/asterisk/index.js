@@ -202,6 +202,7 @@ api.__call = async function(t, { phone, gateawayName, texts = [], vars = {} }) {
                 CallerID: phone,
                 ActionID: "service_call",
                 ChannelId: id,
+                Timeout: ctx.cfg.ami.timeout,
                 Variable: Variable.join(",")
             },
             data => {
