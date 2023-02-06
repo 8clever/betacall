@@ -257,6 +257,9 @@ api.__getGateawayByPhone = async function(t, { phone }) {
     return gateaway || null;
 
     function getGateaway () {
+        /** as example Билайн1, we can call from same operator as client use 
+         * for reduce call cost
+        */
         let name = `${info.operator}${gateawayNum}`;
         let gateaway = ctx.cfg.ami.gateaway[ name ];
         if (!gateaway) return null;
