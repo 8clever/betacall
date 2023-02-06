@@ -33,8 +33,7 @@ module.exports = {
 		gateaway: {
 			default: {
 				slots: 7,
-				channel: "SIP/<phone>@voip1",
-				regex: /SIP\/voip1/
+				channel: "SIP/<phone>@voip1"
 			}
 		},
 		maxQueue: 1,

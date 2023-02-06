@@ -278,7 +278,7 @@ api.__getGateawayByPhone = async function(t, { phone }) {
 api.__gateawayIsAvailable = async function(t, { gateaway }) {
     if (!(
         gateaway &&
-        gateaway.regex
+        gateaway.channel
     )) throw new Error("GateAway is required!");
 
     return new Promise((resolve, reject) => {
