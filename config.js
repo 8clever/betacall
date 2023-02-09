@@ -48,7 +48,6 @@ module.exports = {
 		blackRegions: []
 	},
 	mqtt: {
-		textToSpeech: false,
 		main: {
 			host: "mqtt"
 		}

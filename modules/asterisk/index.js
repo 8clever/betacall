@@ -49,24 +49,6 @@ module.exports.init = async function (...args) {
                     evt.Uniqueid
                 )) return;
                 
-                /** DONE ORDER */
-                if (evt.Cause === "777") {
-                    ami.emit(evt.Uniqueid, { 
-                        status: __.CALL_STATUS.DONE_ORDER,
-                        id: evt.Uniqueid
-                    });
-                    return;
-                }
-
-                /** RECALL LATER */
-                if (evt.Cause === "778") {
-                    ami.emit(evt.Uniqueid, { 
-                        status: __.CALL_STATUS.RECALL_LATER,
-                        id: evt.Uniqueid
-                    });
-                    return;
-                }
-
                 if (
                     evt.Cause === "0" ||
                     evt.Cause === "1" ||

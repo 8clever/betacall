@@ -7,9 +7,8 @@ let api = {};
 let ctx = null;
 let client = null;
 
-const METHODS = {
-  TEXT_TO_SPEECH: "textToSpeech"
-}
+/** METHODS which working through mqtt should be placed here */
+const METHODS = {}
 
 const extendOrder = async (t, { order }) => {
   const settings = await ctx.api.settings.getSettings(t, {});
@@ -105,56 +104,50 @@ module.exports.deps = [];
 module.exports.init = async function (...args) {
     [ ctx ] = args;
 
-    const isON = (
-      ctx.cfg.mqtt.textToSpeech
-    )
+    client = mqtt.connect(`mqtt://${ctx.cfg.mqtt.main.host}`);
 
-    if (isON) {
-      client = mqtt.connect(`mqtt://${ctx.cfg.mqtt.main.host}`);
-
-      const resMethods = Object.values(METHODS).map(m => `${m}Res`);
-      const subscribeMethods = Object.keys(SUBSCRIBTIONS);
-      const clientSubscribers = [
-        ...resMethods,
-        ...subscribeMethods
-      ]
-      
-      for (const topic of clientSubscribers) {
-        client.subscribe(topic);
-      }
-  
-      client.on("message", (topic, message) => {
-        if (resMethods.includes(topic)) {
-          const obj = JSON.parse(message.toString());
-          emitter.emit(obj.id, obj);
-        }
-
-        if (SUBSCRIBTIONS[topic]) {
-          const obj = JSON.parse(message.toString());
-          const id = obj.id || generateId();
-          const responseTopic = topic + "Res";
-
-          SUBSCRIBTIONS[topic](obj)
-            .then(res => {
-              client.publish(responseTopic, JSON.stringify({
-                id,
-                status: "success",
-                data: res || null
-              }));
-            })
-            .catch(err => {
-              console.log(`Error in topic: ${topic}`);
-              console.log(err);
-
-              client.publish(responseTopic, JSON.stringify({
-                id,
-                status: "error",
-                errorMessage: err.message
-              }));
-            })
-        }
-      });
+    const resMethods = Object.values(METHODS).map(m => `${m}Res`);
+    const subscribeMethods = Object.keys(SUBSCRIBTIONS);
+    const clientSubscribers = [
+      ...resMethods,
+      ...subscribeMethods
+    ]
+    
+    for (const topic of clientSubscribers) {
+      client.subscribe(topic);
     }
+
+    client.on("message", (topic, message) => {
+      if (resMethods.includes(topic)) {
+        const obj = JSON.parse(message.toString());
+        emitter.emit(obj.id, obj);
+      }
+
+      if (SUBSCRIBTIONS[topic]) {
+        const obj = JSON.parse(message.toString());
+        const id = obj.id || generateId();
+        const responseTopic = topic + "Res";
+
+        SUBSCRIBTIONS[topic](obj)
+          .then(res => {
+            client.publish(responseTopic, JSON.stringify({
+              id,
+              status: "success",
+              data: res || null
+            }));
+          })
+          .catch(err => {
+            console.log(`Error in topic: ${topic}`);
+            console.log(err);
+
+            client.publish(responseTopic, JSON.stringify({
+              id,
+              status: "error",
+              errorMessage: err.message
+            }));
+          })
+      }
+    });
 
     return { api };
 }

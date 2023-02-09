@@ -778,34 +778,12 @@ api.startCallByOrder =  async function(t, p) {
                 const gateawayName = n === 1 ? "mango1" : "default";
                 console.log("gateaway", gateawayName, n);
                 
-                /** TODO connect textToSpeech service */
-                let texts = [];
-                let robotDeliveryDate = null;
-
-                if (ctx.cfg.mqtt.textToSpeech) {
-                    const intervals = await ctx.api.order.getNearDeliveryDatesIntervals(t, { orderId });
-                    const allowedInterval = intervals.find(i => i.quotas.available);
-                    const translit = settings.markets.find(m => m.key === order.orderUrl);
-                    const marketName = translit ? translit.value : order.orderUrl;
-                    const allowedMarket = !ctx.cfg.robot.blockMarkets.includes(order.orderUrl);
-
-                    if (allowedInterval && allowedMarket) {
-                        robotDeliveryDate = moment(allowedInterval.date).format("DD.MM.YYYY");
-                        texts = [
-                            `Вам пришла посылка из интернет магазина ${marketName}. Стоимостью ${order.clientFullCost}`,
-                            `Адрес доставки: Город ${order.deliveryAddress.city}, ${order.deliveryAddress.inCityAddress.address}.`,
-                            `Мы можем доставить посылку ${robotDeliveryDate} года`
-                        ]  
-                    }
-                }
-
                 let call = await ctx.api.asterisk.__call(t, { 
                     phone, 
                     gateawayName, 
                     texts,
                     vars: {
-                        orderId,
-                        robotDeliveryDate
+                        orderId
                     }
                 });
                 if (call.status === __.CALL_STATUS.ASTERISK_BUSY) return;
@@ -822,40 +800,6 @@ api.startCallByOrder =  async function(t, p) {
                     return;
                 }
 
-                if (call.status === __.CALL_STATUS.RECALL_LATER) {
-                    const replaceDate = moment().add(1, "day").toDate();
-                    await ctx.api.order.replaceCallDate(t, { order, replaceDate, metadata: {
-                        orderId,
-                        callId: call.id
-                    }})
-                    return;
-                }
-
-                if (call.status === __.CALL_STATUS.DONE_ORDER) {
-                    const intervals = [
-                        { from: "10:00:00", to: "18:00:00" },
-                        { from: "10:00:00", to: "22:00:00" }
-                    ]
-                    _.set(order, "desiredDateDelivery.date", robotDeliveryDate);
-
-                    for (const i of intervals) {
-                        _.set(order, "desiredDateDelivery.timeInterval.bTime", i.from);
-                        _.set(order, "desiredDateDelivery.timeInterval.eTime", i.to);
-
-                        try {
-                            await ctx.api.order.doneOrder(t, { order, metadata: {
-                                orderId,
-                                callId: call.id
-                            }})
-                            break;                            
-                        } catch {
-                            /** EMPTY */
-                        }
-                    }
-
-                    return;
-                }
-                
                 if (call.status === __.CALL_STATUS.DONE) {
                     const user = await ctx.api.users.getUserByLogin(t, { 
                         login: call.exten
